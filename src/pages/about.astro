@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Prose from "../components/Prose.astro";
+
+const title = "About";
+const description = "Interior design studio profile and philosophy.";
+---
+
+<BaseLayout title={title} description={description} is404Page={false}>
+  <div class="md:grid md:grid-cols-[1fr_2fr] gap-4 md:px-56" data-pagefind-body>
+    <div>
+      <h1 class="normal-case font-overpass-mono text-xl m-2">{title}</h1>
+    </div>
+  </div>
+  <Prose>
+    <h2>About the studio</h2>
+    <p>
+      We design interiors that balance function and atmosphere — spaces that
+      feel considered down to the last detail, without losing the warmth of
+      everyday life.
+    </p>
+    <p>
+      Every project starts with how a space will actually be used, then
+      builds outward: material, light, and layout chosen to serve that use
+      first and aesthetics second — though rarely at odds with one another.
+    </p>
+    <h2>Approach</h2>
+    <p>
+      From initial concept through furniture selection and final styling, we
+      work closely with clients at each stage, keeping the process
+      transparent and the outcome distinctly theirs.
+    </p>
+  </Prose>
+</BaseLayout>

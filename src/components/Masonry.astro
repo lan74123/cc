@@ -11,9 +11,10 @@
  */
 import "../styles/MasonryLayout.css";
 import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
 
 export interface MasonryImage {
-  src: string;
+  src: string | ImageMetadata;
   alt: string;
   positionx?: string;
   positiony?: string;
@@ -52,9 +53,14 @@ const imageAssets = await Promise.all(
       const posStyle = hasPosition
         ? `object-position: ${image.positionx ?? "center"} ${image.positiony ?? "center"}`
         : undefined;
+      // Link to the original full-resolution asset for the lightbox: for
+      // remote images that's the raw src string, for local imports it's
+      // ImageMetadata.src (the unprocessed copy Astro emits on import).
+      const fullSizeHref =
+        typeof image.src === "string" ? image.src : image.src.src;
       return (
         <div class="image-container gallery">
-          <a href={image.src} class="image-link lightbox-link">
+          <a href={fullSizeHref} class="image-link lightbox-link">
             <img
               src={imageAsset.src}
               alt={imageAsset.attributes.alt}

@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import GetRandomImage from "../components/GetRandomImage.astro";
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import type { CollectionName } from "../scripts/collections";
 
 export interface Props {
@@ -15,9 +16,9 @@ const allContent = await getCollection(directory);
 const tags = [...new Set(allContent.map((post) => post.data.tags).flat())];
 
 // De-duplicate image optimization: process each unique src only once
-const imageCache = new Map<string, { src: string; srcset: string }>();
+const imageCache = new Map<string | ImageMetadata, { src: string; srcset: string }>();
 
-async function getOptimizedImage(src: string, alt: string) {
+async function getOptimizedImage(src: string | ImageMetadata, alt: string) {
   if (imageCache.has(src)) return imageCache.get(src)!;
   const result = await getImage({
     src,

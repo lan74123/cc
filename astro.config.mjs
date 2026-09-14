@@ -20,6 +20,10 @@ const isDev =
 export default defineConfig({
   site: "https://www.erfianugrah.com",
 
+  redirects: {
+    "/": "/works",
+  },
+
   image: {
     domains: ["erfianugrah.com", "image.erfi.io"],
     service: isDev

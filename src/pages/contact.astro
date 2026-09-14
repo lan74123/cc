@@ -1,0 +1,23 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Prose from "../components/Prose.astro";
+
+const title = "Contact";
+const description = "Get in touch about a project.";
+---
+
+<BaseLayout title={title} description={description} is404Page={false}>
+  <div class="md:grid md:grid-cols-[1fr_2fr] gap-4 md:px-56" data-pagefind-body>
+    <div>
+      <h1 class="normal-case font-overpass-mono text-xl m-2">{title}</h1>
+    </div>
+  </div>
+  <Prose>
+    <p>Interested in working together? Reach out through any of the channels below.</p>
+    <ul>
+      <li>Email: <a href="mailto:hello@example.com">hello@example.com</a></li>
+      <li>Phone: <a href="tel:+10000000000">+1 (000) 000-0000</a></li>
+      <li>Studio: Address to be added</li>
+    </ul>
+  </Prose>
+</BaseLayout>

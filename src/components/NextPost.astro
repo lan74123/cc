@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
 import Prose from "./Prose.astro";
+import type { ImageMetadata } from "astro";
 import type { CollectionName } from "../scripts/collections";
 import { CDN_FAVICON_URL } from "../consts";
 
@@ -18,7 +19,7 @@ const shouldRender = otherPosts.length > 0;
 // Limit candidates to avoid serializing the entire collection into HTML
 const MAX_CANDIDATES = 20;
 
-async function optimizeImage(src: string, alt: string) {
+async function optimizeImage(src: string | ImageMetadata, alt: string) {
   return await getImage({
     src,
     alt,

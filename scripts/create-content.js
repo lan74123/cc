@@ -26,23 +26,7 @@ const contentDir = path.join(rootDir, "src", "content");
 // --------------- Collection schemas ---------------
 // Mirrors content.config.ts — update here when the schema changes.
 
-const COLLECTIONS = {
-  muses: { complex: [] },
-  short_form: { complex: [] },
-  long_form: { complex: [] },
-  zeitweilig: { complex: [] },
-  authors: { complex: [] },
-  cv: {
-    complex: [
-      "sections",
-      "contacts",
-      "skills",
-      "languages",
-      "education",
-      "companies",
-    ],
-  },
-};
+const COLLECTION_TYPES = ["works"];
 
 const BASE_REQUIRED = ["title", "tags", "author", "description", "pubDate"];
 const BASE_OPTIONAL = ["updatedDate", "image"];
@@ -157,7 +141,7 @@ program
   .version("1.0.0")
   .option(
     "-t, --type <type>",
-    `content type (${Object.keys(COLLECTIONS).join(", ")})`,
+    `content type (${COLLECTION_TYPES.join(", ")})`,
   )
   .option("-d, --dry-run", "preview frontmatter without creating the file")
   .option(
@@ -191,12 +175,12 @@ function handleNonInteractive() {
   }
 
   const collectionType = options.type;
-  if (!COLLECTIONS[collectionType]) {
+  if (!COLLECTION_TYPES.includes(collectionType)) {
     console.error(
       chalk.red(`Error: Unknown collection type '${collectionType}'.`),
     );
     console.log(
-      chalk.yellow(`Available types: ${Object.keys(COLLECTIONS).join(", ")}`),
+      chalk.yellow(`Available types: ${COLLECTION_TYPES.join(", ")}`),
     );
     process.exit(1);
   }
@@ -262,18 +246,18 @@ async function handleInteractive() {
         type: "list",
         name: "collectionType",
         message: "Select content type:",
-        choices: Object.keys(COLLECTIONS),
+        choices: COLLECTION_TYPES,
       },
     ]);
     collectionType = resp.collectionType;
   }
 
-  if (!COLLECTIONS[collectionType]) {
+  if (!COLLECTION_TYPES.includes(collectionType)) {
     console.error(
       chalk.red(`Error: Unknown collection type '${collectionType}'.`),
     );
     console.log(
-      chalk.yellow(`Available types: ${Object.keys(COLLECTIONS).join(", ")}`),
+      chalk.yellow(`Available types: ${COLLECTION_TYPES.join(", ")}`),
     );
     process.exit(1);
   }

@@ -8,6 +8,7 @@ import HeroImage from "../components/HeroImage.astro";
 import NextPost from "../components/NextPost.astro";
 import { formatDate } from "../scripts/utils.ts";
 import type { CollectionName } from "../scripts/collections";
+import type { ImageMetadata } from "astro";
 
 export interface Props {
   frontmatter: {
@@ -16,7 +17,7 @@ export interface Props {
     author: string;
     tags: string[];
     image?: {
-      src: string;
+      src: string | ImageMetadata;
       alt: string;
       positionx?: string;
       positiony?: string;
@@ -34,7 +35,6 @@ const publishedDate = formatDate(frontmatter?.pubDate);
 const title = frontmatter?.title;
 const description = frontmatter?.description;
 const authorFullName = frontmatter?.author;
-const author = authorFullName.split(" ")[0].toLowerCase();
 const image = frontmatter.image?.src;
 const alt = frontmatter.image?.alt;
 const positionx = frontmatter?.image?.positionx;
@@ -144,14 +144,7 @@ const metaImage = image
       <slot />
       <div class="flex flex-col sm:flex-row items-center">
         <div class="w-full flex-col sm:w-1/2 text-center sm:text-left">
-          <p>
-            -- <a
-              href={`/authors/${author}`}
-              class="no-underline font-inconsolata"
-            >
-              {authorFullName}
-            </a>
-          </p>
+          <p class="font-inconsolata">-- {authorFullName}</p>
         </div>
         <div
           class="w-full flex-col sm:w-1/2 text-left sm:text-right mt-[10px] dark:text-white text-black font-inconsolata"

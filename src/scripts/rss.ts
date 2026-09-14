@@ -3,13 +3,7 @@
  * is a collection index that has an RSS feed endpoint.
  */
 function handlePageLoad(): void {
-  const collections = [
-    "short_form",
-    "long_form",
-    "muses",
-    "zeitweilig",
-    "authors",
-  ];
+  const collections = ["works"];
   // Normalize path by stripping leading/trailing slashes
   const currentPath = window.location.pathname.replace(/^\/|\/$/g, "");
 

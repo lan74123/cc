@@ -6,19 +6,15 @@ interface NavItem {
   href: string;
 }
 
-// Home is already the favicon link in the header; omit from the index.
 const NAV: NavItem[] = [
-  { label: "Muses", href: "/muses/" },
-  { label: "Short Form", href: "/short_form/" },
-  { label: "Long Form", href: "/long_form/tags/" },
-  { label: "Zeitweilig", href: "/zeitweilig/" },
+  { label: "Works", href: "/works/" },
+  { label: "About", href: "/about/" },
+  { label: "Contact", href: "/contact/" },
 ];
 
 const pathname = Astro.url.pathname;
 const isCurrent = (href: string): boolean => {
-  // Strip trailing /tags/ so /long_form/tags/* matches /long_form/* too.
-  const base = href.replace(/tags\/?$/, "");
-  return pathname === href || pathname.startsWith(base);
+  return pathname === href || pathname.startsWith(href);
 };
 ---
 

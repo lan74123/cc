@@ -7,8 +7,6 @@ export interface RouteCollection {
   title: string;
   /** Layout used by the detail route. */
   layout: "post" | "author";
-  /** Whether list cards and the detail page show reading time. */
-  readingTime: boolean;
 }
 
 /**
@@ -17,7 +15,7 @@ export interface RouteCollection {
  * and RSS routes.
  */
 export const ROUTE_COLLECTIONS: readonly RouteCollection[] = [
-  { name: "works", title: "Works", layout: "post", readingTime: true },
+  { name: "works", title: "Works", layout: "post" },
 ] as const;
 
 export function getRouteCollection(name: string): RouteCollection {

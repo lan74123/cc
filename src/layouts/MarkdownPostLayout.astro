@@ -5,8 +5,8 @@ import "katex/dist/katex.min.css";
 import Prose from "../components/Prose.astro";
 import { getImage } from "astro:assets";
 import HeroImage from "../components/HeroImage.astro";
+import WorkMeta from "../components/WorkMeta.astro";
 import NextPost from "../components/NextPost.astro";
-import { formatDate } from "../scripts/utils.ts";
 import type { CollectionName } from "../scripts/collections";
 import type { ImageMetadata } from "astro";
 
@@ -24,14 +24,15 @@ export interface Props {
     };
     pubDate: Date;
     updatedDate?: Date;
+    location?: string;
+    year?: string;
+    client?: string;
   };
   currentId: string;
   collection: CollectionName;
 }
 
 const { frontmatter, currentId, collection } = Astro.props;
-const updatedDate = formatDate(frontmatter?.updatedDate);
-const publishedDate = formatDate(frontmatter?.pubDate);
 const title = frontmatter?.title;
 const description = frontmatter?.description;
 const authorFullName = frontmatter?.author;
@@ -107,7 +108,7 @@ const metaImage = image
         collection={collection}
       />
     ) : (
-      <div data-pagefind-body>
+      <div>
         <Prose>
           <h1 class="normal-case font-overpass-mono text-4xl -mb-1 mt-4">
             {title}
@@ -128,35 +129,14 @@ const metaImage = image
       </div>
     )
   }
-  <div data-pagefind-body>
-    <span data-pagefind-filter={`collection:${collection}`} class="hidden"
-    ></span>
-    <span data-pagefind-meta={`date:${publishedDate}`} class="hidden"></span>
-    {
-      metaImage && (
-        <span data-pagefind-meta={`image:${metaImage.src}`} class="hidden" />
-      )
-    }
-    <span
-      data-pagefind-sort={`date:${frontmatter.pubDate.toISOString()}`}
-      class="hidden"></span>
+  <div>
     <Prose>
+      <WorkMeta
+        location={frontmatter.location}
+        year={frontmatter.year}
+        client={frontmatter.client}
+      />
       <slot />
-      <div class="flex flex-col sm:flex-row items-center">
-        <div class="w-full flex-col sm:w-1/2 text-center sm:text-left">
-          <p class="font-inconsolata">-- {authorFullName}</p>
-        </div>
-        <div
-          class="w-full flex-col sm:w-1/2 text-left sm:text-right mt-[10px] dark:text-white text-black font-inconsolata"
-        >
-          <div>
-            Published: {publishedDate}
-          </div>
-          <div>
-            Updated: {updatedDate}
-          </div>
-        </div>
-      </div>
     </Prose>
   </div>
   <NextPost currentId={currentId} collection={collection} />

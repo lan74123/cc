@@ -1,0 +1,30 @@
+---
+export interface Props {
+  location?: string;
+  year?: string;
+  client?: string;
+}
+
+const { location, year, client } = Astro.props;
+
+const fields = [
+  { label: "Location", value: location },
+  { label: "Year", value: year },
+  { label: "Client", value: client },
+].filter((field) => field.value);
+---
+
+{
+  fields.length > 0 && (
+    <dl class="font-inconsolata not-prose flex flex-col gap-1 mb-6">
+      {fields.map((field) => (
+        <div class="flex gap-2 items-baseline">
+          <dt class="font-overpass-mono uppercase text-sm text-gray-600 dark:text-gray-400 shrink-0 w-20">
+            {field.label}
+          </dt>
+          <dd class="text-slate-700 dark:text-slate-300">{field.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

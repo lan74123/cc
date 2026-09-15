@@ -1,7 +1,6 @@
 ---
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
-import { formatDate } from "../scripts/utils";
 
 export interface Props {
   title: string;
@@ -9,10 +8,10 @@ export interface Props {
   image: string | ImageMetadata;
   alt: string;
   description: string;
-  pubDate: Date;
+  category?: string;
+  year?: string;
   positionx: string;
   positiony: string;
-  minutesRead?: string;
 }
 
 const {
@@ -21,12 +20,12 @@ const {
   image,
   alt,
   description,
-  pubDate,
+  category,
+  year,
   positionx,
   positiony,
-  minutesRead,
 } = Astro.props;
-const publishedDate = formatDate(new Date(pubDate), { month: "long" });
+const categoryYear = [category, year].filter(Boolean).join(" ");
 ---
 
 <article
@@ -56,16 +55,10 @@ const publishedDate = formatDate(new Date(pubDate), { month: "long" });
       <h2 class="font-overpass-mono font-bold text-2xl xl:text-4xl uppercase">
         <a href={url} class="title-link">{title}</a>
       </h2>
-      <time
-        datetime={pubDate.toISOString()}
-        class="font-inconsolata text-md text-gray-600 dark:text-gray-400"
-      >
-        Published on {publishedDate}
-      </time>
       {
-        minutesRead && (
-          <p class="font-inconsolata text-sm text-gray-500 dark:text-gray-500 mt-0.5">
-            {minutesRead}
+        categoryYear && (
+          <p class="font-inconsolata text-md text-gray-600 dark:text-gray-400">
+            {categoryYear}
           </p>
         )
       }

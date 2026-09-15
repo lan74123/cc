@@ -27,6 +27,10 @@ const works = defineCollection({
       tags: z.array(z.string()),
       author: z.string(),
       description: z.string(),
+      location: z.string().optional(),
+      year: z.string().optional(),
+      client: z.string().optional(),
+      category: z.enum(["Home", "Commerce"]).optional(),
       image: z
         .object({
           src: z.union([

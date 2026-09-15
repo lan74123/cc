@@ -1,10 +1,9 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import BlogPost from "../../../components/BlogPost.astro";
 import { sortByDate } from "../../../components/sortByDate";
 import { buildTagPaths } from "../../../scripts/collections";
-import { formatReadingTime } from "../../../scripts/utils";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
@@ -29,42 +28,24 @@ export async function getStaticPaths() {
 
 const { tag, collection: collName } = Astro.params;
 const { posts, collectionSlug } = Astro.props;
-const config = getRouteCollection(collName!);
+getRouteCollection(collName!); // validates the collection param
 
-// Pre-sort by date, then resolve reading times if this collection shows them.
 const sorted = [...posts].sort(sortByDate);
-
-const resolved = config.readingTime
-  ? await Promise.all(
-      sorted.map(async (post) => {
-        const { remarkPluginFrontmatter } = await render(post);
-        return {
-          post,
-          readingTimeMs: remarkPluginFrontmatter.readingTimeMs as number,
-        };
-      }),
-    )
-  : sorted.map((post) => ({
-      post,
-      readingTimeMs: undefined as number | undefined,
-    }));
 ---
 
 <BaseLayout title={`${tag} -- ${collectionSlug}`} is404Page={false}>
   {
-    resolved.map(({ post, readingTimeMs }) => (
+    sorted.map((post) => (
       <BlogPost
         url={`/${collectionSlug}/${post.id}/`}
         image={post.data?.image?.src || ""}
         alt={post.data?.image?.alt || ""}
         title={post.data?.title || ""}
         description={post.data?.description || ""}
-        pubDate={post.data?.pubDate || ""}
+        category={post.data?.category}
+        year={post.data?.year}
         positionx={post.data?.image?.positionx || ""}
         positiony={post.data?.image?.positiony || ""}
-        minutesRead={
-          readingTimeMs != null ? formatReadingTime(readingTimeMs) : undefined
-        }
       />
     ))
   }

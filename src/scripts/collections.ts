@@ -7,7 +7,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 const parser = new MarkdownIt();
 
 /** Valid content collection names for use with getCollection(). */
-export type CollectionName = "works";
+export type CollectionName = "works" | "research";
 
 /** Shared shape of a content collection entry used across all collections. */
 interface CollectionPost {
@@ -16,7 +16,7 @@ interface CollectionPost {
   data: {
     title: string;
     description: string;
-    tags: string[];
+    tags?: string[];
     pubDate: Date;
     updatedDate?: Date;
     author: string;
@@ -48,10 +48,12 @@ export function buildTagPaths<T extends CollectionPost>(
   entries: T[],
   collectionSlug: string,
 ) {
-  const uniqueTags = [...new Set(entries.map((post) => post.data.tags).flat())];
+  const uniqueTags = [
+    ...new Set(entries.flatMap((post) => (post.data.tags ?? []).filter(Boolean))),
+  ];
   return uniqueTags.map((tag: string) => {
     const filteredPosts = entries.filter((post) =>
-      post.data.tags.includes(tag),
+      (post.data.tags ?? []).includes(tag),
     );
     return {
       params: { tag },

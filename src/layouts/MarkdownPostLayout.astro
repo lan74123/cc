@@ -15,7 +15,7 @@ export interface Props {
     title: string;
     description: string;
     author: string;
-    tags: string[];
+    tags?: string[];
     image?: {
       src: string | ImageMetadata;
       alt: string;
@@ -40,6 +40,9 @@ const image = frontmatter.image?.src;
 const alt = frontmatter.image?.alt;
 const positionx = frontmatter?.image?.positionx;
 const positiony = frontmatter?.image?.positiony;
+const visibleTags = (frontmatter.tags ?? []).filter(
+  (tag) => tag.trim().length > 0,
+);
 const baseUrl = new URL(Astro.request.url).origin;
 
 const backgroundImage = image
@@ -99,7 +102,7 @@ const metaImage = image
     image ? (
       <HeroImage
         title={title}
-        tags={frontmatter.tags}
+        tags={visibleTags}
         backgroundImage={backgroundImage!.src}
         mobileBackgroundImage={mobileBackgroundImage!.src}
         positionX={positionx}
@@ -113,18 +116,22 @@ const metaImage = image
           <h1 class="normal-case font-overpass-mono text-4xl -mb-1 mt-4">
             {title}
           </h1>
-          <div class="flex">
-            {frontmatter.tags.map((tag) => (
-              <p class="font-overpass-mono text-xl">
-                <a
-                  class="bg-slate-600 text-[rgb(245,245,245)] bg-opacity-50 px-2 py-1 rounded-sm no-underline"
-                  href={`/${collection}/tags/${tag}`}
-                >
-                  {tag}
-                </a>
-              </p>
-            ))}
-          </div>
+          {
+            visibleTags.length > 0 && (
+              <div class="flex">
+                {visibleTags.map((tag) => (
+                  <p class="font-overpass-mono text-xl">
+                    <a
+                      class="bg-slate-600 text-[rgb(245,245,245)] bg-opacity-50 px-2 py-1 rounded-sm no-underline"
+                      href={`/${collection}/tags/${tag}`}
+                    >
+                      {tag}
+                    </a>
+                  </p>
+                ))}
+              </div>
+            )
+          }
         </Prose>
       </div>
     )

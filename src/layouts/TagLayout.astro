@@ -13,7 +13,9 @@ export interface Props {
 
 const { directory, title } = Astro.props;
 const allContent = await getCollection(directory);
-const tags = [...new Set(allContent.map((post) => post.data.tags).flat())];
+const tags = [
+  ...new Set(allContent.flatMap((post) => (post.data.tags ?? []).filter(Boolean))),
+];
 
 // De-duplicate image optimization: process each unique src only once
 const imageCache = new Map<string | ImageMetadata, { src: string; srcset: string }>();
@@ -38,7 +40,7 @@ async function getOptimizedImage(src: string | ImageMetadata, alt: string) {
 
 const imagesByTag: Record<string, { src: string; srcset: string; alt: string }[]> = {};
 for (const post of allContent) {
-  for (const tag of post.data.tags) {
+  for (const tag of (post.data.tags ?? []).filter(Boolean)) {
     if (!imagesByTag[tag]) {
       imagesByTag[tag] = [];
     }

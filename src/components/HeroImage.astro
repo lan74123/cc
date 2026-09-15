@@ -5,7 +5,7 @@
 // All hooks re-wire on astro:page-load so they survive view transitions.
 export interface Props {
   title: string;
-  tags: string[];
+  tags?: string[];
   backgroundImage: string;
   mobileBackgroundImage: string;
   positionX?: string;
@@ -24,6 +24,8 @@ const {
   alt,
   collection,
 } = Astro.props;
+
+const visibleTags = (tags ?? []).filter((tag) => tag.trim().length > 0);
 ---
 
 <div
@@ -57,21 +59,23 @@ const {
     >
       {title}
     </h1>
-    <div class="flex gap-2 mt-2 fade-in-up delay-300 justify-center">
-      {
-        tags.map((tag: string) => (
-          <p class="font-overpass-mono text-xl">
-            <a
-              class="bg-slate-600 text-[rgb(245,245,245)] bg-opacity-50 px-2 py-1 rounded-sm no-underline"
-              href={`/${collection}/tags/${tag}`}
-              style="text-shadow: 0 1px 4px rgba(0,0,0,0.4);"
-            >
-              {tag}
-            </a>
-          </p>
-        ))
-      }
-    </div>
+    {
+      visibleTags.length > 0 && (
+        <div class="flex gap-2 mt-2 fade-in-up delay-300 justify-center">
+          {visibleTags.map((tag: string) => (
+            <p class="font-overpass-mono text-xl">
+              <a
+                class="bg-slate-600 text-[rgb(245,245,245)] bg-opacity-50 px-2 py-1 rounded-sm no-underline"
+                href={`/${collection}/tags/${tag}`}
+                style="text-shadow: 0 1px 4px rgba(0,0,0,0.4);"
+              >
+                {tag}
+              </a>
+            </p>
+          ))}
+        </div>
+      )
+    }
   </div>
 </div>
 

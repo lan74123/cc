@@ -26,7 +26,7 @@ const contentDir = path.join(rootDir, "src", "content");
 // --------------- Collection schemas ---------------
 // Mirrors content.config.ts — update here when the schema changes.
 
-const COLLECTION_TYPES = ["works"];
+const COLLECTION_TYPES = ["works", "research"];
 
 const BASE_REQUIRED = ["title", "tags", "author", "description", "pubDate"];
 const BASE_OPTIONAL = ["updatedDate", "image"];

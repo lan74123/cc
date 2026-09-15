@@ -16,6 +16,7 @@ export interface RouteCollection {
  */
 export const ROUTE_COLLECTIONS: readonly RouteCollection[] = [
   { name: "works", title: "Works", layout: "post" },
+  { name: "research", title: "Research", layout: "post" },
 ] as const;
 
 export function getRouteCollection(name: string): RouteCollection {

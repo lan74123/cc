@@ -10,14 +10,10 @@ Content Collections are a powerful feature in Astro for organizing and managing 
 
 ## Collection Structure
 
-The `src/content/` directory contains multiple collections, each focused on a specific content type:
+The `src/content/` directory contains two collections, both routed through the config-driven `[collection]` pages (see [src/config/collections.ts](../config/collections.ts)):
 
-- **muses/**: Photography-focused content
-- **short_form/**: Brief blog posts and updates
-- **long_form/**: In-depth articles and essays
-- **zeitweilig/**: Temporary or ephemeral content
-- **authors/**: Author information and profiles
-- **cv/**: Resume and professional information
+- **works/**: Interior design project pages (location/year/client/category)
+- **research/**: Case-study and research articles
 
 ## Schema Definition
 
@@ -25,30 +21,38 @@ Each collection is defined in [content.config.ts](/src/content.config.ts) with a
 
 ### Example Schema
 
+`works` and `research` share a `baseFields` object (title, tags, author, description, pubDate/updatedDate, slug, readingTimeMs, plus the optional `location`/`year`/`client`/`category` fields used by works detail pages). Each collection still declares its own `schema: ({ image }) => z.object({ ...baseFields, image: ... })` inline, rather than a shared factory function, so that `image`'s real type flows in from `defineCollection`'s context instead of widening to `any`:
+
 ```typescript
-// Shared base schema eliminates duplication across collections
-const baseSchema = z.object({
+const baseFields = {
   title: z.string(),
-  slug: z.string().optional(),
   tags: z.array(z.string()),
   author: z.string(),
   description: z.string(),
-  image: z
-    .object({
-      src: z.string(),
-      alt: z.string(),
-      positionx: z.string().optional(),
-      positiony: z.string().optional(),
-    })
-    .optional(),
+  location: z.string().optional(),
+  year: z.string().optional(),
+  client: z.string().optional(),
+  category: z.enum(["Home", "Commerce"]).optional(),
   pubDate: z.coerce.date(),
   updatedDate: z.coerce.date().optional(),
-});
+  slug: z.string().optional(),
+  readingTimeMs: z.number().optional(),
+};
 
-const short_form = defineCollection({
-  // Astro 7.1.5 collection pattern
-  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/short_form" }),
-  schema: baseSchema,
+const research = defineCollection({
+  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/research" }),
+  schema: ({ image }) =>
+    z.object({
+      ...baseFields,
+      image: z
+        .object({
+          src: z.union([z.string().startsWith("http"), z.string().startsWith("/"), image()]),
+          alt: z.string(),
+          positionx: z.string().optional(),
+          positiony: z.string().optional(),
+        })
+        .optional(),
+    }),
 });
 ```
 

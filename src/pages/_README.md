@@ -30,9 +30,9 @@ Adding a collection requires only one entry in `ROUTE_COLLECTIONS` -- all five r
 
 ### Dynamic Pages
 
-The `[collection]` segment is matched by Astro's file-based routing against the collection name. For example, `/muses/some-post` hits `[collection]/[...id].astro` with `collection = "muses"` and `id = "some-post"`.
+The `[collection]` segment is matched by Astro's file-based routing against the collection name. For example, `/works/some-post` hits `[collection]/[...id].astro` with `collection = "works"` and `id = "some-post"`.
 
-This covers all five collections: `muses`, `short_form`, `long_form`, `zeitweilig`, and `authors`. The `cv` collection has a bespoke page at `cv.astro` and is deliberately excluded from `ROUTE_COLLECTIONS`.
+This covers both collections declared in `ROUTE_COLLECTIONS`: `works` and `research`.
 
 ## Dynamic Routing
 
@@ -43,7 +43,7 @@ Dynamic routes are generated from content collections defined in [content.config
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("short_form");
+  const posts = await getCollection("works");
   return posts.map((post) => ({
     params: { id: post.id },
     props: { post },
@@ -60,11 +60,8 @@ Most of this boilerplate is handled by the shared helpers in [collections.ts](..
 
 Each collection directory generates an RSS feed via [collections.ts](../scripts/collections.ts)'s `generateRss()` helper:
 
-- `/long_form/rss.xml`
-- `/short_form/rss.xml`
-- `/muses/rss.xml`
-- `/zeitweilig/rss.xml`
-- `/authors/rss.xml`
+- `/works/rss.xml`
+- `/research/rss.xml`
 
 The RSS link icon in the header is conditionally shown by [rss.ts](../scripts/rss.ts) based on the current path.
 

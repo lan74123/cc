@@ -3,7 +3,7 @@
 ## Overview
 
 Revista is an Astro 7 static site for photography, writing, and CV content.
-It uses MDX content collections, vanilla Astro components with inline scripts for interactivity, Tailwind CSS v4, and Pagefind search.
+It uses MDX content collections, vanilla Astro components with inline scripts for interactivity, and Tailwind CSS v4.
 Primary runtime and package manager: Bun. Some helper scripts still run through Node.
 
 ## Rule Sources
@@ -39,10 +39,9 @@ Use Bun by default.
 bun install                    # install dependencies
 bun run dev                    # Astro dev server
 bun run start                  # alias for dev
-bun run build                  # production build; also runs prebuild + postbuild hooks
+bun run build                  # production build; also runs the prebuild hook
 bun run preview                # preview built site from dist/
 bun run prebuild               # sync README/doc version badges
-bun run postbuild              # run Pagefind over dist/ only
 bun run lint:html              # validate generated HTML in dist/
 bun run lint:links             # check internal links from dist/index.html
 bun run lint:site              # full quality gate: build + html + links
@@ -56,7 +55,7 @@ node scripts/parser.js         # verify CLI/content schema drift
 
 ## Single-Test / Targeted Verification
 
-The repository has a Playwright end-to-end test suite (88 tests across 15 spec files).
+The repository has a Playwright end-to-end test suite (83 tests across 14 spec files).
 
 ```sh
 bunx playwright test                                    # run full test suite
@@ -76,10 +75,8 @@ bun x hyperlink dist/path/to/page.html --skip-external
 
 - `bun run build` triggers `prebuild` automatically via package scripts.
 - `prebuild` runs `scripts/sync-readme-versions.js`.
-- `postbuild` runs `pagefind --site dist` automatically after a successful build.
 - `lint:html` and `lint:links` require built files in `dist/`.
 - Build concurrency is set to 4 in `astro.config.mjs` to avoid rate-limiting `image.erfi.io`.
-- `vite.build.assetsInlineLimit` in `astro.config.mjs` vetoes script inlining (returns `false` for `.js`). Astro's plugin-scripts inlines small hoisted script chunks into the HTML, but the inlined copy keeps Vite's raw `__VITE_PRELOAD__` marker (ReferenceError at runtime) when the chunk wraps a dynamic import in `__vitePreload()`. This broke the lazy `/pagefind/pagefind.js` import (search dialog opened, every query showed "Search unavailable"). Scripts must always emit as chunks; do not remove the veto.
 
 ## Remote Image Handling
 
@@ -141,7 +138,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
   - **Hamburger.astro**: Mobile menu toggle with 3-bar-to-X animation, Escape key handler, and click-outside-to-close.
   - **ScrollToTop.astro**: rAF-throttled visibility toggle; smooth `window.scrollTo`; transparent background with inherited-colour chevron.
   - **HeroImage.astro**: Parallax hero with translate3d scroll, IntersectionObserver gate, rAF+lerp loop, fade-in on load, and `prefers-reduced-motion` respect.
-- The `scripts/` directory holds shared logic (theme, lightbox, pagefind) as plain TypeScript modules -- no React, no JSX.
+- The `scripts/` directory holds shared logic (theme, lightbox) as plain TypeScript modules -- no React, no JSX.
 
 ## Astro Component Patterns
 
@@ -195,14 +192,13 @@ bun x hyperlink dist/path/to/page.html --skip-external
 
 ## Generated and Deployment-Sensitive Files
 
-- Do not commit `dist/`, generated Pagefind output, or `.env` files.
+- Do not commit `dist/` or `.env` files.
 - Cloudflare Worker entrypoint is `src/index.ts`; keep it minimal and edge-safe.
 - Wrangler config lives in `wrangler.jsonc`.
 
 ## Deployment Notes
 
 - Deployment target is Cloudflare Workers (static assets); a Docker image is built for container hosting. Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
-- `dist/` is generated output and Pagefind indexes it after a successful build.
 
 ## Agent Workflow Recommendations
 

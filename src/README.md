@@ -227,24 +227,6 @@ This provides a way to:
    - Proper sizing attributes to prevent layout shifts
    - Prefetching of critical images
 
-## Search Implementation
-
-The site uses Pagefind for search functionality with the raw [JS API](https://pagefind.app/docs/api/):
-
-1. **Build-time indexing**: Pagefind runs as a post-build step to generate search indices
-
-   ```json
-   "scripts": {
-     "postbuild": "pagefind --site dist"
-   }
-   ```
-
-2. **Search UI**: `Pagefind.astro` renders a custom `<dialog>` modal; all search logic lives in `src/scripts/pagefind.ts`, referenced via `<script src>`. The Pagefind JS API (`/pagefind/pagefind.js`) is lazy-loaded via a runtime dynamic `import()` on first search. A search icon button in `Header.astro` opens the modal. The `setup()` function rebinds on every `astro:page-load` for ClientRouter compatibility. Note: the script must ship as a build-emitted chunk - `astro.config.mjs` vetoes script inlining via `vite.build.assetsInlineLimit` because Astro's inlined scripts keep Vite's raw `__VITE_PRELOAD__` marker (ReferenceError at runtime) around dynamic imports.
-
-3. **Filters and metadata**: Content layouts use `data-pagefind-filter` for collection-based filtering, `data-pagefind-sort` for date sorting, and `data-pagefind-meta` for date and image metadata in search results.
-
-4. **Integration**: Search results link directly to content pages with thumbnail images where available
-
 ## Tag System Architecture
 
 ```mermaid

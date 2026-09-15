@@ -6,11 +6,6 @@ test.describe("Static assets and build output", () => {
     expect(resp.status()).toBe(200);
   });
 
-  test("pagefind assets exist", async ({ request }) => {
-    const resp = await request.get("/pagefind/pagefind.js");
-    expect(resp.status()).toBe(200);
-  });
-
   test("CSS bundle loads", async ({ page }) => {
     await page.goto("/");
     const styles = page.locator('link[rel="stylesheet"]');

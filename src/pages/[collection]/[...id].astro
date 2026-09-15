@@ -3,7 +3,6 @@ import { getCollection, render } from "astro:content";
 import MarkdownPostLayout from "../../layouts/MarkdownPostLayout.astro";
 import AuthorLayout from "../../layouts/AuthorLayout.astro";
 import { buildDetailPaths } from "../../scripts/collections";
-import { formatReadingTime } from "../../scripts/utils";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
@@ -30,7 +29,7 @@ const { entry } = Astro.props;
 const { collection } = Astro.params;
 const config = getRouteCollection(collection!);
 
-const { Content, remarkPluginFrontmatter } = await render(entry as any);
+const { Content } = await render(entry as any);
 ---
 
 {
@@ -40,11 +39,6 @@ const { Content, remarkPluginFrontmatter } = await render(entry as any);
       currentId={entry.id}
       collection={config.name}
     >
-      {config.readingTime && (
-        <p class="prose prose-slate dark:prose-invert italic no-underline">
-          {formatReadingTime(remarkPluginFrontmatter.readingTimeMs)}
-        </p>
-      )}
       <Content />
     </MarkdownPostLayout>
   ) : (

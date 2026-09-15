@@ -26,7 +26,6 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
   - **[Hamburger.astro](Hamburger.astro)**: Mobile menu toggle. Uses CSS transitions (no framer-motion). Includes `aria-expanded`, `aria-controls`, Escape key handler, and click-outside-to-close for accessibility. All hooks re-wire on `astro:page-load`.
   - **[ThemeToggle.astro](ThemeToggle.astro)**: Self-contained light/dark mode switcher with inline SVG sun/moon. CSS drives dark-state visuals; `theme-toggle` custom event is dispatched on click; [theme.ts](../scripts/theme.ts) handles the actual class toggle and localStorage persistence. All hooks re-wire on `astro:page-load`.
   - **[Navigation.astro](Navigation.astro)**: Site navigation menu with `aria-label` attributes
-  - **[Pagefind.astro](Pagefind.astro)**: Search functionality using the raw [Pagefind JS API](https://pagefind.app/docs/api/). Renders a custom `<dialog>` modal with debounced search, result cards, and thumbnail images. The search icon trigger button is placed in `Header.astro`. Reinitializes via `astro:page-load` for ClientRouter compatibility. Uses `AbortController` for event listener cleanup across navigations.
 
 - **[Footer.astro](Footer.astro)**: Site footer with social media icons from [astro-icon](../../package.json)
 
@@ -75,7 +74,6 @@ Several components carry inline type declarations to satisfy `astro check` witho
 - **Header.astro**: Image `width`/`height` props use numeric literals (`60`) instead of strings to match Astro's `ImageMetadata` types. The favicon is fetched at 60x60 for appropriate display size.
 - **Masonry.astro**: Avoids `key` props on native HTML elements (unlike React, Astro templates don't support `key` on non-component elements).
 - **NextPost.astro**: Uses a `CollectionName` type (from `collections.ts`) for the collection prop, a `PostData` interface for frontmatter fields, and typed `getImage()` parameters.
-- **Pagefind.astro**: Uses a native `<dialog>` element with the raw Pagefind JS API (`/pagefind/pagefind.js`). The API is lazy-loaded via dynamic `import()` on first search and cached. The search logic lives in `src/scripts/pagefind.ts` (referenced via `<script src>`); it must stay a build-emitted chunk, not an inlined script - see the `assetsInlineLimit` note in `astro.config.mjs`. The `setup()` function runs on every `astro:page-load` to rebind DOM queries and event listeners after ClientRouter navigations. Dark mode is handled via `.dark` CSS selectors.
 
 ## Shared Utilities
 
@@ -90,7 +88,7 @@ Several components share logic extracted into `src/scripts/`:
 The following were removed during the code quality refactoring:
 
 - `Greeting.jsx` - unused React greeting component
-- `Search.astro` - superseded by Pagefind integration
+- `Search.astro` / `Pagefind.astro` - search functionality removed entirely (small work count made it unnecessary); indexing (`pagefind` postbuild step), `data-pagefind-*` markers, and the header search trigger were removed alongside it
 - `Social.astro` / `HomepageMasonry.astro` - dead code, no references
 - `fslightbox.js` - vendored lightbox, replaced by custom `lightbox.ts`
 - GLightbox CSS/JS - replaced by custom lightbox (73 KB -> ~2.4 KB gzipped)

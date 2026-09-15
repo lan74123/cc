@@ -4,13 +4,13 @@ test.describe("Blog post pages", () => {
   test("post with image renders hero", async ({ page }) => {
     await page.goto("/muses/augury/");
     // HeroImage or a background image container should be present
-    const hero = page.locator("[data-pagefind-body]").first();
+    const hero = page.locator("#hero-container").first();
     await expect(hero).toBeVisible();
   });
 
   test("post page has article content", async ({ page }) => {
     await page.goto("/muses/augury/");
-    const prose = page.locator(".prose, [data-pagefind-body]").first();
+    const prose = page.locator(".prose").first();
     await expect(prose).toBeVisible();
   });
 

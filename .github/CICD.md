@@ -73,7 +73,7 @@ GitHub Pages uses its own build process to accommodate the different base path r
 
 ```bash
 # Environment variable sets GitHub Pages configuration
-GITHUB_PAGES=true astro build && pagefind --site dist
+GITHUB_PAGES=true astro build
 ```
 
 This approach ensures:

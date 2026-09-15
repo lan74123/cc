@@ -9,7 +9,6 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "postbuild": "pagefind --site dist",
     "create": "node scripts/create-content.js",
     "update-post": "node scripts/update-post.js",
     "update": "node scripts/update-post.js",
@@ -50,7 +49,6 @@
     "hyperlink": "^5.0.4",
     "inquirer": "^13.4.0",
     "inquirer-autocomplete-prompt": "^3.0.1",
-    "pagefind": "^1.5.0",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "yaml": "^2.8.3"

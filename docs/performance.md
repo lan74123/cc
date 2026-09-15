@@ -136,8 +136,7 @@ The project uses Bun for faster builds:
 
 ```json
 "scripts": {
-  "build": "astro build",
-  "postbuild": "pagefind --site dist"
+  "build": "astro build"
 },
 ```
 

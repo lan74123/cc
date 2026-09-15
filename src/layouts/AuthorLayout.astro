@@ -50,8 +50,7 @@ const metaImage = image
   updatedDate={frontmatter.updatedDate}
   is404Page={false}
 >
-  <div class="md:grid md:grid-cols-[1fr_2fr] gap-4 md:px-56" data-pagefind-body>
-    <span data-pagefind-filter="collection:authors" class="hidden"></span>
+  <div class="md:grid md:grid-cols-[1fr_2fr] gap-4 md:px-56">
     {
       image ? (
         <div>
@@ -65,7 +64,6 @@ const metaImage = image
               loading="lazy"
               style={`height: 100%`}
               class="w-full h-full object-cover rounded-lg"
-              data-pagefind-meta="image[src]"
             />
           </div>
           <div>

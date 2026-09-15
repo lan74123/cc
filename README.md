@@ -551,7 +551,6 @@ All scripts are TypeScript (except the remark plugin which remains `.mjs`), mini
 ### Build Pipeline
 
 - **`prebuild`** (automatic): Runs `scripts/sync-readme-versions.js` to keep version badges in docs in sync with `package.json`.
-- **`postbuild`** (automatic): Runs Pagefind indexing over the `dist/` output.
 
 ## Astro Configuration Highlights
 
@@ -580,43 +579,6 @@ I've optimized the site in several ways:
 5. **Cloudflare CDN**: The site uses Cloudflare's CDN with custom cache headers to serve content from edge locations worldwide.
 
 6. **Tailwind Optimizations**: Tailwind CSS v4.2.2's improved performance and lighter bundle size help pages load quickly.
-
-## Search Functionality
-
-The site includes search powered by [Pagefind](https://pagefind.app/) using the raw JS API (`/pagefind/pagefind.js`) with a custom search modal. The search trigger is an SVG icon button in `Header.astro` alongside the theme toggle and hamburger. The modal dialog markup lives in `Pagefind.astro` (rendered via `Navigation.astro`) and the search logic in `src/scripts/pagefind.ts`, referenced via `<script src>` so it ships as a build-emitted chunk.
-
-1. **Comprehensive Content Indexing**: Automatically indexes all site content during the build process (via a postbuild script defined in package.json). Content pages use `data-pagefind-body` to mark indexable regions, `data-pagefind-filter` for collection-based filtering, and `data-pagefind-sort`/`data-pagefind-meta` for date sorting and metadata.
-
-2. **Custom Modal Search**: A native `<dialog>` element with debounced search input, result cards with thumbnail images, excerpt highlighting, and a summary count. The Pagefind JS API is lazy-loaded on first search and cached.
-
-3. **Dark Mode Support**: Uses the site's `.dark` class directly in CSS selectors — no attribute syncing needed.
-
-4. **Keyboard Shortcut**: `Ctrl+K` / `Cmd+K` opens the search modal from anywhere on the page.
-
-5. **ClientRouter Compatible**: The `setup()` function runs on every `astro:page-load` event, ensuring fresh DOM queries and event listeners after each client-side navigation.
-
-6. **Collection Filtering**: Search results can be filtered by content collection (muses, short_form, long_form, zeitweilig, authors) via `data-pagefind-filter` attributes on the content layouts.
-
-```html
-<!-- Header.astro: search icon button -->
-<button id="searchTrigger" aria-label="Search" aria-haspopup="dialog">
-  <svg>...</svg>
-</button>
-
-<!-- Pagefind.astro: custom modal; logic in src/scripts/pagefind.ts -->
-<dialog id="searchDialog">
-  <input id="searchInput" type="search" placeholder="Search..." />
-  <div id="searchResults"></div>
-</dialog>
-<script src="../scripts/pagefind.ts"></script>
-
-<script>
-  // src/scripts/pagefind.ts: lazy-load Pagefind JS API on first search
-  const pagefind = await import("/pagefind/pagefind.js");
-  const search = await pagefind.search(query);
-  // Render results manually...
-</script>
-```
 
 ## Internationalization
 
@@ -775,8 +737,6 @@ To start working with this project:
    # Standard build (for Cloudflare Workers and the Docker image)
    bun run build
    ```
-
-   Both commands include Pagefind indexing for search functionality.
 
 1. (Optional) Run local quality checks before committing:
 

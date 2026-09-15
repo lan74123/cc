@@ -6,7 +6,7 @@ Each doc now lives as a `README.md` inside the directory it describes — GitHub
 
 - **Contributor Guide:** `../AGENTS.md` — repo expectations, commands, and PR norms.
 - **Architecture:** `../src/README.md` — component structure, rendering approach, data flow.
-- **Performance:** `performance.md` — image strategy, caching, Pagefind, and build optimizations.
+- **Performance:** `performance.md` — image strategy, caching, and build optimizations.
 - **CI/CD & Deployments:** `../.github/CICD.md` — GitHub Actions, Cloudflare/Deno, GitHub Pages flow.
 - **Components:** `../src/components/README.md` -- Astro components, Props interfaces, vanilla scripts.
 - **Layouts:** `../src/layouts/README.md` — page templates, slot usage, frontmatter contracts.

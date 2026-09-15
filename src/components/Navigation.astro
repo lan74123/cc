@@ -1,6 +1,4 @@
 ---
-import Pagefind from "./Pagefind.astro";
-
 interface NavItem {
   label: string;
   href: string;
@@ -33,7 +31,6 @@ const isCurrent = (href: string): boolean => {
   }
   <slot />
 </nav>
-<Pagefind />
 
 <style>
   /* Refined monospace popover. Stays in the site's existing solid-color,

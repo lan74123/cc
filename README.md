@@ -54,7 +54,7 @@ bun run dev        # http://localhost:4321
 - Site title, description and social links: `src/consts.ts`
 - Header logo: `src/assets/logo/ccspace_b.svg` (light theme) and `ccspace_w.svg` (dark theme)
 - Favicon: `public/favicon.svg` ("CC" monogram, follows the system colour scheme); `public/apple-touch-icon.png` and `public/icon-512.png`
-- Social share image: `src/assets/cover.jpg`
+- Social share image: `src/assets/cover.jpg` (1920×1080). Do not make it a byte-identical copy of a gallery photo: the build dedupes identical files and then drops the original that the gallery lightbox links to.
 
 ## Deployment
 

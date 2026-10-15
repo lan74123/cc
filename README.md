@@ -44,6 +44,7 @@ bun run dev        # http://localhost:4321
 ## Adding a project
 
 1. Put the photos in `src/assets/works/<slug>/` (`1.jpg`, `2.jpg`, …). Files under `src/assets/` are resized and converted to AVIF at build time; files under `public/` are served as-is, so do not put photos there.
+   Then run `bun run fix-images`: phone photos are stored sideways with an EXIF orientation tag that the build ignores, and this rotates them upright.
 2. Create `src/content/works/YYYY-MM-DD-<slug>.mdx` — copy `2026-10-05-sample-cafe.mdx` as a starting point. Frontmatter fields are defined in `src/content.config.ts` (`category` is `Home` or `Commerce`; empty `location` / `year` / `client` are hidden).
 3. Files starting with `_` are treated as drafts and not published.
 4. Commit and push to `main`.

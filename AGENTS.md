@@ -82,6 +82,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 ## Image Handling
 
 - All site images are local: project photos in `src/assets/works/<slug>/`, imported from MDX so the image service optimizes them. Do not put photos in `public/` — those are served unoptimized.
+- The image service ignores EXIF Orientation, so phone photos render sideways. Run `bun run fix-images` (`scripts/fix-orientation.js`) after adding photos to bake the rotation into the file.
 - Remote `http` image URLs are still accepted by the schema, but no remote image domains are configured.
 - Astro caches processed images in `node_modules/.astro/assets/`; a warm cache avoids re-downloading.
 - `src/scripts/undici-retry.ts` configures a global `RetryAgent` for build-time HTTP fetches with exponential backoff (5 retries, 1s-60s), 120s body timeout, and 6 max connections.

@@ -13,5 +13,6 @@ Each doc now lives as a `README.md` inside the directory it describes — GitHub
 - **Pages:** `../src/pages/_README.md` — routes, SSG, dynamic paths, tag pages.
 - **Content Collections:** `../src/content/README.md` — schemas, naming (`YYYY-MM-DD-slug.mdx`), and frontmatter rules.
 - **Build Scripts:** `../scripts/README.md` — content creation CLI, version sync, update-post.
+- **Image orientation:** run `bun run fix-images` after adding phone photos (see `../scripts/README.md`).
 - **Shared Utilities:** `../src/scripts/` — includes `randomImage.ts` (Fisher-Yates image picker), and `collections.ts` (shared path/RSS helpers).
 - **Site Constants:** `../src/consts.ts` — centralized SITE_TITLE, SITE_DESCRIPTION, SITE_AUTHOR, SITE_COPYRIGHT_OWNER, and SOCIAL_LINKS.

@@ -84,3 +84,7 @@ bun run build && scripts/capture-routes.sh routes.txt
 ```
 
 Writes every emitted `.html` / `.xml` path in `dist/` to a file, so two captures can be diffed to see which URLs were added or dropped by a change.
+
+## `fix-orientation.js` — `bun run fix-images`
+
+Rewrites every JPEG under `src/assets/` that has a non-default EXIF Orientation so the pixels are upright and the tag is removed. Phone photos need this: the build's image service ignores the tag, so they would otherwise render rotated. Safe to run repeatedly.

@@ -128,7 +128,6 @@ graph TD
     - `lightbox.ts`: Custom image lightbox with keyboard/touch navigation
     - `homePage.ts`: Homepage hero-image randomization
     - `getRandomImage.ts`: Random featured image selection for tag pages
-    - `burgundy.ts`: 404 page quote rotation
     - `rss.ts`: RSS link visibility and URL management
     - `since94.ts`: Years-since-1994 counter (used in MDX)
     - `duration.ts`: Computes month counts and duration categories for timeline visualizations
@@ -517,11 +516,6 @@ Client-side JavaScript lives in the `src/scripts/` directory, providing essentia
   - Handles empty image arrays gracefully
 
 ### Content Enhancement
-
-- **`burgundy.ts`**: Creates the dynamic quote system for the 404 page:
-  - Stores a collection of Ron Burgundy quotes
-  - Randomly selects and displays a different quote on each page load
-  - Sets up a rotating quote system with fade transitions
 
 - **`rss.ts`**: Manages RSS subscription features:
   - Conditionally shows/hides RSS links based on the current page

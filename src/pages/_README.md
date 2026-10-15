@@ -13,7 +13,7 @@ Pages define the routes of the site. The project uses static site generation (SS
 ### Static Pages
 
 - **[index.astro](index.astro)**: Homepage using [Homepage.astro](../components/Homepage.astro) for layout and featured content
-- **[404.astro](404.astro)**: Custom error page featuring random quotes from [burgundy.ts](../scripts/burgundy.ts)
+- **[404.astro](404.astro)**: Custom error page with links back to Works and Contact
 - **[cv.astro](cv.astro)**: Resume page importing a pre-rendered HTML export from [cv-v0](https://github.com/erfianugrah/cv-v0)
 
 ### Collection Routes (Config-Driven)

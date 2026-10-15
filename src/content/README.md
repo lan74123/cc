@@ -6,7 +6,7 @@
 
 ## Overview
 
-Content Collections are a powerful feature in Astro for organizing and managing structured content. In this project, all content (blog posts, photos, essays) is organized into collections defined in [content.config.ts](/src/content.config.ts).
+Content Collections are a powerful feature in Astro for organizing and managing structured content. In this project, all content (project pages and research articles) is organized into collections defined in [content.config.ts](/src/content.config.ts).
 
 ## Collection Structure
 
@@ -62,22 +62,22 @@ Each content file (using .mdx format) includes frontmatter that must match the d
 
 ```yaml
 ---
-title: Sisyphean
-pubDate: 2020-12-23T08:10:57.000Z
-updatedDate: 2022-03-17T10:37:55.000Z
-tags: ["muses"]
-author: "Erfi Anugrah"
-image:
-  {
-    src: https://image.erfi.io/sisyphean_1.png,
-    alt: sisyphean_1,
-    positionx: 20%,
-    positiony: 50%,
-  }
-description: It started with an idea or rather an intention to create something but certain things never come to light. Or rather in our attempt to keep it in the shadows, it would still be inadvertently found. I guess if and when this does go out, that would probably be an ironic statement to start off with.
+title: "Daliao"
+slug: "daliao"
+pubDate: "2026-09-14T05:34:29.053Z"
+tags: ["home"]
+author: "CC Space"
+image: { src: ../../assets/works/daliao/1.jpg, alt: "Daliao 1" }
+description: "Large extension and internal reconfiguration of the main house."
+location: "Kaohsiung"
+year: "2026"
+client: "Private Client"
+category: Home
 ---
 <!-- Content goes here -->
 ```
+
+Empty `location`, `year` and `client` values are hidden on the detail page, and empty tags are ignored.
 
 ## Astro 7.1.5 Enhancements
 
@@ -96,7 +96,7 @@ Content collections are used throughout the site's components and layouts. The v
 ---
 // Example from a page component
 import { getCollection } from "astro:content";
-const posts = await getCollection("short_form");
+const posts = await getCollection("works");
 ---
 
 {
@@ -113,93 +113,3 @@ const posts = await getCollection("short_form");
 ```
 
 This structured approach enables consistent presentation, easier content management, and reliable type safety across the entire project.
-
-## CV Schema
-
-The CV collection extends `baseSchema` with additional fields for professional information. This is the most complex schema in the project:
-
-```typescript
-const cv = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/cv" }),
-  schema: baseSchema.extend({
-    fullName: z.string().optional(),
-    sections: z
-      .array(
-        z.object({
-          id: z.string(), // anchor ID for section nav
-          label: z.string(), // display name in sidebar
-        }),
-      )
-      .optional(),
-    contacts: z
-      .array(
-        z.object({
-          type: z.string(), // e.g. "email", "github", "linkedin"
-          value: z.string(), // display text
-          url: z.string(), // link target
-          icon: z.string(), // icon identifier
-        }),
-      )
-      .optional(),
-    skills: z
-      .array(
-        z.object({
-          name: z.string(),
-          level: z.enum(["beginner", "intermediate", "advanced", "expert"]),
-          category: z.string().optional(),
-        }),
-      )
-      .optional(),
-    languages: z
-      .array(
-        z.object({
-          language: z.string(),
-          proficiency: z.string(),
-          level: z
-            .enum(["beginner", "intermediate", "advanced", "expert"])
-            .optional(),
-        }),
-      )
-      .optional(),
-    education: z
-      .array(
-        z.object({
-          institution: z.string(),
-          degree: z.string(),
-          dateRange: z.union([
-            z.string(), // simple "2018 - 2022"
-            z.object({
-              // or structured start/end
-              start: z.string(),
-              end: z.string().optional(),
-            }),
-          ]),
-        }),
-      )
-      .optional(),
-    companies: z
-      .array(
-        z.object({
-          name: z.string(),
-          positions: z.array(
-            z.object({
-              title: z.string(),
-              dateRange: z.union([
-                z.string(),
-                z.object({
-                  start: z.string(),
-                  end: z.string().optional(),
-                }),
-              ]),
-              responsibilities: z.array(z.string()),
-              achievements: z.array(z.string()).optional(),
-            }),
-          ),
-        }),
-      )
-      .optional(),
-  }),
-});
-```
-
-The `dateRange` union type allows both simple strings (`"2018 - Present"`) and structured objects with explicit `start`/`end` fields. The CV components in `src/components/cv/` handle both formats.

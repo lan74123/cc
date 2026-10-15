@@ -12,9 +12,10 @@ Pages define the routes of the site. The project uses static site generation (SS
 
 ### Static Pages
 
-- **[index.astro](index.astro)**: Homepage using [Homepage.astro](../components/Homepage.astro) for layout and featured content
+- `/` has no page: it is a 301 to `/works/` from `public/_redirects` in production (Astro's `redirects` config is used in dev only)
+- **[about.astro](about.astro)** / **[contact.astro](contact.astro)**: Static studio pages
 - **[404.astro](404.astro)**: Custom error page with links back to Works and Contact
-- **[cv.astro](cv.astro)**: Resume page importing a pre-rendered HTML export from [cv-v0](https://github.com/erfianugrah/cv-v0)
+- **[robots.txt.ts](robots.txt.ts)**: Generates `robots.txt` with the sitemap URL derived from `site`
 
 ### Collection Routes (Config-Driven)
 
@@ -63,11 +64,11 @@ Each collection directory generates an RSS feed via [collections.ts](../scripts/
 - `/works/rss.xml`
 - `/research/rss.xml`
 
-The RSS link icon in the header is conditionally shown by [rss.ts](../scripts/rss.ts) based on the current path.
+The RSS link icon in the footer is conditionally shown by [rss.ts](../scripts/rss.ts) based on the current path.
 
 ## Type Safety
 
-- **index.astro**: The collections array is declared with `as const` so TypeScript narrows its elements to literal collection names. Accumulator arrays in `reduce()` calls are explicitly typed (`CollectionEntry<…>[]`) and post-filter results use non-null assertions where the filter guarantees a value.
+- **[collection] routes**: `ROUTE_COLLECTIONS` is declared `as const` and typed with `CollectionName`, so `getCollection(config.name)` receives a literal collection key.
 
 ## Component Integration
 

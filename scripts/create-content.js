@@ -135,7 +135,7 @@ program
   .name("create-content")
   .description(
     chalk.blue(
-      "CLI to create content files for Revista with proper frontmatter",
+      "CLI to create content files for CC Space with proper frontmatter",
     ),
   )
   .version("1.0.0")

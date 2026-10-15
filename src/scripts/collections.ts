@@ -6,6 +6,17 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
 const parser = new MarkdownIt();
 
+/**
+ * Strip MDX-only syntax (ESM import/export lines and capitalised JSX
+ * components such as `<MasonryLayout ... />`) so markdown-it does not
+ * render them as literal text in the feed.
+ */
+function stripMdx(body: string): string {
+  return body
+    .replace(/^\s*(import|export)\s.*$/gm, "")
+    .replace(/<([A-Z][\w.]*)\b[\s\S]*?(\/>|<\/\1>)/g, "");
+}
+
 /** Valid content collection names for use with getCollection(). */
 export type CollectionName = "works" | "research";
 
@@ -86,7 +97,7 @@ export function generateRss(
         pubDate: post.data.pubDate,
         description: post.data.description,
         link: `/${collectionSlug}/${post.id}/`,
-        content: sanitizeHtml(parser.render(post.body ?? "")),
+        content: sanitizeHtml(parser.render(stripMdx(post.body ?? ""))),
       })),
     customData: `<language>en-us</language>`,
   });

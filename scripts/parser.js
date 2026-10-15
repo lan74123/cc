@@ -21,14 +21,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const configPath = path.join(__dirname, "..", "src", "content.config.ts");
 
 // Collections that the CLI scripts know about
-const KNOWN_COLLECTIONS = [
-  "muses",
-  "short_form",
-  "long_form",
-  "zeitweilig",
-  "authors",
-  "cv",
-];
+const KNOWN_COLLECTIONS = ["works", "research"];
 
 const content = fs.readFileSync(configPath, "utf8");
 

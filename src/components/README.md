@@ -12,13 +12,13 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 ### Page & Layout Components
 
-- **[BlogPost.astro](BlogPost.astro)**: Core card component for rendering post previews across [short form](https://www.erfianugrah.com/short_form/), [long form](https://www.erfianugrah.com/long_form/), and [tag pages](https://www.erfianugrah.com/long_form/tags/gleichgesinnte/).
+- **[BlogPost.astro](BlogPost.astro)**: Card component for post previews on the `/works/` and `/research/` index pages and tag pages, including the category/year line for works.
 
-- **[Homepage.astro](Homepage.astro)**: Landing page component used in [index.astro](../pages/index.astro). References [homePage.ts](../scripts/homePage.ts) for randomizing featured images via Fisher-Yates shuffle.
+- **[Homepage.astro](Homepage.astro)**: Random-image landing component backed by [homePage.ts](../scripts/homePage.ts). Currently unused — `/` redirects to `/works/`.
 
 - **[HeroImage.astro](HeroImage.astro)**: Vanilla parallax hero image on content pages. Uses a `<picture>` element with `<source>` for responsive image delivery; the `<img>` carries real alt text (no separate sr-only element). An `IntersectionObserver` ensures the parallax scroll handler only runs while visible, and `will-change: transform` keeps it on the compositor. Supports per-image `positionX`/`positionY` focal point overrides and absolute tag links with collection awareness. The `-20%`/`120%` oversized inner div gives headroom for the parallax offset. All hooks re-wire on `astro:page-load`.
 
-- **[NextPost.astro](NextPost.astro)**: Related content suggestion shown at the bottom of posts. Picks a random post from the same collection (excluding the current one) and renders it as a linked preview card. For posts without a hero image, the favicon placeholder is fetched as PNG (not AVIF) because the SVT-AV1 4:2:0 encoder drops the alpha plane, turning the transparent logo into a solid black square.
+- **[NextPost.astro](NextPost.astro)**: Related content suggestion shown at the bottom of posts. Picks random posts from the same collection (excluding the current one) and renders them as linked preview cards. Posts without a hero image show the `src/assets/logo/ccspace_b.svg` wordmark as a placeholder (inverted in dark mode).
 
 ### Header Components
 
@@ -38,7 +38,6 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 ### Typography Components
 
 - **[Prose.astro](Prose.astro)**: Tailwind CSS typographic layout used throughout the site for consistent text formatting.
-- **[ProseCv.astro](ProseCv.astro)**: Specialized version for the [CV](../content/cv) collection. Uses runtime JS (wired on `astro:page-load`) to add `.company-section`, `.job-section`, `.education-section`, and `.skills-list` classes for print-friendly formatting.
 - **[ProseHeadings.astro](ProseHeadings.astro)**: Specialized component for formatting headings.
 
 ### Utility Components
@@ -50,12 +49,6 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 ### UI Primitives
 
 The `ui/` directory is empty -- shadcn/ui was removed during the React removal refactor. Tailwind utility classes are applied directly in `.astro` components instead.
-
-### CV Components
-
-The `cv/` subdirectory contains specialized components for the resume page. See [cv/README.md](cv/README.md) for details:
-
-- `Company.astro`, `Contact.astro`, `EducationTimeline.astro`, `Section.astro`, `SkillBar.astro`, `Timeline.astro`, `ColorLegend.astro`
 
 ## Component Relationships
 
@@ -71,7 +64,7 @@ Components follow a hierarchical structure, with layout components (BaseLayout, 
 
 Several components carry inline type declarations to satisfy `astro check` without adding external `@types/*` packages:
 
-- **Header.astro**: Image `width`/`height` props use numeric literals (`60`) instead of strings to match Astro's `ImageMetadata` types. The favicon is fetched at 60x60 for appropriate display size.
+- **Header.astro**: Imports the light/dark SVG wordmarks from `src/assets/logo/` and swaps them with `dark:hidden` / `hidden dark:block`.
 - **Masonry.astro**: Avoids `key` props on native HTML elements (unlike React, Astro templates don't support `key` on non-component elements).
 - **NextPost.astro**: Uses a `CollectionName` type (from `collections.ts`) for the collection prop, a `PostData` interface for frontmatter fields, and typed `getImage()` parameters.
 
@@ -79,9 +72,8 @@ Several components carry inline type declarations to satisfy `astro check` witho
 
 Several components share logic extracted into `src/scripts/`:
 
-- **[duration.ts](../scripts/duration.ts)**: `analyzeDuration()` — computes month counts and duration categories for timeline visualizations. Used by `cv/Timeline.astro` and `cv/EducationTimeline.astro`.
 - **[randomImage.ts](../scripts/randomImage.ts)**: Fisher-Yates shuffle and random image picker logic. Used by `homePage.ts` and `getRandomImage.ts` (renamed from `getrandomimage.ts`).
-- **[consts.ts](../consts.ts)**: Site-wide constants (title, author, CDN URLs, social links) imported by Header, Footer, BaseLayout, NextPost, and collections.ts.
+- **[consts.ts](../consts.ts)**: Site-wide constants (title, description, author, copyright owner, social links) imported by Header, Footer, BaseLayout, and collections.ts.
 
 ## Removed Components
 
@@ -93,4 +85,5 @@ The following were removed during the code quality refactoring:
 - `fslightbox.js` - vendored lightbox, replaced by custom `lightbox.ts`
 - GLightbox CSS/JS - replaced by custom lightbox (73 KB -> ~2.4 KB gzipped)
 - `FormattedDate.astro` - date formatting now handled inline via `formatDate()` from `utils.ts`
+- CV components (`cv/`, `ProseCv.astro`) and their `duration.ts` / `since94.ts` helpers - template leftovers with no CV page
 - `framer-motion` - removed as dependency; Hamburger.astro and ThemeToggle.astro now use pure CSS transitions

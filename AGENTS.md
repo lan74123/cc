@@ -2,7 +2,7 @@
 
 ## Overview
 
-Revista is an Astro 7 static site for photography, writing, and CV content.
+This is the CC Space interior design studio site (https://ccspace.tw), an Astro 7 static site built from the Revista template.
 It uses MDX content collections, vanilla Astro components with inline scripts for interactivity, and Tailwind CSS v4.
 Primary runtime and package manager: Bun. Some helper scripts still run through Node.
 
@@ -18,9 +18,10 @@ Primary runtime and package manager: Bun. Some helper scripts still run through 
 src/
   components/       Astro components; `ui/` is empty (shadcn removed post-refactor)
   config/           Route and collection configuration (collections.ts)
-  content/          MDX content collections: muses, short_form, long_form, zeitweilig, authors, cv
+  assets/           Images optimized at build time: logo/, works/<slug>/, cover.jpg
+  content/          MDX content collections: works, research
   content.config.ts Zod-backed collection schemas and glob loaders
-  consts.ts         Site constants, metadata, CDN URLs, social links
+  consts.ts         Site constants, metadata, social links
   index.ts          Cloudflare Workers asset entry point
   layouts/          Shared Astro layouts
   pages/            File-based routes plus dynamic collection/tag pages
@@ -43,7 +44,7 @@ bun run build                  # production build; also runs the prebuild hook
 bun run preview                # preview built site from dist/
 bun run prebuild               # sync README/doc version badges
 bun run lint:html              # validate generated HTML in dist/
-bun run lint:links             # check internal links from dist/index.html
+bun run lint:links             # check internal links from dist/works/index.html
 bun run lint:site              # full quality gate: build + html + links
 bun x astro check              # project-wide Astro/type/content validation
 bun x prettier --check .       # formatting check
@@ -55,7 +56,7 @@ node scripts/parser.js         # verify CLI/content schema drift
 
 ## Single-Test / Targeted Verification
 
-The repository has a Playwright end-to-end test suite (83 tests across 14 spec files).
+The repository has a Playwright end-to-end test suite inherited from the template. Most specs still target the template's old routes (`/muses/`, `/long_form/`) and fail until they are rewritten for `works` / `research`.
 
 ```sh
 bunx playwright test                                    # run full test suite
@@ -76,16 +77,15 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - `bun run build` triggers `prebuild` automatically via package scripts.
 - `prebuild` runs `scripts/sync-readme-versions.js`.
 - `lint:html` and `lint:links` require built files in `dist/`.
-- Build concurrency is set to 4 in `astro.config.mjs` to avoid rate-limiting `image.erfi.io`.
+- Build concurrency is set to 4 in `astro.config.mjs` (a holdover from remote-CDN builds; harmless with local images).
 
-## Remote Image Handling
+## Image Handling
 
-- Remote images from `image.erfi.io` are downloaded and transformed during production builds.
+- All site images are local: project photos in `src/assets/works/<slug>/`, imported from MDX so the image service optimizes them. Do not put photos in `public/` — those are served unoptimized.
+- Remote `http` image URLs are still accepted by the schema, but no remote image domains are configured.
 - Astro caches processed images in `node_modules/.astro/assets/`; a warm cache avoids re-downloading.
 - `src/scripts/undici-retry.ts` configures a global `RetryAgent` for build-time HTTP fetches with exponential backoff (5 retries, 1s-60s), 120s body timeout, and 6 max connections.
-- The Dockerfile is a bare BusyBox httpd image that copies a pre-built `dist/`; it runs no image processing itself. The Astro image cache only matters for the `bun run build` step (local or CI).
-- CI caches the Astro image directory separately from `node_modules` to survive dependency updates.
-- If remote image builds fail in CI, check rate limits on the CDN and verify the Astro image cache is warm.
+- The Astro image cache only matters for the `bun run build` step (local or Cloudflare Workers Builds).
 
 ## Image Service (@erfianugrah/astro-image-hq)
 
@@ -95,7 +95,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - Since 0.1.5: alpha-bearing images route off SVT/NVENC to aom to preserve transparency. 4:2:0 AVIF output is clamped to even dimensions (odd-dim AVIFs fail to decode in Firefox). The package version is hashed into `propertiesToHash` so upgrades invalidate consumer image caches.
 - Override precedence is **boost-as-floor**: profile defaults → component override (`<Image quality={N} />`) → shadow boost merges last. Bright images take the component value; dark gradients get clamped up by the boost.
 - Falls back to sharp 8-bit with a warning when `avifenc` is missing -- local dev still works without it.
-- Required system package: `libavif` on Arch, `libavif-bin` on Debian/Ubuntu. CI installs it via apt before `bun install` (see `.github/workflows/deploy.yml`).
+- Required system package: `libavif` on Arch, `libavif-bin` on Debian/Ubuntu. The Cloudflare Workers Builds image is not known to ship `avifenc`; check its build log for the sharp-fallback warning.
 - Optional: ffmpeg + `av1_nvenc` for GPU-accelerated AVIF -- produces 4:2:0 only (8-bit or 10-bit); routing skips NVENC when 4:4:4 chroma is requested.
 - Source code lives at https://github.com/erfianugrah/astro-image-hq (`~/astro-image-hq` for local development). Bump the `@erfianugrah/astro-image-hq` version in `package.json` then `bun install` to consume releases.
 - When running locally without `avifenc`, the build still completes via sharp fallback. Banding may be visible in dark photographs; install `libavif` for the full fix.
@@ -155,7 +155,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - Dark mode uses `@custom-variant dark (&:where(.dark, .dark *))`.
 - Custom breakpoints are defined in the `@theme` block: `sm=800`, `md=1200`, `lg=1900`, `xl=2500`.
 - Font families center on `Inconsolata` and `Overpass Mono` (defined as `--font-overpass-mono` and `--font-inconsolata` in `@theme`).
-- Prefer utility classes first; add custom CSS only for masonry, lightbox, imported CV styling, or layout edge cases.
+- Prefer utility classes first; add custom CSS only for masonry, lightbox, or layout edge cases.
 - The typography plugin is loaded via `@plugin "@tailwindcss/typography"` in `global.css`. ESM imports work natively with Tailwind v4.2.2 -- the old `require()` workaround is no longer needed.
 
 ## Naming Conventions
@@ -170,11 +170,10 @@ bun x hyperlink dist/path/to/page.html --skip-external
 ## Content Collection Rules
 
 - Collections are defined in `src/content.config.ts` using Zod schemas and Astro glob loaders.
-- Shared frontmatter lives in `baseSchema`; the CV collection extends it with structured resume data.
+- Shared frontmatter lives in the `baseFields` object, spread into each collection's inline schema.
 - Keep collection names consistent across schemas, routes, pages, and CLI scripts.
 - If you add or rename a collection, update both `src/content.config.ts` and the helpers in `scripts/`.
 - Preserve existing frontmatter formatting unless a tool intentionally rewrites it.
-- `src/content/cv/cv-export.html` is imported/generated content; edit it carefully and avoid incidental cleanup.
 
 ## Content Tooling
 
@@ -198,7 +197,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 
 ## Deployment Notes
 
-- Deployment target is Cloudflare Workers (static assets); a Docker image is built for container hosting. Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
+- Deployment target is Cloudflare Workers (static assets). Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
 - The Worker is named `cc-space` (`wrangler.jsonc`) and deploys via Cloudflare Workers Builds connected to GitHub: build command `bun run build`, deploy command `npx wrangler deploy` (`bun run deploy` locally).
 - `site` in `astro.config.mjs` reads `SITE_URL`, set as a Workers Builds env var to `https://ccspace.tw`. `robots.txt` is generated from `site` by `src/pages/robots.txt.ts`.
 - Domain `ccspace.tw` is registered at PChome with nameservers delegated to Cloudflare and DNSSEC enabled (DS record at PChome). Before moving DNS off Cloudflare, clear the DS record at PChome first or the domain will stop resolving.

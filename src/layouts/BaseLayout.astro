@@ -57,12 +57,12 @@ function safeJsonLd(obj: Record<string, unknown>): string {
 }
 
 // Schema.org structured data
-const personSchema = {
+const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "Person",
+  "@type": "Organization",
   name: SITE_AUTHOR,
   url: baseUrl,
-  image: `${baseUrl}/icon-512.png`,
+  logo: `${baseUrl}/icon-512.png`,
   sameAs: Object.values(SOCIAL_LINKS),
 };
 
@@ -72,12 +72,12 @@ const websiteSchema = {
   name: site_name || SITE_TITLE,
   url: baseUrl,
   description: description || SITE_DESCRIPTION,
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${baseUrl}/search?q={search_term_string}`,
-    "query-input": "required name=search_term_string",
-  },
 };
+
+// Browser tab / search result title: "Page | CC Space", or just the site
+// name when the page has no title of its own.
+const documentTitle =
+  title && title !== SITE_TITLE ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 
 // Build breadcrumb from URL path segments
 const pathSegments = Astro.url.pathname
@@ -124,7 +124,7 @@ const formattedUpdatedDate = updatedDate
     <Font cssVariable="--font-overpass-mono" preload />
 
     <!-- Basic SEO -->
-    <title>{title || SITE_TITLE}</title>
+    <title>{documentTitle}</title>
     <meta name="description" content={description || SITE_DESCRIPTION} />
     <meta name="author" content={author || SITE_AUTHOR} />
 
@@ -177,7 +177,7 @@ const formattedUpdatedDate = updatedDate
     <!-- Structured Data -->
     <script
       type="application/ld+json"
-      set:html={safeJsonLd(personSchema)}
+      set:html={safeJsonLd(organizationSchema)}
     />
     <script
       type="application/ld+json"

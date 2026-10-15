@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-### Technical architecture of the Revista project
+### Technical architecture of the CC Space site
 
 ---
 
@@ -133,7 +133,7 @@ graph TD
 
 ## Custom Tailwind Configuration
 
-The site uses a highly customized Tailwind configuration with specific breakpoints optimized for photography viewing.
+The site uses a highly customized Tailwind configuration with specific breakpoints optimized for image-heavy pages.
 
 ### Custom Breakpoints
 
@@ -159,119 +159,67 @@ Image focal-point overrides are applied directly as inline `style` attributes on
 
 ### CollectionName Type
 
-`src/scripts/collections.ts` exports a `CollectionName` type — a union of all content collection keys (`"muses" | "short_form" | "long_form" | "zeitweilig" | "authors" | "cv"`). This type is used throughout layouts and pages wherever `getCollection()` is called with a dynamic collection name, because Astro's generated types require a literal union member, not a plain `string`.
+`src/scripts/collections.ts` exports a `CollectionName` type — the union of content collection keys (`"works" | "research"`). It is used wherever `getCollection()` is called with a dynamic collection name, because Astro's generated types require a literal union member, not a plain `string`.
 
 ### MDX remarkPlugins Behavior
 
-The `mdx()` integration inherits `remarkPlugins` and `rehypePlugins` from the base `markdown` config. Plugins are listed once via `markdown.processor: unified({ remarkPlugins: [...], rehypePlugins: [...] })` -- MDX picks them up automatically. The MDX integration does not specify its own `remarkPlugins` array.
+The `mdx()` integration inherits `remarkPlugins` and `rehypePlugins` from the base `markdown` config. Plugins are listed once via `markdown.processor: unified({ remarkPlugins: [...], rehypePlugins: [...] })` -- MDX picks them up automatically.
 
 ### Schema Definition Pattern
 
-All content is validated using Zod schemas with the following pattern:
+Collections are defined in `src/content.config.ts`. Shared fields live in a plain `baseFields` object that each collection spreads into its own inline schema, so the `image()` helper from `defineCollection`'s context stays correctly typed:
 
 ```typescript
-// Shared base schema — all collections use this
-const baseSchema = z.object({
-  title: z.string(),
-  slug: z.string().optional(),
-  tags: z.array(z.string()),
-  author: z.string(),
-  description: z.string(),
-  image: z
-    .object({
-      src: z.string(),
-      alt: z.string(),
-      positionx: z.string().optional(),
-      positiony: z.string().optional(),
-    })
-    .optional(),
-  pubDate: z.coerce.date(),
-  updatedDate: z.coerce.date().optional(),
-});
-
-const muses = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/muses" }),
-  schema: baseSchema,
-});
-
-// CV extends the base with professional fields
-const cv = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/cv" }),
-  schema: baseSchema.extend({ fullName: z.string().optional() /* ... */ }),
+const works = defineCollection({
+  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/works" }),
+  schema: ({ image }) =>
+    z.object({
+      ...baseFields, // title, tags, author, description, location, year, client, category, pubDate, ...
+      image: z
+        .object({
+          src: z.union([
+            z.string().startsWith("http"),
+            z.string().startsWith("/"),
+            image(),
+          ]),
+          alt: z.string(),
+          positionx: z.string().optional(),
+          positiony: z.string().optional(),
+        })
+        .optional(),
+    }),
 });
 ```
 
+`research` uses the same shape with `base: "./src/content/research"`.
+
 ### Glob Pattern Selection
 
-The `loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/muses" })` configuration:
+`glob({ pattern: "**/[^_]*.mdx", base: "./src/content/works" })`:
 
 1. `**/` - Recursively searches all subdirectories
-2. `[^_]*` - Ignores files that start with underscore (draft content)
+2. `[^_]*` - Ignores files that start with underscore (drafts)
 3. `.mdx` - Only selects MDX files
-4. `base: "./src/content/muses"` - Sets the root directory for the collection
-
-This provides a way to:
-
-- Organize content in subdirectories (e.g., by year, category)
-- Keep draft content in the same directory but excluded from builds
-- Apply consistent schemas to all content in a collection
 
 ## Image Optimization Strategy
 
-1. **Astro image service**: The [`@erfianugrah/astro-image-hq`](https://www.npmjs.com/package/@erfianugrah/astro-image-hq) custom Astro image service (profile `photo`) handles production builds, with a `noop` service fallback in dev. Configured in `astro.config.mjs`; handles AVIF/WebP conversion, responsive sizing, and proper metadata.
+1. **Astro image service**: The [`@erfianugrah/astro-image-hq`](https://www.npmjs.com/package/@erfianugrah/astro-image-hq) custom Astro image service (profile `photo`) handles production builds, with a `noop` service fallback in dev. Configured in `astro.config.mjs`; handles AVIF conversion, responsive sizing, and proper metadata.
 
-2. **CDN integration** for external assets via `image.erfi.io`.
+2. **Local images only**: project photos live in `src/assets/works/<slug>/` and are imported from MDX so they go through the image service. Files in `public/` bypass optimization, so photos should not be placed there.
 
 3. **Loading optimizations**:
    - `loading="lazy"` for below-the-fold images
    - Proper sizing attributes to prevent layout shifts
-   - Prefetching of critical images
 
 ## Tag System Architecture
 
 ```mermaid
 graph TD
-    A["MDX Content"] -->|"frontmatter.tags"| B["Tag Collection"]
+    A["MDX Content"] -->|"frontmatter.tags"| B["buildTagPaths()"]
     B --> C["Tag Pages"]
     B --> D["Tag Index Pages"]
 ```
 
-The tag system works as follows:
-
-1. **Tag Definition**: Each content piece includes tags in its frontmatter
-
-   ```yaml
-   ---
-   title: "Example Post"
-   tags: ["photography", "urban", "monochrome"]
-   ---
-   ```
-
-2. **Tag Extraction**: During build, Astro extracts all unique tags
-
-   ```javascript
-   export async function getStaticPaths() {
-     const posts = await getCollection("muses");
-     const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort();
-
-     return tags.map((tag) => ({
-       params: { tag },
-       props: {
-         posts: posts.filter((post) => post.data.tags.includes(tag)),
-         tag,
-       },
-     }));
-   }
-   ```
-
-3. **Route Generation**: Creates dynamic routes for each tag
-   - `/muses/tags/[tag].astro` → `/muses/tags/monochrome`
-   - `/long_form/tags/[tag].astro` → `/long_form/tags/travel`
-
-4. **Content Association**: Each tag page displays all content with that tag
-
-This architecture allows for:
-
-- Cross-collection tagging
-- Automatic tag page generation
-- Consistent tag URLs across the site
+1. Each entry lists tags in its frontmatter (`tags: ["home"]`). Empty strings are ignored.
+2. `buildTagPaths()` in `src/scripts/collections.ts` collects the unique tags of a collection and returns one static path per tag.
+3. `src/pages/[collection]/tags/[tag].astro` renders them, e.g. `/works/tags/home/` and `/works/tags/commerce/`.

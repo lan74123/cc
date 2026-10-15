@@ -8,6 +8,7 @@
     "prebuild": "node scripts/sync-readme-versions.js",
     "build": "astro build",
     "preview": "astro preview",
+    "deploy": "wrangler deploy",
     "astro": "astro",
     "create": "node scripts/create-content.js",
     "update-post": "node scripts/update-post.js",
@@ -51,6 +52,7 @@
     "inquirer-autocomplete-prompt": "^3.0.1",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
+    "wrangler": "^4.151.0",
     "yaml": "^2.8.3"
   }
 }

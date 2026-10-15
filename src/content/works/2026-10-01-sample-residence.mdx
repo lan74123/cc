@@ -1,0 +1,29 @@
+---
+title: "Sample Residence"
+slug: "sample-residence"
+pubDate: "2026-10-01T02:00:00.000Z"
+tags: ["home"]
+author: "CC Space"
+image: { src: ../../assets/works/sample-residence/1.jpg, alt: "Sample Residence placeholder 1" }
+description: "Placeholder project. A full-floor apartment renovation with an open kitchen, built-in storage, and a reworked lighting plan."
+location: "Taipei"
+year: "2026"
+client: "Private Client"
+category: Home
+---
+import img1 from '../../assets/works/sample-residence/1.jpg';
+import img2 from '../../assets/works/sample-residence/2.jpg';
+import img3 from '../../assets/works/sample-residence/3.jpg';
+import img4 from '../../assets/works/sample-residence/4.jpg';
+
+Placeholder project. A full-floor apartment renovation with an open kitchen, built-in storage, and a reworked lighting plan.
+
+---
+import MasonryLayout from '../../components/Masonry.astro';
+
+<MasonryLayout images={[
+    { src: img1, alt: "Sample Residence placeholder 1" },
+    { src: img2, alt: "Sample Residence placeholder 2" },
+    { src: img3, alt: "Sample Residence placeholder 3" },
+    { src: img4, alt: "Sample Residence placeholder 4" },
+]} />

@@ -10,29 +10,18 @@ import {
   SITE_TITLE,
   SITE_DESCRIPTION,
   SITE_AUTHOR,
-  CDN_FAVICON_URL,
-  CDN_COVER_IMAGE_URL,
   SOCIAL_LINKS,
 } from "../consts";
+import coverImage from "../assets/cover.jpg";
 const baseUrl = new URL(Astro.request.url).origin;
 const metaImage = await getImage({
-  src: CDN_COVER_IMAGE_URL,
+  src: coverImage,
   alt: `Cover image for ${SITE_TITLE} website`,
   height: 720,
   width: 1280,
   decoding: "async",
   format: "webp",
   loading: "lazy",
-});
-
-const favicon_webp = await getImage({
-  src: CDN_FAVICON_URL,
-  alt: `${SITE_TITLE} favicon`,
-  height: 400,
-  width: 400,
-  decoding: "async",
-  loading: "lazy",
-  format: "png",
 });
 
 export interface Props {
@@ -73,7 +62,7 @@ const personSchema = {
   "@type": "Person",
   name: SITE_AUTHOR,
   url: baseUrl,
-  image: `${baseUrl}${favicon_webp.src}`,
+  image: `${baseUrl}/icon-512.png`,
   sameAs: Object.values(SOCIAL_LINKS),
 };
 
@@ -123,7 +112,8 @@ const formattedUpdatedDate = updatedDate
 <html class="bg-[rgb(244,242,238)] dark:bg-[rgb(34,33,37)]" lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/png" href={favicon_webp.src} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="canonical" href={new URL(Astro.url.pathname, baseUrl).href} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

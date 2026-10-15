@@ -18,14 +18,15 @@ const isDev =
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://www.erfianugrah.com",
+  // Canonical/sitemap/RSS origin. Until the custom domain is bought, set
+  // SITE_URL to the workers.dev URL (Cloudflare Workers Builds env vars).
+  site: process.env.SITE_URL ?? "https://cc-space.workers.dev",
 
   redirects: {
     "/": "/works",
   },
 
   image: {
-    domains: ["erfianugrah.com", "image.erfi.io"],
     service: isDev
       ? { entrypoint: "astro/assets/services/noop" }
       : hqService({

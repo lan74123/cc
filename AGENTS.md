@@ -199,6 +199,9 @@ bun x hyperlink dist/path/to/page.html --skip-external
 ## Deployment Notes
 
 - Deployment target is Cloudflare Workers (static assets); a Docker image is built for container hosting. Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
+- The Worker is named `cc-space` (`wrangler.jsonc`) and deploys via Cloudflare Workers Builds connected to GitHub: build command `bun run build`, deploy command `npx wrangler deploy` (`bun run deploy` locally).
+- `site` in `astro.config.mjs` reads `SITE_URL` (set it as a build env var to the workers.dev URL until the custom domain exists). `robots.txt` is generated from `site` by `src/pages/robots.txt.ts`.
+- Logos live in `src/assets/logo/` (`ccspace_b.svg` for light theme, `ccspace_w.svg` for dark theme); `public/favicon.svg` is the "CC" monogram and switches colour via `prefers-color-scheme`.
 
 ## Agent Workflow Recommendations
 

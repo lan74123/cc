@@ -2,23 +2,15 @@
 import Hamburger from "./Hamburger.astro";
 import Navigation from "./Navigation.astro";
 import ThemeToggle from "./ThemeToggle.astro";
-import { getImage } from "astro:assets";
-import { CDN_FAVICON_URL } from "../consts";
+import logoDark from "../assets/logo/ccspace_b.svg";
+import logoLight from "../assets/logo/ccspace_w.svg";
+import { SITE_TITLE } from "../consts";
 
 export interface Props {
   is404Page?: boolean;
 }
 
 const { is404Page = false } = Astro.props;
-
-const favicon_avif = await getImage({
-  src: CDN_FAVICON_URL,
-  alt: "favicon",
-  width: 60,
-  height: 60,
-  decoding: "async",
-  format: "avif",
-});
 ---
 
 <header class="relative mb-[20px] mt-[-10px]">
@@ -29,12 +21,19 @@ const favicon_avif = await getImage({
     {
       !is404Page && (
         <div class="flex items-center h-[30px]">
-          <a href="/" class="block">
+          <a href="/" class="block" aria-label={`${SITE_TITLE} home`}>
             <img
-              class="favicon dark:invert w-[30px] h-[30px]"
-              src={favicon_avif.src}
-              alt="Home"
-              width="30"
+              class="favicon dark:hidden h-[30px] w-auto"
+              src={logoDark.src}
+              alt=""
+              width="123"
+              height="30"
+            />
+            <img
+              class="favicon hidden dark:block h-[30px] w-auto"
+              src={logoLight.src}
+              alt=""
+              width="123"
               height="30"
             />
           </a>

@@ -1,0 +1,29 @@
+---
+title: "Sample Café"
+slug: "sample-cafe"
+pubDate: "2026-10-05T02:00:00.000Z"
+tags: ["commerce"]
+author: "CC Space"
+image: { src: ../../assets/works/sample-cafe/1.jpg, alt: "Sample Café placeholder 1" }
+description: "Placeholder project. A neighbourhood café fit-out balancing counter workflow, seating density, and a warm material palette."
+location: "Taichung"
+year: "2026"
+client: "Sample Client"
+category: Commerce
+---
+import img1 from '../../assets/works/sample-cafe/1.jpg';
+import img2 from '../../assets/works/sample-cafe/2.jpg';
+import img3 from '../../assets/works/sample-cafe/3.jpg';
+import img4 from '../../assets/works/sample-cafe/4.jpg';
+
+Placeholder project. A neighbourhood café fit-out balancing counter workflow, seating density, and a warm material palette.
+
+---
+import MasonryLayout from '../../components/Masonry.astro';
+
+<MasonryLayout images={[
+    { src: img1, alt: "Sample Café placeholder 1" },
+    { src: img2, alt: "Sample Café placeholder 2" },
+    { src: img3, alt: "Sample Café placeholder 3" },
+    { src: img4, alt: "Sample Café placeholder 4" },
+]} />

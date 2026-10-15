@@ -4,7 +4,7 @@ import { getImage } from "astro:assets";
 import Prose from "./Prose.astro";
 import type { ImageMetadata } from "astro";
 import type { CollectionName } from "../scripts/collections";
-import { CDN_FAVICON_URL } from "../consts";
+import logo from "../assets/logo/ccspace_b.svg";
 
 export interface Props {
   currentId: string;
@@ -51,18 +51,9 @@ const postsData = await Promise.all(
   }),
 );
 
-// The favicon is a transparent-background logo. It must NOT go through the
-// avifenc-svt 4:2:0 path (>=64px even dimensions), which drops the alpha plane
-// and renders the placeholder as a solid black square. PNG keeps alpha.
-const favicon = await getImage({
-  src: CDN_FAVICON_URL,
-  alt: "favicon",
-  width: 640,
-  height: 360,
-  fit: "inside",
-  format: "png",
-  decoding: "async",
-});
+// Placeholder for posts without an image. The logo is an SVG, so it is
+// served as-is (no raster transform) and inverted in dark mode via CSS.
+const favicon = logo;
 ---
 
 {
@@ -88,8 +79,8 @@ const favicon = await getImage({
           data-collection={collection}
           data-favicon={JSON.stringify({
             src: favicon.src,
-            width: favicon.attributes.width,
-            height: favicon.attributes.height,
+            width: favicon.width,
+            height: favicon.height,
           })}
         >
           {[...Array(3)].map((_) => (
@@ -160,7 +151,7 @@ const favicon = await getImage({
           img.alt = post.alt;
           img.className = post.image
             ? "w-full h-full object-cover transition-all duration-300 group-hover:opacity-90"
-            : "w-16 h-16 md:w-24 md:h-24 transition-all duration-300 group-hover:opacity-90";
+            : "w-24 md:w-36 h-auto dark:invert transition-all duration-300 group-hover:opacity-90";
         }
 
         const title = element.querySelector("h3");

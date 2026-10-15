@@ -27,3 +27,6 @@ venv
 **/CLAUDE.local.md
 *CLAUDE*
 test-results/
+
+# wrangler local state
+.wrangler/

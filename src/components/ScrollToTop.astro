@@ -1,14 +1,15 @@
 ---
-// Scroll-to-top button. rAF-throttled visibility, smooth scroll. Background is
-// deliberately transparent with an inherited-colour chevron - that was the
-// original design (the React version's bg-primary token resolved to no CSS).
+// Scroll-to-top button. rAF-throttled visibility, smooth scroll. Semi-opaque
+// pill so it stays visible over photos, with a 44px tap target. It sits well
+// above the bottom edge so mobile Safari's toolbar, which pushes fixed
+// elements up when it appears, does not crowd it.
 // All hooks re-wire on astro:page-load so they survive view transitions.
 ---
 
 <button
   id="scroll-to-top"
   aria-label="Scroll to top"
-  class="fixed bottom-4 right-4 p-2 rounded-full shadow-lg opacity-0 invisible pointer-events-none transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+  class="fixed right-4 z-50 flex items-center justify-center w-11 h-11 rounded-full opacity-0 invisible pointer-events-none transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -28,8 +29,25 @@
 
 <style is:global>
   #scroll-to-top {
-    background-color: transparent;
-    color: inherit;
+    bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    color: rgb(34, 33, 37);
+    background-color: rgba(244, 242, 238, 0.85);
+    border: 1px solid rgba(34, 33, 37, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .dark #scroll-to-top {
+    color: rgb(245, 245, 245);
+    background-color: rgba(52, 51, 56, 0.85);
+    border-color: rgba(245, 245, 245, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  @media (min-width: 800px) {
+    #scroll-to-top {
+      bottom: 2rem;
+      right: 2rem;
+    }
   }
   #scroll-to-top.visible {
     opacity: 1;

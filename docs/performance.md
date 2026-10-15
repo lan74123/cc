@@ -99,36 +99,9 @@ The project deploys to multiple edge platforms:
 
 ## Mobile Optimization
 
-### Responsive Grid Adjustments
+### Responsive Gallery
 
-The Masonry layout adapts for mobile with optimized configurations:
-
-```css
-@media (max-width: 768px) {
-  .masonry {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-
-  /* Reset spanning on smaller screens for simpler layout */
-  .image-container:nth-child(3n),
-  .image-container:nth-child(4n) {
-    grid-row: auto;
-    grid-column: auto;
-  }
-}
-
-@media (max-width: 480px) {
-  .masonry {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-}
-```
-
-This creates:
-
-- Smaller grid cells on mobile to fit more content
-- Simplified layout patterns to avoid complex reflows
-- Better touch-friendly spacing
+The project gallery is a single centred column at every width, so there is no grid to reflow. Phones show each photo full width with a 2.5rem gap; from 800px the gap grows to 6rem and landscape and portrait photos get different maximum widths. Images carry their real width/height, which prevents layout shift while they load.
 
 ## Build Process Optimization
 

@@ -4,19 +4,46 @@ import Prose from "../components/Prose.astro";
 
 const title = "Contact";
 const description = "Get in touch about a project.";
+
+// Same label/value layout as the project details (WorkMeta.astro).
+const channels = [
+  {
+    label: "Email",
+    value: "hello@ccspace.tw",
+    href: "mailto:hello@ccspace.tw",
+  },
+  // Non-breaking hyphens keep the number on one line.
+  { label: "Phone", value: "0929‑073‑788", href: "tel:+886929073788" },
+];
 ---
 
 <BaseLayout title={title} description={description} is404Page={false}>
-  <div class="md:grid md:grid-cols-[1fr_2fr] gap-4 md:px-56">
-    <div>
-      <h1 class="normal-case font-overpass-mono text-xl m-2">{title}</h1>
-    </div>
+  <div class="flex-1">
+    <Prose>
+      <h1 class="font-overpass-mono mt-8">{title}</h1>
+      <p>
+        Interested in working together? Reach out through any of the channels
+        below.
+      </p>
+      <dl class="font-inconsolata not-prose flex flex-col gap-3 mt-8">
+        {
+          channels.map((c) => (
+            <div class="flex gap-2 items-baseline">
+              <dt class="font-overpass-mono uppercase text-sm text-gray-600 dark:text-gray-400 shrink-0 w-20">
+                {c.label}
+              </dt>
+              <dd>
+                <a
+                  href={c.href}
+                  class="underline underline-offset-4 decoration-1 hover:opacity-70"
+                >
+                  {c.value}
+                </a>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </Prose>
   </div>
-  <Prose>
-    <p>Interested in working together? Reach out through any of the channels below.</p>
-    <ul>
-      <li>Email: <a href="mailto:hello@ccspace.tw">hello@ccspace.tw</a></li>
-      <li>Phone: <a href="tel:+886929073788">0929&#8209;073&#8209;788</a></li>
-    </ul>
-  </Prose>
 </BaseLayout>

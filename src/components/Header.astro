@@ -4,13 +4,16 @@ import Navigation from "./Navigation.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import logoDark from "../assets/logo/ccspace_b.svg";
 import logoLight from "../assets/logo/ccspace_w.svg";
-import { SITE_TITLE } from "../consts";
+import { NAV_LINKS, SITE_TITLE } from "../consts";
 
 export interface Props {
   is404Page?: boolean;
 }
 
 const { is404Page = false } = Astro.props;
+
+const pathname = Astro.url.pathname;
+const isCurrent = (href: string): boolean => pathname.startsWith(href);
 ---
 
 <header class="relative mb-[20px] mt-[-10px]">
@@ -44,10 +47,22 @@ const { is404Page = false } = Astro.props;
       {
         !is404Page && (
           <>
+            <ul class="desktop-nav hidden sm:flex items-center gap-7 mr-5 font-overpass-mono text-[15px]">
+              {NAV_LINKS.map((n) => (
+                <li>
+                  <a
+                    href={n.href}
+                    aria-current={isCurrent(n.href) ? "page" : undefined}
+                  >
+                    {n.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
             <div class="flex items-center justify-center h-[30px] w-[30px]">
               <ThemeToggle />
             </div>
-            <div class="flex items-center justify-center h-[30px] w-[30px]">
+            <div class="sm:hidden flex items-center justify-center h-[30px] w-[30px]">
               <Hamburger />
             </div>
           </>
@@ -58,3 +73,26 @@ const { is404Page = false } = Astro.props;
   {!is404Page && <Navigation />}
   <slot />
 </header>
+
+<style>
+  .desktop-nav a {
+    color: inherit;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    opacity: 0.6;
+    padding-block: 4px;
+    border-bottom: 1px solid transparent;
+    transition:
+      opacity 0.2s ease-out,
+      border-color 0.2s ease-out;
+  }
+
+  .desktop-nav a:hover,
+  .desktop-nav a[aria-current="page"] {
+    opacity: 1;
+  }
+
+  .desktop-nav a[aria-current="page"] {
+    border-bottom-color: currentColor;
+  }
+</style>

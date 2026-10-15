@@ -31,7 +31,7 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 ### Content Presentation Components
 
-- **[Masonry.astro](Masonry.astro)**: Photo gallery with CSS Grid masonry layout. Accepts per-image `positionx`/`positiony` focal point overrides (same pattern as hero images). Smart default crop at `center 25%` for portrait photography. Uses [MasonryLayout.css](../styles/MasonryLayout.css) with `@supports` progressive enhancement for native CSS masonry. Integrates with [lightbox.ts](../scripts/lightbox.ts) (via `lightbox-link` class on gallery links) for fullscreen viewing with multi-level zoom and drag/pan.
+- **[Masonry.astro](Masonry.astro)**: Project photo gallery. Shows each photo whole in a centred exhibition column, landscapes wider than portraits, via [MasonryLayout.css](../styles/MasonryLayout.css). Integrates with [lightbox.ts](../scripts/lightbox.ts) (via `lightbox-link` class on gallery links) for fullscreen viewing with multi-level zoom and drag/pan.
 
 - **[GetRandomImage.astro](GetRandomImage.astro)**: Used in [TagLayout.astro](../layouts/TagLayout.astro) to randomize featured images from content collections. Includes a `<noscript>` fallback for non-JS users.
 

@@ -72,9 +72,9 @@ graph TD
 - `astro:page-load` re-applies theme after View Transitions body swap
 - No React state, no `useEffect`, no `MutationObserver` sync needed
 
-## Masonry Image Grid Implementation
+## Project Gallery Implementation
 
-The Masonry layout is a key visual feature of the site, implemented with CSS Grid rather than JavaScript-based libraries for better performance.
+Project galleries (`Masonry.astro`, name kept from the template) show every photo whole, uncropped, in one centred column with generous space between photos, in the style of an exhibition. Plain CSS, no JavaScript layout library.
 
 ### Technical Implementation
 
@@ -86,40 +86,29 @@ graph TD
     D --> E["getImage optimization"]
 ```
 
-### CSS Grid Configuration
+### Layout
 
 ```css
-/* Key aspects of the Masonry layout */
+/* One centred column; phones: full width, 2.5rem gap */
 .masonry {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  grid-auto-flow: dense;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
 }
 
-/* Variable sizing for visual interest */
-.image-container:nth-child(3n) {
-  grid-row: span 2; /* Every 3rd image spans 2 rows */
-}
-
-.image-container:nth-child(4n) {
-  grid-column: span 2; /* Every 4th image spans 2 columns */
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .masonry {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+/* >= 800px: 6rem gap, landscapes wider than portraits */
+@media (min-width: 800px) {
+  .image-container[data-orient="landscape"] {
+    max-width: 60rem;
   }
-
-  /* Reset spanning on smaller screens */
-  .image-container:nth-child(3n),
-  .image-container:nth-child(4n) {
-    grid-row: auto;
-    grid-column: auto;
+  .image-container[data-orient="portrait"] {
+    max-width: 34rem;
   }
 }
 ```
+
+`data-orient` and the `<img>` width/height come from the source image size, so each photo reserves the right shape before it loads.
 
 ### Image Processing Pipeline
 

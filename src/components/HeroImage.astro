@@ -1,83 +1,78 @@
 ---
-// Vanilla parallax hero image. Preserves the translate3d scroll parallax from
-// HeroImage.tsx: oversized container (top:-20%, height:120%), rAF+lerp loop,
-// IntersectionObserver gate, prefers-reduced-motion respect, fade-in on load.
+// Project/article hero: photo with the title set below it (no text on the
+// image). Parallax: translate3d scroll on an oversized image (top:-20%,
+// height:120%), rAF+lerp loop, IntersectionObserver gate,
+// prefers-reduced-motion respect, fade-in on load.
 // All hooks re-wire on astro:page-load so they survive view transitions.
+import Prose from "./Prose.astro";
+
 export interface Props {
   title: string;
-  tags?: string[];
   backgroundImage: string;
   mobileBackgroundImage: string;
   positionX?: string;
   positionY?: string;
   alt: string;
-  collection: string;
 }
 
 const {
   title,
-  tags,
   backgroundImage,
   mobileBackgroundImage,
   positionX = "30%",
   positionY = "50%",
   alt,
-  collection,
 } = Astro.props;
-
-const visibleTags = (tags ?? []).filter((tag) => tag.trim().length > 0);
 ---
 
-<div
-  id="hero-container"
-  class="relative flex flex-col justify-center items-center text-center h-screen mb-8 md:-mx-16 -mx-8 overflow-hidden"
->
-  <div id="hero-parallax" class="absolute inset-0">
-    <picture>
-      <source media="(min-width: 1200px)" srcset={backgroundImage} />
-      <img
-        id="hero-image"
-        src={mobileBackgroundImage}
-        alt={alt}
-        fetchpriority="high"
-        decoding="sync"
-        class="absolute left-0 right-0 w-full object-cover transition-opacity duration-700 opacity-0"
-        style={`object-position: ${positionX} ${positionY}; top: -20%; height: 120%;`}
-      />
-    </picture>
+<section class="work-hero">
+  <div id="hero-container" class="work-hero-media">
+    <div id="hero-parallax" class="absolute inset-0">
+      <picture>
+        <source media="(min-width: 1200px)" srcset={backgroundImage} />
+        <img
+          id="hero-image"
+          src={mobileBackgroundImage}
+          alt={alt}
+          fetchpriority="high"
+          decoding="sync"
+          class="absolute left-0 right-0 w-full object-cover transition-opacity duration-700 opacity-0"
+          style={`object-position: ${positionX} ${positionY}; top: -20%; height: 120%;`}
+        />
+      </picture>
+    </div>
   </div>
-  <div
-    class="absolute inset-0 pointer-events-none"
-    style="background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.2) 100%);"
-    aria-hidden="true"
-  >
+  <div class="work-hero-text">
+    <Prose>
+      <h1 class="uppercase font-overpass-mono fade-in-up delay-150">
+        {title}
+      </h1>
+    </Prose>
   </div>
-  <div class="relative">
-    <h1
-      class="prose prose-slate uppercase font-overpass-mono text-[rgb(245,245,245)] text-4xl fade-in-up delay-150"
-      style="text-shadow: 0 2px 12px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3);"
-    >
-      {title}
-    </h1>
-    {
-      visibleTags.length > 0 && (
-        <div class="flex gap-2 mt-2 fade-in-up delay-300 justify-center">
-          {visibleTags.map((tag: string) => (
-            <p class="font-overpass-mono text-xl">
-              <a
-                class="bg-slate-600 text-[rgb(245,245,245)] bg-opacity-50 px-2 py-1 rounded-sm no-underline"
-                href={`/${collection}/tags/${tag}`}
-                style="text-shadow: 0 1px 4px rgba(0,0,0,0.4);"
-              >
-                {tag}
-              </a>
-            </p>
-          ))}
-        </div>
-      )
+</section>
+
+<style is:global>
+  /* Full-bleed photo: negative margins cancel the body padding. */
+  .work-hero-media {
+    position: relative;
+    overflow: hidden;
+    height: 72svh;
+    margin-inline: -2rem;
+  }
+  .work-hero-text h1 {
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (min-width: 1200px) {
+    .work-hero-media {
+      height: 78vh;
+      margin-inline: -4rem;
     }
-  </div>
-</div>
+    .work-hero-text h1 {
+      margin-top: 3.5rem;
+    }
+  }
+</style>
 
 <script>
   let cleanupHero: () => void = () => {};

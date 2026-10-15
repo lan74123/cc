@@ -1,15 +1,7 @@
 ---
-interface NavItem {
-  label: string;
-  href: string;
-}
-
-const NAV: NavItem[] = [
-  { label: "About", href: "/about/" },
-  { label: "Works", href: "/works/" },
-  { label: "Research", href: "/research/" },
-  { label: "Contact", href: "/contact/" },
-];
+// Mobile menu popover, opened by Hamburger.astro. On wider screens the
+// header shows the same links inline instead (see Header.astro).
+import { NAV_LINKS } from "../consts";
 
 const pathname = Astro.url.pathname;
 const isCurrent = (href: string): boolean => {
@@ -24,7 +16,7 @@ const isCurrent = (href: string): boolean => {
   inert
 >
   {
-    NAV.map((n) => (
+    NAV_LINKS.map((n) => (
       <a href={n.href} aria-current={isCurrent(n.href) ? "page" : undefined}>
         {n.label}
       </a>

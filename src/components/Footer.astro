@@ -8,24 +8,15 @@ import { SITE_COPYRIGHT_OWNER, SOCIAL_LINKS } from "../consts";
   class="md:flex md:justify-between md:items-center md:align-center font-overpass-mono w-full md:h-full mt-12"
 >
   <div class="text-[12px] text-center items-center flex justify-center">
-    &copy; {today.getFullYear()} {SITE_COPYRIGHT_OWNER} All rights reserved.
+    {`© ${today.getFullYear()} ${SITE_COPYRIGHT_OWNER} All rights reserved.`}
   </div>
   <div class="flex justify-center gap-3 m-2 sm:m-0">
     <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer">
-      <span class="sr-only">Go to {SITE_COPYRIGHT_OWNER}'s Instagram Profile</span>
+      <span class="sr-only"
+        >Go to {SITE_COPYRIGHT_OWNER}'s Instagram Profile</span
+      >
       <Icon name="mdi:instagram" class="h-[20px] w-[20px]" />
-    </a>
-    <a
-      id="rss-link"
-      href="#"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="visibility: hidden; width: 0; height: 0;"
-    >
-      <span class="sr-only">Subscribe to RSS Feed</span>
-      <Icon name="mdi:rss" class="h-[20px] w-[20px]" />
     </a>
   </div>
   <slot />
 </footer>
-<script src="../scripts/rss.ts"></script>

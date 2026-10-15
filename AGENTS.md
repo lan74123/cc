@@ -137,7 +137,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - The four interactive islands are:
   - **ThemeToggle.astro**: SVG sun/moon toggle; dispatches `theme-toggle` event; CSS drives dark-state visuals; `theme.ts` handles localStorage and the `dark` class.
   - **Hamburger.astro**: Mobile menu toggle with 3-bar-to-X animation, Escape key handler, and click-outside-to-close.
-  - **ScrollToTop.astro**: rAF-throttled visibility toggle; smooth `window.scrollTo`; transparent background with inherited-colour chevron.
+  - **ScrollToTop.astro**: rAF-throttled visibility toggle; smooth `window.scrollTo`; semi-opaque pill kept clear of the mobile browser toolbar and the footer.
   - **HeroImage.astro**: Parallax hero with translate3d scroll, IntersectionObserver gate, rAF+lerp loop, fade-in on load, and `prefers-reduced-motion` respect.
 - The `scripts/` directory holds shared logic (theme, lightbox) as plain TypeScript modules -- no React, no JSX.
 

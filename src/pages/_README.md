@@ -64,7 +64,7 @@ Each collection directory generates an RSS feed via [collections.ts](../scripts/
 - `/works/rss.xml`
 - `/research/rss.xml`
 
-The RSS link icon in the footer is conditionally shown by [rss.ts](../scripts/rss.ts) based on the current path.
+The feeds are not linked from the site UI but remain available at these URLs.
 
 ## Type Safety
 

@@ -1,7 +1,11 @@
 ---
-// Row for the works / research index and tag pages: numbered entry under a
-// hairline with the photo, title, "category · year", a short description
-// and a "View project" link. Pages wrap the rows in `.work-list`.
+// Row for the works / research index and tag pages. The rows hang off one
+// route line, each with its number, title and "category · year". Phones:
+// a small square photo on the right, and a tap opens the details in
+// place (large photo, facts, description, "View project"), with a little
+// walking figure on the route to close them. Wide screens: the list keeps
+// the left half and the right half is a pane showing one project's photo.
+// Pages wrap the rows in `.work-list`.
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
@@ -34,15 +38,13 @@ const {
   index,
 } = Astro.props;
 const meta = [category, year].filter(Boolean).join(" · ");
-const sub = [category, location].filter(Boolean).join(" · ");
 const number = index ? String(index).padStart(2, "0") : "";
 const facts = [
   { label: "Location", value: location },
   { label: "Type", value: category },
   { label: "Year", value: year },
 ].filter((fact) => fact.value);
-const detailId = `detail-${url.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`;
-const position = `--position-x: ${positionx || "50%"}; --position-y: ${positiony || "50%"}`;
+const position = `object-position: ${positionx || "50%"} ${positiony || "50%"}`;
 // The cover's own orientation picks the frame for the large photo, so
 // portrait and landscape covers are shown without heavy cropping.
 const orient =
@@ -57,8 +59,9 @@ const orient =
       image && (
         <Image
           src={image as ImageMetadata}
-          alt={alt}
-          width={1400}
+          alt=""
+          widths={[176, 264]}
+          sizes="5.5rem"
           decoding="async"
           format="avif"
           quality={85}
@@ -73,46 +76,17 @@ const orient =
     <h2 class="font-overpass-mono">
       <a href={url}>{title}</a>
     </h2>
-    {year && <span class="work-card-year font-overpass-mono">{year}</span>}
     {meta && <p class="work-card-meta font-overpass-mono">{meta}</p>}
-    {sub && <p class="work-card-sub font-overpass-mono">{sub}</p>}
-    {
-      description && (
-        <p class="work-card-desc font-inconsolata">{description}</p>
-      )
-    }
-    <a href={url} class="work-card-more font-overpass-mono" tabindex="-1">
-      View project <span class="work-card-arrow" aria-hidden="true">→</span>
-    </a>
-    <button
-      type="button"
-      class="work-card-toggle font-overpass-mono"
-      aria-expanded="false"
-      aria-controls={detailId}
-    >
-      <span class="work-card-toggle-open">Details ↓</span>
-      <span class="work-card-toggle-close">Close ↑</span>
-    </button>
   </div>
-  <div class="work-card-backdrop" aria-hidden="true"></div>
-  <div class="work-card-detail" id={detailId}>
-    <div class="work-card-detail-head">
-      {number && <span class="work-card-num font-overpass-mono">{number}</span>}
-      <div>
-        <p class="work-card-detail-title font-overpass-mono">{title}</p>
-        {meta && <p class="work-card-meta font-overpass-mono">{meta}</p>}
-      </div>
-      <button type="button" class="work-card-close font-overpass-mono">
-        Close
-      </button>
-    </div>
+  <div class="work-card-detail">
     {
       image && (
         <a href={url} class="work-card-big">
           <Image
             src={image as ImageMetadata}
             alt={alt}
-            width={1920}
+            widths={[480, 800, 1200, 1600, 1920]}
+            sizes="(min-width: 800px) calc(54vw - 6rem), calc(100vw - 7rem)"
             decoding="async"
             loading="lazy"
             format="avif"
@@ -140,14 +114,6 @@ const orient =
           </dl>
         )
       }
-      <a
-        href={url}
-        class="work-card-photo-link font-overpass-mono"
-        tabindex="-1"
-      >
-        View project<span class="work-card-photo-arrow" aria-hidden="true"
-        ></span>
-      </a>
       {
         description && (
           <p class="work-card-detail-desc font-inconsolata">{description}</p>
@@ -157,11 +123,6 @@ const orient =
         <a href={url} class="work-card-more font-overpass-mono">
           View project <span class="work-card-arrow" aria-hidden="true">→</span>
         </a>
-        <button type="button" class="work-card-close-bottom font-overpass-mono">
-          <span class="work-card-up-before" aria-hidden="true">↑</span>
-          Close
-          <span class="work-card-up-after" aria-hidden="true">↑</span>
-        </button>
       </div>
     </div>
     <button type="button" class="work-card-cap" aria-label="Close details">
@@ -268,458 +229,62 @@ const orient =
           <circle class="walker-eye" cx="13" cy="8.5" r="0.75"></circle>
         </g>
       </svg>
-      <span class="work-card-cap-up" aria-hidden="true">↑</span>
     </button>
   </div>
 </article>
 
 <style is:global>
-  /* Route geometry: --rx is where the route line runs inside a row,
-     --dx where the title (and anything lined up under it) starts. */
-  .work-card {
-    --rx: 1.125rem;
-    --dx: 3rem;
-  }
-  @media (min-width: 800px) {
-    .work-card {
-      --rx: 2rem;
-      --dx: 6rem;
-    }
-  }
-
-  /* ── Shared parts ── */
+  /* ── The route ──
+     One line runs down through every number, like the path you walk
+     through a plan; each project hangs off it. --rx is where the line
+     runs inside a row, --dx where the title (and anything lined up under
+     it) starts. */
   .work-list {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 3.5rem;
     margin-top: 1rem;
+    /* <main> centres short pages; keep the index at the top. */
+    margin-bottom: auto;
   }
-  /* Opening and closing rows holds the row in place by script (see
-     below); browser scroll anchoring would shift it a second time. */
+  /* Opening and closing a row holds it in place by script (see below);
+     browser scroll anchoring would shift it a second time. */
   html:has(.work-list),
   html:has(.work-list) body {
     overflow-anchor: none;
   }
-  @media (min-width: 800px) {
-    .work-list {
-      gap: 4rem;
-    }
-  }
-  @media (min-width: 1200px) {
-    .work-list {
-      margin-inline: 6rem;
-    }
-  }
-  .work-card a {
-    color: inherit;
-    text-decoration: none;
-  }
-  .work-card-thumb,
-  .work-card-big {
-    display: block;
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-    background: rgb(228, 225, 220);
-  }
-  html.dark .work-card-thumb,
-  html.dark .work-card-big {
-    background: rgb(48, 47, 52);
-  }
-  .work-card-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: var(--position-x) var(--position-y);
-    transition: transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-  .work-card:hover .work-card-thumb .work-card-img {
-    transform: scale(1.03);
-  }
-  .work-card-num {
-    display: block;
-    margin-top: 1rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    opacity: 0.5;
-  }
-  .work-card-year,
-  .work-card-sub,
-  .work-card-toggle,
-  .work-card-backdrop,
-  .work-card-detail,
-  .work-card-detail-head {
-    display: none;
-  }
-  .work-card h2 {
-    margin-top: 0.35rem;
-    font-size: 1.125rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-  }
-  .work-card-meta,
-  .work-card-sub {
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.55;
-  }
-  html.dark .work-card-meta,
-  html.dark .work-card-sub {
-    opacity: 0.7;
-  }
-  .work-card-desc,
-  .work-card-detail-desc {
-    margin-top: 0.85rem;
-    max-width: 34rem;
-    font-size: 0.95rem;
-    line-height: 1.65;
-    opacity: 0.8;
-  }
-  .work-card-desc {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-  }
-  .work-card-more {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-bottom: 3px;
-    font-size: 0.8rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border-bottom: 1px solid currentColor;
-  }
-  .work-card-arrow {
-    display: inline-block;
-    transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-  .work-card-more:hover .work-card-arrow,
-  .work-card:hover .work-card-body .work-card-arrow {
-    transform: translateX(6px);
-  }
-
-  /* ── C (default): numbered index rows, each under a hairline ── */
   .work-card {
-    padding-top: 1.25rem;
-    border-top: 1px solid rgba(34, 33, 37, 0.2);
-  }
-  html.dark .work-card {
-    border-top-color: rgba(245, 245, 245, 0.2);
-  }
-  @media (min-width: 800px) {
-    .work-card {
-      display: grid;
-      grid-template-columns: 5fr 7fr;
-      gap: 3rem;
-      padding-top: 2rem;
-    }
-    .work-card-thumb {
-      aspect-ratio: 4 / 3;
-    }
-    .work-card-body {
-      display: grid;
-      grid-template-columns: 3.5rem 1fr;
-      align-content: start;
-    }
-    .work-card-body > * {
-      grid-column: 2;
-    }
-    .work-card-num {
-      grid-column: 1;
-      grid-row: 1;
-      margin-top: 0;
-      padding-top: 0.6rem;
-    }
-    .work-card h2 {
-      margin-top: 0;
-      font-size: 1.75rem;
-    }
-    .work-card-desc {
-      -webkit-line-clamp: 4;
-      line-clamp: 4;
-    }
-    .work-card-more {
-      justify-self: start;
-      margin-top: 2rem;
-    }
-  }
-
-  /* ── Preview options (html[data-list], dev only) ── */
-
-  /* G and H families: compact index rows. Number, title and type · year
-     on the left, a small square photo on the right. G divides the rows
-     with hairlines; H threads them on one vertical route line. */
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-list {
-    gap: 0;
-    /* <main> centres short pages; keep the index at the top. */
-    margin-bottom: auto;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card {
+    --rx: 1.125rem;
+    --dx: 3rem;
+    position: relative;
     display: grid;
     grid-template-columns: 2.25rem minmax(0, 1fr) 5.5rem;
-    grid-template-areas:
-      "num title img"
-      ". meta img"
-      ". tog img"
-      ". detail detail";
-    column-gap: 0.75rem;
-    row-gap: 0;
-    align-items: start;
-    padding-block: 1.25rem;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card-body {
-    display: contents;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card-body
-    > .work-card-num {
-    grid-area: num;
-    margin-top: 0;
-    padding-top: 0.45rem;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card
-    h2 {
-    grid-area: title;
-    margin-top: 0;
-    font-size: 1.5rem;
-    line-height: 1.15;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card-body
-    > .work-card-meta {
-    grid-area: meta;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card-thumb {
-    grid-area: img;
-    aspect-ratio: 1 / 1;
-  }
-  html:is(
-      [data-list="g"],
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h"],
-      [data-list="h1"]
-    )
-    .work-card-body
-    > :is(.work-card-desc, .work-card-more) {
-    display: none;
-  }
-  html:is([data-list="g"], [data-list="g1"])
-    .work-list
-    > .work-card:last-of-type {
-    border-bottom: 1px solid rgba(34, 33, 37, 0.2);
-  }
-  html.dark:is([data-list="g"], [data-list="g1"])
-    .work-list
-    > .work-card:last-of-type {
-    border-bottom-color: rgba(245, 245, 245, 0.2);
-  }
-
-  /* G and H have no details cue. In G the photo spans just the title and
-     type rows; in H an empty row soaks up the photo height so the type
-     line stays under the title. */
-  html[data-list="g"] .work-card {
-    grid-template-areas:
-      "num title img"
-      ". meta img"
-      ". detail detail";
-  }
-  html[data-list="h"] .work-card {
+    /* The empty 1fr row soaks up the photo height so the type line stays
+       under the title. */
     grid-template-areas:
       "num title img"
       ". meta img"
       ". . img"
       ". detail detail";
     grid-template-rows: auto auto 1fr auto;
-  }
-
-  /* G: on desktop the titles are set large; hovering a row fades the
-     others and the project photo follows the cursor. */
-  @media (min-width: 800px) {
-    html[data-list="g"] .work-card {
-      grid-template-columns: 4rem minmax(0, 1fr) auto;
-      grid-template-areas: "num title meta";
-      align-items: baseline;
-      padding-block: 1.75rem;
-    }
-    html[data-list="g"] .work-card-body > .work-card-num {
-      padding-top: 0;
-    }
-    html[data-list="g"] .work-card h2 {
-      font-size: clamp(2.25rem, 4.5vw, 4rem);
-      letter-spacing: -0.01em;
-      transition: transform 0.45s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html[data-list="g"] .work-card:hover h2 {
-      transform: translateX(1rem);
-    }
-    html[data-list="g"] .work-card {
-      transition: opacity 0.35s ease-out;
-    }
-    html[data-list="g"] .work-list:hover .work-card:not(:hover) {
-      opacity: 0.3;
-    }
-    html[data-list="g"] .work-card-thumb {
-      position: fixed;
-      left: 0;
-      top: 0;
-      z-index: 30;
-      width: 22rem;
-      aspect-ratio: 4 / 5;
-      pointer-events: none;
-      opacity: 0;
-      transform: translate(
-          calc(var(--mx, -999px) + 2rem),
-          calc(var(--my, -999px) - 50%)
-        )
-        scale(0.96);
-      transition:
-        opacity 0.3s ease-out,
-        transform 0.12s linear;
-    }
-    html[data-list="g"] .work-card:hover .work-card-thumb {
-      opacity: 1;
-      transform: translate(
-          calc(var(--mx, -999px) + 2rem),
-          calc(var(--my, -999px) - 50%)
-        )
-        scale(1);
-    }
-    html[data-list="g"] .work-card:hover .work-card-img {
-      transform: none;
-    }
-  }
-
-  /* H family: the route. One line runs down through every number, like
-     the path you walk through a plan; each project hangs off it. */
-  html:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card {
-    position: relative;
-    border-top: 0;
+    column-gap: 0.75rem;
+    align-items: start;
     padding-block: 1.5rem;
+    cursor: pointer;
+    /* Rows scrolled back to on close clear the sticky header. */
+    scroll-margin-top: 4.5rem;
+    transition: background-color 0.25s ease-out;
   }
-  html:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card::before {
+  .work-card a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* No grey tap flash on iOS; the rows give their own feedback. */
+  .work-card,
+  .work-card a,
+  .work-card button {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .work-card::before {
     content: "";
     position: absolute;
     top: 0;
@@ -728,723 +293,102 @@ const orient =
     border-left: 1px solid rgba(34, 33, 37, 0.3);
     transition: border-color 0.3s ease-out;
   }
-  html.dark:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card::before {
+  html.dark .work-card::before {
     border-left-color: rgba(245, 245, 245, 0.3);
   }
-  html:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card:first-child::before {
+  /* The line starts at the first number and ends at the last (on
+     phones, an open last row runs it on down its details). */
+  .work-card:first-child::before {
     top: 1.9rem;
   }
-  html:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
+  @media (max-width: 799px) {
     .work-card:last-of-type:not(.is-open)::before {
-    bottom: auto;
-    height: 1.9rem;
+      bottom: auto;
+      height: 1.9rem;
+    }
   }
-  html:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card-body
-    > .work-card-num {
+  .work-card-body {
+    display: contents;
+  }
+  .work-card-num {
     position: relative;
     z-index: 1;
+    grid-area: num;
     justify-self: center;
     padding: 0.2rem 0;
     font-size: 0.7rem;
     line-height: 1;
-    opacity: 1;
+    letter-spacing: 0.1em;
+    /* Page colour behind the number, so the line breaks around it. */
     background: rgb(242, 242, 242);
     transition:
       background-color 0.3s ease-out,
       color 0.3s ease-out;
   }
-  html.dark:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card-body
-    > .work-card-num {
+  html.dark .work-card-num {
     background: rgb(34, 33, 37);
   }
-  html:is(
-      [data-list="h"],
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card
-    h2 {
+  .work-card h2 {
+    grid-area: title;
     font-size: 1.375rem;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: 0.02em;
   }
-  @media (min-width: 800px) {
-    html:is(
-        [data-list="h"],
-        [data-list="h1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"]
-      )
-      .work-card::before {
-      left: calc(2rem - 0.5px);
-    }
-    html:is(
-        [data-list="h"],
-        [data-list="h1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"]
-      )
-      .work-card:first-child::before {
-      top: 2.7rem;
-    }
-    html:is(
-        [data-list="h"],
-        [data-list="h1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"]
-      )
-      .work-card:last-of-type:not(.is-open)::before {
-      height: 2.7rem;
-    }
-    html[data-list="h"] .work-card {
-      grid-template-columns: 4rem minmax(0, 1fr) 15rem;
-      grid-template-areas:
-        "num title img"
-        ". meta img"
-        ". . img";
-      grid-template-rows: auto auto 1fr;
-      column-gap: 2rem;
-      padding-block: 2.25rem;
-    }
-    html[data-list="h"] .work-card h2 {
-      font-size: 2rem;
-    }
-    html[data-list="h"] .work-card-thumb {
-      aspect-ratio: 4 / 3;
-    }
-  }
-
-  /* H1: the open project's number becomes a solid marker, "you are here"
-     on the route. H4 and its variants also darken the route along the
-     open project and show the project facts. */
-  html:is(
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card.is-open
-    .work-card-body
-    > .work-card-num {
-    padding: 0.3rem 0.35rem;
-    border-radius: 2px;
-    color: rgb(242, 242, 242);
-    background: rgb(34, 33, 37);
-  }
-  html.dark:is(
-      [data-list="h1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"]
-    )
-    .work-card.is-open
-    .work-card-body
-    > .work-card-num {
-    color: rgb(34, 33, 37);
-    background: rgb(245, 245, 245);
-  }
-  html[data-list="h4"] .work-card.is-open::before {
-    border-left-color: currentColor;
-  }
-
-  /* H4: the route leads to what you can do next. Short branches run off
-     the darkened line and join the underline of an action, so line and
-     link read as one stroke: "Close" at the top (back out) and "View
-     project" at the bottom (on into the project).
-     H4-3: no top "Close" once open. "↑ Close" on the left and "View
-     project →" on the right share one baseline that runs off the route:
-     back out on the left, on into the project at the end of the line. */
-  @media (max-width: 799px) {
-    html:is(
-        [data-list="h4"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more,
-    html[data-list="h4"] .work-card.is-open .work-card-toggle {
-      position: relative;
-    }
-    html:is(
-        [data-list="h4"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more::before,
-    html[data-list="h4"] .work-card.is-open .work-card-toggle::before {
-      content: "";
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 0.5px);
-      bottom: -1px;
-      width: calc(var(--dx) - var(--rx));
-      border-top: 1px solid currentColor;
-    }
-    html[data-list="h4"] .work-card.is-open .work-card-toggle {
-      opacity: 1;
-    }
-  }
-
-  .work-card-actions {
-    display: flex;
-    align-items: flex-end;
-    gap: 2rem;
-  }
-  .work-card-close-bottom {
-    display: none;
-  }
-  @media (max-width: 799px) {
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-close-bottom {
-      display: inline-flex;
-      margin-left: auto;
-      padding: 0 0 3px;
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: inherit;
-      background: none;
-      border: 0;
-      border-bottom: 1px solid currentColor;
-      opacity: 0.6;
-      cursor: pointer;
-    }
-  }
-  .work-card-up-before {
-    display: none;
-  }
-  .work-card-close-bottom {
-    gap: 0.4rem;
-  }
-  @media (max-width: 799px) {
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card.is-open
-      .work-card-toggle {
-      display: none;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions {
-      position: relative;
-      justify-content: space-between;
-      margin-top: 2rem;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions::before {
-      content: "";
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 0.5px);
-      right: 0;
-      bottom: 0;
-      border-top: 1px solid currentColor;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more {
-      order: 2;
-      margin-top: 0;
-      padding-bottom: 0.6rem;
-      border-bottom: 0;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more::before {
-      display: none;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-close-bottom {
-      order: 1;
-      margin-left: 0;
-      padding-bottom: 0.6rem;
-      border-bottom: 0;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-up-before {
-      display: inline;
-    }
-    html:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-up-after {
-      display: none;
-    }
-  }
-  /* No grey tap flash on iOS; the rows give their own feedback. */
-  .work-card,
-  .work-card a,
-  .work-card button {
-    -webkit-tap-highlight-color: transparent;
-  }
-  /* H5, H6, H8, H9: H4-3 without the "Details ↓" line, so a closed row
-     looks exactly like H; tapping anywhere on it opens it.
-     H5: no hint beyond the photo; a brief tint answers the tap.
-     H6: a short light branch leaves the route at each row and points at
-     the project title.
-     H8: as H6, and "Close" moves onto the route. The lit line ends in a
-     round ↑ node; "View project →" branches off it to the right. Back
-     is the way you came along the line, on is the turning.
-     H9: as H8, but the node travels down the lit line with you, held
-     near the bottom of the screen within thumb reach, and settles into
-     the junction at the end of the details.
-     The node is a little walking figure (with a small ↑: tap to go
-     back). In H9 it steps as you scroll and turns to face the way you
-     are going, and on "View project" it walks along the line to the
-     link before the project opens. */
-  html:is(
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"]
-    )
-    .work-card-toggle {
-    display: none !important;
-  }
-  html:is(
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"]
-    )
-    .work-card {
-    grid-template-areas:
-      "num title img"
-      ". meta img"
-      ". . img"
-      ". detail detail";
-    grid-template-rows: auto auto 1fr auto;
-    transition: background-color 0.25s ease-out;
-  }
-  html:is(
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"]
-    )
-    .work-card:active:not(.is-open) {
-    background-color: rgba(34, 33, 37, 0.04);
-  }
-  html.dark:is(
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"]
-    )
-    .work-card:active:not(.is-open) {
-    background-color: rgba(245, 245, 245, 0.05);
-  }
-  .work-card-cap {
-    display: none;
-  }
-  @media (max-width: 799px) {
-    /* The branch runs from the route, past the number, to the title. */
-    html:is(
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card
-      h2 {
-      position: relative;
-    }
-    html:is([data-list="h6"], [data-list="h8"], [data-list="h10"])
-      .work-card:not(.is-open)
-      h2::before {
-      content: "";
-      position: absolute;
-      top: 0.6em;
-      left: calc(var(--rx) - var(--dx) - 0.5px);
-      width: 1.5rem;
-      border-top: 1px solid rgba(34, 33, 37, 0.3);
-    }
-    html.dark:is([data-list="h6"], [data-list="h8"], [data-list="h10"])
-      .work-card:not(.is-open)
-      h2::before {
-      border-top-color: rgba(245, 245, 245, 0.3);
-    }
-
-    /* H8: "View project" alone on the right of the baseline; the cap
-       sits on the route where the baseline leaves it. H9 keeps H5's
-       "↑ Close" on the left as well (the figure still closes too). */
-    html:is([data-list="h8"], [data-list="h10"]) .work-card-close-bottom {
-      display: none;
-    }
-    html:is([data-list="h8"], [data-list="h10"]) .work-card-actions {
-      justify-content: flex-end;
-    }
-    html[data-list="h9"] .work-card-cap-up {
-      display: none;
-    }
-    html:is([data-list="h8"], [data-list="h9"], [data-list="h10"])
-      .work-card-detail {
-      position: relative;
-    }
-    html:is([data-list="h8"], [data-list="h9"], [data-list="h10"])
-      .work-card-cap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2.75rem;
-      height: 2.75rem;
-      padding: 0;
-      font-family: var(--font-overpass-mono);
-      font-size: 1rem;
-      line-height: 1;
-      color: inherit;
-      background: rgb(242, 242, 242);
-      border: 1px solid currentColor;
-      border-radius: 50%;
-      cursor: pointer;
-      transition:
-        background-color 0.2s ease-out,
-        color 0.2s ease-out;
-    }
-    html.dark:is([data-list="h8"], [data-list="h9"], [data-list="h10"])
-      .work-card-cap {
-      background: rgb(34, 33, 37);
-    }
-    html:is([data-list="h8"], [data-list="h9"], [data-list="h10"])
-      .work-card-cap:active {
-      color: rgb(242, 242, 242);
-      background: rgb(34, 33, 37);
-    }
-    html.dark:is([data-list="h8"], [data-list="h9"], [data-list="h10"])
-      .work-card-cap:active {
-      color: rgb(34, 33, 37);
-      background: rgb(245, 245, 245);
-    }
-    /* H8: fixed at the junction, centred on the route line. */
-    html:is([data-list="h8"], [data-list="h10"]) .work-card-cap {
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 1.375rem);
-      bottom: -1.375rem;
-    }
-    /* H9: it settles on the junction like H8, but is sticky, so it
-       rides the lit line just above the visible bottom of the screen
-       until the junction scrolls into view, and never climbs above the
-       top of the details. Its negative margins take no room and centre
-       it on the details' bottom edge. --cap-gap (set by script from the
-       visual viewport) keeps it clear of Safari's toolbar on iPhone. */
-    html[data-list="h9"] .work-card-cap {
-      position: sticky;
-      bottom: var(--cap-gap, 20px);
-      margin: -1.375rem 0 -1.375rem calc(var(--rx) - var(--dx) - 1.375rem);
-      transform: translate(var(--walk, 0px), var(--walk-y, 0px));
-    }
-    .work-card-walker {
-      width: 2rem;
-      height: 2rem;
-      transition: transform 0.2s ease-out;
-    }
-    .work-card-walker .walker-step,
-    .work-card-cap.is-step .walker-stand {
-      display: none;
-    }
-    .work-card-cap.is-step .walker-step {
-      display: inline;
-    }
-    .work-card-cap.is-left .work-card-walker {
-      transform: scaleX(-1);
-    }
-    /* Eyes in the page colour, swapped when the node is pressed. */
-    .walker-eye {
-      fill: rgb(242, 242, 242);
-    }
-    html.dark .walker-eye,
-    .work-card-cap:active .walker-eye {
-      fill: rgb(34, 33, 37);
-    }
-    html.dark .work-card-cap:active .walker-eye {
-      fill: rgb(245, 245, 245);
-    }
-    /* A small ↑ badge on the rim: tap to go back. */
-    .work-card-cap-up {
-      position: absolute;
-      top: -0.3rem;
-      right: -0.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 1rem;
-      height: 1rem;
-      font-family: var(--font-overpass-mono);
-      font-size: 0.6rem;
-      line-height: 1;
-      border: 1px solid currentColor;
-      border-radius: 50%;
-      background: rgb(242, 242, 242);
-    }
-    html.dark .work-card-cap-up {
-      background: rgb(34, 33, 37);
-    }
-    /* H9: on "View project" the figure walks the baseline to it. */
-    html[data-list="h9"] .work-card-cap.is-leaving {
-      transition: transform 0.6s linear;
-    }
-    /* H9: the figure is the way to close, so the words go. */
-    html[data-list="h9"] .work-card-close-bottom {
-      display: none;
-    }
-    html[data-list="h9"] .work-card-actions {
-      justify-content: flex-end;
-    }
-  }
-  /* Rows scrolled back to on close clear the sticky header. */
-  .work-card {
-    scroll-margin-top: 4.5rem;
-  }
-
-  /* G1, H1 and H4: tapping a row opens it. Phones open it in place, with
-     the photo and text lined up on the title's left edge; desktop slides
-     the details in from the right as a panel. "Details ↓" is the cue. */
-  html:is(
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h1"]
-    )
-    .work-card {
-    cursor: pointer;
-  }
-  html:is(
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h1"]
-    )
-    .work-card-toggle {
-    display: inline-flex;
-    grid-area: tog;
-    justify-self: start;
-    margin-top: 0.7rem;
-    padding: 0 0 2px;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+  .work-card-meta {
+    grid-area: meta;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: inherit;
-    background: none;
-    border: 0;
-    border-bottom: 1px solid currentColor;
-    opacity: 0.6;
-    cursor: pointer;
-    transition: opacity 0.2s ease-out;
+    opacity: 0.55;
   }
-  html:is(
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h1"]
-    )
-    .work-card:hover
-    .work-card-toggle {
-    opacity: 1;
+  html.dark .work-card-meta {
+    opacity: 0.7;
   }
-  .work-card-toggle-close,
-  .work-card.is-open .work-card-toggle-open {
-    display: none;
+  .work-card-thumb,
+  .work-card-big {
+    display: block;
+    overflow: hidden;
+    background: rgb(228, 225, 220);
   }
-  .work-card.is-open .work-card-toggle-close {
-    display: inline;
+  html.dark .work-card-thumb,
+  html.dark .work-card-big {
+    background: rgb(48, 47, 52);
   }
-  /* Large photo frame follows the cover: 4:5 portrait, 3:2 landscape. */
-  html:is(
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h1"]
-    )
-    .work-card[data-orient="landscape"]
-    .work-card-big {
-    aspect-ratio: 3 / 2;
+  .work-card-thumb {
+    grid-area: img;
+    aspect-ratio: 1 / 1;
   }
-  html:is(
-      [data-list="g1"],
-      [data-list="h4-3"],
-      [data-list="h5"],
-      [data-list="h6"],
-      [data-list="h8"],
-      [data-list="h9"],
-      [data-list="h10"],
-      [data-list="h4"],
-      [data-list="h1"]
-    )
-    .work-card[data-orient="portrait"]
-    .work-card-big {
+  .work-card-big {
     aspect-ratio: 4 / 5;
+  }
+  .work-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  .work-card:hover .work-card-thumb .work-card-img {
+    transform: scale(1.03);
+  }
+  /* A row that has just folded shut: its small photo fades back in. */
+  .work-card.is-settling .work-card-thumb {
+    animation: settle-in 0.45s ease-out;
+  }
+  @keyframes settle-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ── The details: hidden until a row opens. Phones show them in place,
+     wide screens in the pane (further down). ── */
+  .work-card-detail,
+  .work-card-caption,
+  .work-card-cap,
+  .work-walker-d2 {
+    display: none;
   }
   .work-card-facts {
     display: grid;
@@ -1468,1170 +412,39 @@ const orient =
     margin-top: 0.2rem;
     font-size: 0.9rem;
   }
-  .work-card-detail-title {
-    font-size: 1.375rem;
-    font-weight: 500;
-    line-height: 1.2;
-    letter-spacing: 0.02em;
+  .work-card-detail-desc {
+    margin-top: 0.85rem;
+    max-width: 34rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    opacity: 0.8;
   }
-  .work-card-close {
-    padding: 0 0 2px;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+  .work-card-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 2rem;
+  }
+  .work-card-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-bottom: 3px;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: inherit;
-    background: none;
-    border: 0;
     border-bottom: 1px solid currentColor;
-    cursor: pointer;
   }
-  html.has-sheet {
-    overflow: hidden;
+  .work-card-arrow {
+    display: inline-block;
+    transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
   }
-  @keyframes work-open {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
+  .work-card-more:hover .work-card-arrow {
+    transform: translateX(6px);
   }
-
-  /* Phones: open in place under the row, on the title line. */
-  @media (max-width: 799px) {
-    html:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card.is-open
-      .work-card-thumb {
-      display: none;
-    }
-    html:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card.is-open
-      .work-card-detail {
-      display: block;
-      grid-area: detail;
-      margin-top: 1.25rem;
-      animation: work-open 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html:is([data-list="g1"], [data-list="h1"]) .work-card-facts {
-      display: none;
-    }
-    html[data-list="h4"] .work-card-detail-text {
-      margin-top: 1rem;
-    }
-  }
-
-  /* Desktop: rows with a larger photo; details open as a side panel. */
-  @media (min-width: 800px) {
-    html:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card {
-      grid-template-columns: 4rem minmax(0, 1fr) 15rem;
-      grid-template-areas:
-        "num title img"
-        ". meta img"
-        ". tog img"
-        ". . img";
-      grid-template-rows: auto auto auto 1fr;
-      column-gap: 2rem;
-      padding-block: 2rem;
-    }
-    html:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card
-      h2 {
-      font-size: 2rem;
-    }
-    html[data-list="g1"] .work-card-body > .work-card-num {
-      padding-top: 0.75rem;
-    }
-    html:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-thumb {
-      aspect-ratio: 4 / 3;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-backdrop {
-      display: block;
-      position: fixed;
-      inset: 0;
-      z-index: 64;
-      background: rgba(20, 20, 22, 0.35);
-      opacity: 0;
-      visibility: hidden;
-      cursor: default;
-      transition:
-        opacity 0.35s ease-out,
-        visibility 0s linear 0.35s;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card.is-open
-      .work-card-backdrop {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.35s ease-out;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-detail {
-      display: block;
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 65;
-      width: 34rem;
-      overflow-y: auto;
-      padding: 2rem 2.5rem;
-      background: rgb(242, 242, 242);
-      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.12);
-      transform: translateX(100%);
-      visibility: hidden;
-      cursor: default;
-      transition:
-        transform 0.45s cubic-bezier(0.215, 0.61, 0.355, 1),
-        visibility 0s linear 0.45s;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not(
-        [data-desk="d3"]
-      ).dark:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-detail {
-      background: rgb(34, 33, 37);
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card.is-open
-      .work-card-detail {
-      transform: none;
-      visibility: visible;
-      transition: transform 0.45s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-detail-head {
-      display: grid;
-      grid-template-columns: 3rem minmax(0, 1fr) auto;
-      align-items: start;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-detail-head
-      .work-card-num {
-      margin-top: 0;
-      padding-top: 0.6rem;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-detail-title {
-      font-size: 1.75rem;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-big {
-      margin-top: 1.5rem;
-    }
-    html:not([data-desk="d1"]):not([data-desk="d2"]):not([data-desk="d3"]):is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card-detail-text {
-      margin-top: 1.5rem;
-    }
-  }
-
-  /* ── Desktop option D1 (html[data-desk="d1"], dev/preview only): rows
-     open in place as on phones, so the lit route, the walking figure and
-     the junction work the same on a wide screen. These are the phone
-     rules again, for desktop; below them, what a wide screen adds. ── */
-  @media (min-width: 800px) {
-    html[data-desk="d1"]:is(
-        [data-list="h4"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more,
-    html[data-desk="d1"][data-list="h4"] .work-card.is-open .work-card-toggle {
-      position: relative;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more::before,
-    html[data-desk="d1"][data-list="h4"]
-      .work-card.is-open
-      .work-card-toggle::before {
-      content: "";
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 0.5px);
-      bottom: -1px;
-      width: calc(var(--dx) - var(--rx));
-      border-top: 1px solid currentColor;
-    }
-    html[data-desk="d1"][data-list="h4"] .work-card.is-open .work-card-toggle {
-      opacity: 1;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-close-bottom {
-      display: inline-flex;
-      margin-left: auto;
-      padding: 0 0 3px;
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: inherit;
-      background: none;
-      border: 0;
-      border-bottom: 1px solid currentColor;
-      opacity: 0.6;
-      cursor: pointer;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card.is-open
-      .work-card-toggle {
-      display: none;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions {
-      position: relative;
-      justify-content: space-between;
-      margin-top: 2rem;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions::before {
-      content: "";
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 0.5px);
-      right: 0;
-      bottom: 0;
-      border-top: 1px solid currentColor;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more {
-      order: 2;
-      margin-top: 0;
-      padding-bottom: 0.6rem;
-      border-bottom: 0;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions
-      > .work-card-more::before {
-      display: none;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-close-bottom {
-      order: 1;
-      margin-left: 0;
-      padding-bottom: 0.6rem;
-      border-bottom: 0;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-up-before {
-      display: inline;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-up-after {
-      display: none;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card
-      h2 {
-      position: relative;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card:not(.is-open)
-      h2::before {
-      content: "";
-      position: absolute;
-      top: 0.6em;
-      left: calc(var(--rx) - var(--dx) - 0.5px);
-      width: 1.5rem;
-      border-top: 1px solid rgba(34, 33, 37, 0.3);
-    }
-    html[data-desk="d1"].dark:is(
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card:not(.is-open)
-      h2::before {
-      border-top-color: rgba(245, 245, 245, 0.3);
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-close-bottom {
-      display: none;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-actions {
-      justify-content: flex-end;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-detail {
-      position: relative;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-cap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2.75rem;
-      height: 2.75rem;
-      padding: 0;
-      font-family: var(--font-overpass-mono);
-      font-size: 1rem;
-      line-height: 1;
-      color: inherit;
-      background: rgb(242, 242, 242);
-      border: 1px solid currentColor;
-      border-radius: 50%;
-      cursor: pointer;
-      transition:
-        background-color 0.2s ease-out,
-        color 0.2s ease-out;
-    }
-    html[data-desk="d1"].dark:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-cap {
-      background: rgb(34, 33, 37);
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-cap:active {
-      color: rgb(242, 242, 242);
-      background: rgb(34, 33, 37);
-    }
-    html[data-desk="d1"].dark:is(
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"]
-      )
-      .work-card-cap:active {
-      color: rgb(34, 33, 37);
-      background: rgb(245, 245, 245);
-    }
-    html[data-desk="d1"]:is([data-list="h8"], [data-list="h10"])
-      .work-card-cap {
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 1.375rem);
-      bottom: -1.375rem;
-    }
-    html[data-desk="d1"][data-list="h9"] .work-card-cap {
-      position: absolute;
-      left: calc(var(--rx) - var(--dx) - 1.375rem);
-      bottom: -1.375rem;
-      transform: translate(var(--walk, 0px), var(--cap-lift, 0px));
-    }
-    html[data-desk="d1"] .work-card-walker {
-      width: 2rem;
-      height: 2rem;
-      transition: transform 0.2s ease-out;
-    }
-    html[data-desk="d1"] .work-card-walker .walker-step,
-    html[data-desk="d1"] .work-card-cap.is-step .walker-stand {
-      display: none;
-    }
-    html[data-desk="d1"] .work-card-cap.is-step .walker-step {
-      display: inline;
-    }
-    html[data-desk="d1"] .work-card-cap.is-left .work-card-walker {
-      transform: scaleX(-1);
-    }
-    html[data-desk="d1"] .walker-eye {
-      fill: rgb(242, 242, 242);
-    }
-    html[data-desk="d1"].dark .walker-eye,
-    html[data-desk="d1"] .work-card-cap:active .walker-eye {
-      fill: rgb(34, 33, 37);
-    }
-    html[data-desk="d1"].dark .work-card-cap:active .walker-eye {
-      fill: rgb(245, 245, 245);
-    }
-    html[data-desk="d1"] .work-card-cap-up {
-      position: absolute;
-      top: -0.3rem;
-      right: -0.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 1rem;
-      height: 1rem;
-      font-family: var(--font-overpass-mono);
-      font-size: 0.6rem;
-      line-height: 1;
-      border: 1px solid currentColor;
-      border-radius: 50%;
-      background: rgb(242, 242, 242);
-    }
-    html[data-desk="d1"].dark .work-card-cap-up {
-      background: rgb(34, 33, 37);
-    }
-    html[data-desk="d1"][data-list="h9"] .work-card-cap.is-leaving {
-      transition: transform 0.6s linear;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card.is-open
-      .work-card-thumb {
-      display: none;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="g1"],
-        [data-list="h4-3"],
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h8"],
-        [data-list="h9"],
-        [data-list="h10"],
-        [data-list="h4"],
-        [data-list="h1"]
-      )
-      .work-card.is-open
-      .work-card-detail {
-      display: block;
-      grid-area: detail;
-      margin-top: 1.25rem;
-      animation: work-open 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html[data-desk="d1"]:is([data-list="g1"], [data-list="h1"])
-      .work-card-facts {
-      display: none;
-    }
-    html[data-desk="d1"][data-list="h4"] .work-card-detail-text {
-      margin-top: 1rem;
-    }
-    /* Rows show two lines of description in the room beside the title,
-       and leave a row for the opened details. */
-    html[data-desk="d1"]:is(
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h9"]
-      )
-      .work-card {
-      grid-template-areas:
-        "num title img"
-        ". meta img"
-        ". desc img"
-        ". . img"
-        ". detail detail";
-      grid-template-rows: auto auto auto 1fr auto;
-    }
-    html[data-desk="d1"]:is(
-        [data-list="h5"],
-        [data-list="h6"],
-        [data-list="h9"]
-      )
-      .work-card-body
-      > .work-card-desc {
-      display: -webkit-box;
-      grid-area: desc;
-      max-width: 34rem;
-      margin-top: 1rem;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-    }
-    html[data-desk="d1"][data-list]
-      .work-card.is-open
-      .work-card-body
-      > .work-card-desc {
-      display: none;
-    }
-    /* Opened: photo on the left, facts and text on the right, the route
-       and its junction along the bottom. */
-    html[data-desk="d1"][data-list] .work-card.is-open .work-card-detail {
-      display: grid;
-      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-      grid-template-areas:
-        "big facts"
-        "big desc"
-        "big ."
-        "act act";
-      grid-template-rows: auto auto 1fr auto;
-      column-gap: 2.5rem;
-      margin-top: 1.75rem;
-    }
-    html[data-desk="d1"][data-list] .work-card.is-open .work-card-detail-text {
-      display: contents;
-    }
-    html[data-desk="d1"][data-list] .work-card.is-open .work-card-big {
-      grid-area: big;
-    }
-    html[data-desk="d1"][data-list] .work-card.is-open .work-card-facts {
-      display: grid;
-      grid-area: facts;
-    }
-    html[data-desk="d1"][data-list] .work-card.is-open .work-card-detail-desc {
-      grid-area: desc;
-      margin-top: 1.25rem;
-    }
-    html[data-desk="d1"][data-list] .work-card.is-open .work-card-actions {
-      grid-area: act;
-    }
-    /* The closed-row branch meets the title level with its number. */
-    html[data-desk="d1"][data-list] .work-card:not(.is-open) h2::before {
-      top: 0.28em;
-    }
-  }
-
-  /* ── Desktop option D2 (html:is([data-desk="d2"], [data-desk="d3"]), dev/preview only): split
-     view. The route list keeps the left half; the right half is a pane
-     that always shows one project (the first, until another is pointed
-     at or clicked). Nothing covers the list, and the empty right side
-     becomes the photo. ── */
-  @media (min-width: 800px) {
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-list {
-      width: 46%;
-      margin-inline: 0;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card {
-      grid-template-columns: 4rem minmax(0, 1fr);
-      grid-template-areas:
-        "num title"
-        ". meta";
-      grid-template-rows: auto auto;
-      padding-block: 1.6rem;
-      cursor: pointer;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-thumb,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-toggle,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-cap,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-close,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-close-bottom,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-body
-      > .work-card-desc {
-      display: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card h2 {
-      transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card.is-open
-      h2 {
-      transform: translateX(0.75rem);
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card:not(.is-open)
-      h2 {
-      opacity: 0.55;
-      transition:
-        opacity 0.25s ease-out,
-        transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card:not(.is-open):hover
-      h2 {
-      opacity: 1;
-    }
-    /* The pane: always fits the screen, so it never scrolls. The photo
-       takes whatever height the text leaves; the text is kept short.
-       Every project's pane is laid in the same place; only the open one
-       shows. Changing project cross-fades the two, the old one going
-       a little quicker than the new one arrives, so the photo eases
-       from one room to the next instead of jumping. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card
-      .work-card-detail {
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 6.5rem;
-      right: 4rem;
-      bottom: 4.5rem;
-      width: calc(54% - 6rem);
-      overflow: hidden;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition:
-        opacity 0.45s ease-in,
-        visibility 0s linear 0.45s;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card.is-open
-      .work-card-detail {
-      z-index: 1;
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    /* Below 1200px the footer stacks its two lines; keep the pane clear
-       of it. */
-    @media (max-width: 1199px) {
-      html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-        .work-card
-        .work-card-detail {
-        bottom: 6rem;
-      }
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-detail-head {
-      display: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card
-      .work-card-big {
-      display: block;
-      flex: 1 1 auto;
-      min-height: 8rem;
-      width: 100%;
-      aspect-ratio: auto;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-detail-text {
-      flex: none;
-      margin-top: 1.25rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-detail-desc {
-      margin-top: 1rem;
-      max-width: none;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 3;
-      line-clamp: 3;
-      overflow: hidden;
-    }
-    /* No "View project" anywhere: as on Herzog & de Meuron's index, the
-       row itself is the way in. Pointing at a row underlines its title;
-       clicking anywhere on it opens the project. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-actions,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-body
-      > .work-card-more,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-facts {
-      display: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card h2 a {
-      text-decoration: underline 1px transparent;
-      text-underline-offset: 0.3em;
-      transition: text-decoration-color 0.25s ease-out;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card:hover
-      h2
-      a,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card:has(.work-card-big:hover)
-      h2
-      a {
-      text-decoration-color: currentColor;
-    }
-    /* P1 (default): the pane is only a preview, the photo and one line
-       under it: the row's number, then place, type and year. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p1"][data-list]
-      .work-card-detail-desc {
-      display: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card
-      .work-card-big {
-      overflow: hidden;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card
-      .work-card-big
-      img {
-      transition: transform 1.2s cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card.is-open:hover
-      .work-card-big
-      img {
-      transform: scale(1.02);
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-card-caption {
-      display: flex;
-      flex: none;
-      gap: 1.5rem;
-      margin: 1rem 0 0;
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0.75;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-caption-num {
-      opacity: 1;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card-detail-text {
-      margin-top: 0;
-    }
-    /* P4: P1 with two lines of description under the caption. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p4"][data-list]
-      .work-card-detail-desc {
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      max-width: 44rem;
-      margin-top: 0.75rem;
-      opacity: 0.8;
-    }
-    /* P5: Herzog & de Meuron's list. No pane; each row has its photo in
-       its own shape (landscape or portrait, never cropped), the number
-       and words beside it, and plenty of air between rows. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-list {
-      width: auto;
-      max-width: 60rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card {
-      grid-template-columns: 4rem 16rem minmax(0, 1fr);
-      grid-template-areas:
-        "num img title"
-        ". img meta"
-        ". img .";
-      grid-template-rows: auto auto 1fr;
-      column-gap: 0;
-      padding-block: 2.25rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card-thumb {
-      display: block;
-      grid-area: img;
-      width: 16rem;
-      aspect-ratio: auto;
-      margin: 0;
-      background: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card[data-orient="portrait"]
-      .work-card-thumb {
-      width: 11rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card-thumb
-      .work-card-img {
-      height: auto;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card-body
-      h2,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card-body
-      > .work-card-meta {
-      margin-left: 2.5rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card
-      h2 {
-      font-size: 1.5rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card
-      .work-card-detail {
-      display: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card
-      h2,
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card.is-open
-      h2 {
-      opacity: 1;
-      transform: none;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card:first-child::before {
-      top: 3.35rem;
-    }
-    html:is([data-desk="d2"], [data-desk="d3"])[data-vp="p5"][data-list]
-      .work-card:last-of-type::before {
-      height: 3.35rem;
-    }
-
-    /* The rows never grow here (the details are in the pane), so the
-       route always ends at the last number, open or not. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-      .work-card:last-of-type::before {
-      bottom: auto;
-      height: 2.7rem;
-    }
-    /* D3: the number keeps its place until the figure arrives, then the
-       figure stands in for it; it comes back at once when the figure
-       leaves. */
-    html[data-desk="d3"][data-list]
-      .work-card.is-open
-      .work-card-body
-      > .work-card-num {
-      padding: 0.2rem 0;
-      color: inherit;
-      background: rgb(242, 242, 242);
-      transition: visibility 0s linear 0.55s;
-    }
-    html.dark[data-desk="d3"][data-list]
-      .work-card.is-open
-      .work-card-body
-      > .work-card-num {
-      background: rgb(34, 33, 37);
-    }
-
-    /* D3: D2 with the figure. It stands on the route at the project
-       shown in the pane and walks along the line to the next one. */
-    html:is([data-desk="d2"], [data-desk="d3"])[data-list] .work-list {
-      position: relative;
-    }
-
-    html[data-desk="d3"][data-list] .work-walker-d2 {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2.75rem;
-      height: 2.75rem;
-      color: inherit;
-      border: 1px solid currentColor;
-      border-radius: 50%;
-      background: rgb(242, 242, 242);
-      pointer-events: none;
-      transform: translate(var(--wx, 0px), var(--wy, 0px));
-      transition: transform 0.6s cubic-bezier(0.45, 0, 0.25, 1);
-    }
-    html.dark[data-desk="d3"][data-list] .work-walker-d2 {
-      background: rgb(34, 33, 37);
-    }
-    html[data-desk="d3"][data-list] .work-walker-d2 .work-card-walker {
-      width: 2rem;
-      height: 2rem;
-    }
-    html[data-desk="d3"][data-list] .work-walker-d2 .walker-step,
-    html[data-desk="d3"][data-list] .work-walker-d2.is-step .walker-stand {
-      display: none;
-    }
-    html[data-desk="d3"][data-list] .work-walker-d2.is-step .walker-step {
-      display: inline;
-    }
-    html[data-desk="d3"][data-list] .work-walker-d2.is-left .work-card-walker {
-      transform: scaleX(-1);
-    }
-    /* The figure stands in for the open number. */
-    html[data-desk="d3"][data-list]
-      .work-card.is-open
-      .work-card-body
-      > .work-card-num {
-      visibility: hidden;
-    }
-    /* Before anything is chosen (.is-idle) the figure waits at the start
-       of the route, a little above 01, and no row looks chosen: every
-       title is lit, none is pushed in, and 01 shows. The pane still
-       shows the first project. */
-    html[data-desk="d3"][data-list] .work-list {
-      padding-top: 1.5rem;
-    }
-    html[data-desk="d3"][data-list] .work-card:first-child::before {
-      top: -0.75rem;
-    }
-    html[data-desk="d3"][data-list]
-      .work-list.is-idle
-      .work-card.is-open
-      .work-card-body
-      > .work-card-num {
-      visibility: visible;
-      transition: none;
-    }
-    html[data-desk="d3"][data-list] .work-list.is-idle .work-card h2 {
-      opacity: 1;
-      transform: none;
-    }
-    /* Touch: no hover, so the row shown in the pane keeps its title
-       underlined, a sign that tapping it again goes in. */
-    @media (hover: none) {
-      html:is([data-desk="d2"], [data-desk="d3"])[data-list]
-        .work-list:not(.is-idle)
-        .work-card.is-open
-        h2
-        a {
-        text-decoration-color: currentColor;
-      }
-    }
-  }
-  .work-walker-d2 {
-    display: none;
-  }
-  /* Idle (D3, before anything is chosen): the figure squats at the start
-     of the route, idly drawing circles on the ground. Bored: it does the
-     same where it stands when a shown row is left unopened a while. */
+  /* The figure: standing, mid-step, and squatting to doodle. */
   .work-card-walker .walker-squat {
     display: none;
-  }
-  html[data-desk][data-list] .work-list.is-idle .work-walker-d2 .walker-stand,
-  html[data-desk][data-list] .work-list.is-idle .work-walker-d2 .walker-step,
-  html[data-desk][data-list] .work-walker-d2.is-bored .walker-stand,
-  html[data-desk][data-list] .work-walker-d2.is-bored .walker-step {
-    display: none;
-  }
-  /* The squat is always laid out and only hidden, so its drawing keeps
-     running: Safari does not start an SVG animation that comes back from
-     display: none, and the figure squatted with a still circle. */
-  .work-walker-d2 .work-card-walker .walker-squat {
-    display: inline;
-    visibility: hidden;
-  }
-  .work-list.is-idle .work-walker-d2 .walker-squat,
-  .work-walker-d2.is-bored .walker-squat {
-    visibility: visible;
   }
   .walker-draw {
     transform-box: view-box;
@@ -2678,249 +491,387 @@ const orient =
       animation: none;
     }
   }
+  @keyframes work-open {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ── Phones and tablets: a tap opens the row in place, on the title
+     line. The open number becomes a solid "you are here" marker, and
+     "View project" stands on a rule that branches off the route. The
+     little figure is the way back: it rides the route with the reader,
+     steps as the page scrolls, and closes the row when tapped. ── */
+  @media (max-width: 799px) {
+    .work-card:active:not(.is-open) {
+      background-color: rgba(34, 33, 37, 0.04);
+    }
+    html.dark .work-card:active:not(.is-open) {
+      background-color: rgba(245, 245, 245, 0.05);
+    }
+    .work-card.is-open .work-card-num {
+      padding: 0.3rem 0.35rem;
+      border-radius: 2px;
+      color: rgb(242, 242, 242);
+      background: rgb(34, 33, 37);
+    }
+    html.dark .work-card.is-open .work-card-num {
+      color: rgb(34, 33, 37);
+      background: rgb(245, 245, 245);
+    }
+    .work-card.is-open .work-card-thumb {
+      display: none;
+    }
+    .work-card-detail {
+      position: relative;
+    }
+    .work-card.is-open .work-card-detail {
+      display: block;
+      grid-area: detail;
+      margin-top: 1.25rem;
+      animation: work-open 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    /* The large photo frame follows the cover: 4:5 portrait, 3:2
+       landscape. */
+    .work-card[data-orient="landscape"] .work-card-big {
+      aspect-ratio: 3 / 2;
+    }
+    .work-card[data-orient="portrait"] .work-card-big {
+      aspect-ratio: 4 / 5;
+    }
+    .work-card.is-open .work-card-detail-text {
+      margin-top: 1.6rem;
+    }
+    /* "View project" on the rule that leaves the route at the foot. */
+    .work-card-actions {
+      position: relative;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+    .work-card-actions::before {
+      content: "";
+      position: absolute;
+      left: calc(var(--rx) - var(--dx) - 0.5px);
+      right: 0;
+      bottom: 0;
+      border-top: 1px solid currentColor;
+    }
+    .work-card-actions > .work-card-more {
+      margin-top: 0;
+      padding-bottom: 0.6rem;
+      border-bottom: 0;
+    }
+    /* The figure is sticky, so it rides the lit line just above the
+       visible bottom of the screen until the junction at the foot
+       scrolls into view, and never climbs above the top of the details.
+       Its negative margins take no room and centre it on the details'
+       bottom edge. --cap-gap (set by script from the visual viewport)
+       keeps it clear of Safari's toolbar on iPhone. */
+    .work-card-cap {
+      position: sticky;
+      bottom: var(--cap-gap, 20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      margin: -1.375rem 0 -1.375rem calc(var(--rx) - var(--dx) - 1.375rem);
+      padding: 0;
+      color: inherit;
+      background: rgb(242, 242, 242);
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      cursor: pointer;
+      transition:
+        background-color 0.2s ease-out,
+        color 0.2s ease-out;
+    }
+    html.dark .work-card-cap {
+      background: rgb(34, 33, 37);
+    }
+    .work-card-cap:active {
+      color: rgb(242, 242, 242);
+      background: rgb(34, 33, 37);
+    }
+    html.dark .work-card-cap:active {
+      color: rgb(34, 33, 37);
+      background: rgb(245, 245, 245);
+    }
+    /* On "View project" it walks along the line to it. */
+    .work-card-cap.is-leaving {
+      transition: transform 0.6s linear;
+    }
+    /* A row folding away because one further down was opened: its
+       figure steps back at once, so only one figure is on the route. */
+    .work-card.is-handoff .work-card-cap {
+      visibility: hidden;
+    }
+    .work-card-walker {
+      width: 2rem;
+      height: 2rem;
+      transition: transform 0.2s ease-out;
+    }
+    .work-card-walker .walker-step,
+    .work-card-cap.is-step .walker-stand {
+      display: none;
+    }
+    .work-card-cap.is-step .walker-step {
+      display: inline;
+    }
+    .work-card-cap.is-left .work-card-walker {
+      transform: scaleX(-1);
+    }
+    /* Eyes in the page colour, swapped when the figure is pressed. */
+    .walker-eye {
+      fill: rgb(242, 242, 242);
+    }
+    html.dark .walker-eye,
+    .work-card-cap:active .walker-eye {
+      fill: rgb(34, 33, 37);
+    }
+    html.dark .work-card-cap:active .walker-eye {
+      fill: rgb(245, 245, 245);
+    }
+  }
+
+  /* ── Wide screens: split view. The route list keeps the left half; the
+     right half is a pane that always shows one project (the first, until
+     another is pointed at or clicked). As on Herzog & de Meuron's index,
+     the row itself is the way in: pointing at it underlines the title,
+     and clicking anywhere on it opens the project. A single figure walks
+     the route to the row shown in the pane. ── */
+  @media (min-width: 800px) {
+    .work-card {
+      --rx: 2rem;
+      --dx: 6rem;
+      grid-template-columns: 4rem minmax(0, 1fr);
+      grid-template-areas:
+        "num title"
+        ". meta";
+      grid-template-rows: auto auto;
+      column-gap: 2rem;
+      padding-block: 1.6rem;
+    }
+    .work-list {
+      position: relative;
+      width: 46%;
+      padding-top: 1.5rem;
+    }
+    /* Before anything is chosen (.is-idle) the figure waits at the start
+       of the route, a little above 01, where the line begins. */
+    .work-card:first-child::before {
+      top: -0.75rem;
+    }
+    /* The rows never grow here (the details are in the pane), so the
+       route always ends at the last number, open or not. */
+    .work-card:last-of-type::before {
+      bottom: auto;
+      height: 2.7rem;
+    }
+    .work-card-thumb,
+    .work-card-actions,
+    .work-card-facts,
+    .work-card-detail-desc {
+      display: none;
+    }
+    .work-card h2 {
+      font-size: 2rem;
+      transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    .work-card.is-open h2 {
+      transform: translateX(0.75rem);
+    }
+    .work-card:not(.is-open) h2 {
+      opacity: 0.55;
+      transition:
+        opacity 0.25s ease-out,
+        transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    .work-card:not(.is-open):hover h2 {
+      opacity: 1;
+    }
+    .work-card h2 a {
+      text-decoration: underline 1px transparent;
+      text-underline-offset: 0.3em;
+      transition: text-decoration-color 0.25s ease-out;
+    }
+    .work-card:hover h2 a,
+    .work-card:has(.work-card-big:hover) h2 a {
+      text-decoration-color: currentColor;
+    }
+    /* With nothing chosen yet, no row looks chosen: every title is lit,
+       none is pushed in. The pane still shows the first project. */
+    .work-list.is-idle .work-card h2 {
+      opacity: 1;
+      transform: none;
+    }
+    /* Touch: no hover, so the row shown in the pane keeps its title
+       underlined, a sign that tapping it again goes in. */
+    @media (hover: none) {
+      .work-list:not(.is-idle) .work-card.is-open h2 a {
+        text-decoration-color: currentColor;
+      }
+    }
+
+    /* The pane: always fits the screen, so it never scrolls. The photo
+       takes whatever height the caption leaves. Every project's pane is
+       laid in the same place; only the open one shows. Changing project
+       cross-fades the two, the old one going a little quicker than the
+       new one arrives, so the photo eases from one room to the next
+       instead of jumping. */
+    .work-card-detail {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 6.5rem;
+      right: 4rem;
+      bottom: 4.5rem;
+      width: calc(54% - 6rem);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.45s ease-in,
+        visibility 0s linear 0.45s;
+    }
+    .work-card.is-open .work-card-detail {
+      z-index: 1;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    /* Below 1200px the footer stacks its two lines; keep the pane clear
+       of it. */
+    @media (max-width: 1199px) {
+      .work-card-detail {
+        bottom: 6rem;
+      }
+    }
+    .work-card-big {
+      flex: 1 1 auto;
+      min-height: 8rem;
+      width: 100%;
+      aspect-ratio: auto;
+    }
+    .work-card-big img {
+      transition: transform 1.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    .work-card.is-open:hover .work-card-big img {
+      transform: scale(1.02);
+    }
+    /* Under the photo, one line: the row's number, then place, type and
+       year. */
+    .work-card-caption {
+      display: flex;
+      flex: none;
+      gap: 1.5rem;
+      margin: 1rem 0 0;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+    .work-card-detail-text {
+      flex: none;
+    }
+
+    /* The number keeps its place until the figure arrives, then the
+       figure stands in for it; it comes back at once when the figure
+       leaves. While idle, 01 shows. */
+    .work-card.is-open .work-card-num {
+      visibility: hidden;
+      transition: visibility 0s linear 0.55s;
+    }
+    .work-list.is-idle .work-card.is-open .work-card-num {
+      visibility: visible;
+      transition: none;
+    }
+    .work-walker-d2 {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      color: inherit;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: rgb(242, 242, 242);
+      pointer-events: none;
+      transform: translate(var(--wx, 0px), var(--wy, 0px));
+      transition: transform 0.6s cubic-bezier(0.45, 0, 0.25, 1);
+    }
+    html.dark .work-walker-d2 {
+      background: rgb(34, 33, 37);
+    }
+    .work-walker-d2 .work-card-walker {
+      width: 2rem;
+      height: 2rem;
+    }
+    .work-walker-d2 .walker-step,
+    .work-walker-d2.is-step .walker-stand {
+      display: none;
+    }
+    .work-walker-d2.is-step .walker-step {
+      display: inline;
+    }
+    .work-walker-d2.is-left .work-card-walker {
+      transform: scaleX(-1);
+    }
+    .work-walker-d2 .walker-eye {
+      fill: rgb(242, 242, 242);
+    }
+    html.dark .work-walker-d2 .walker-eye {
+      fill: rgb(34, 33, 37);
+    }
+    /* Idle: the figure squats at the start of the route, idly drawing
+       circles on the ground. Bored: it does the same where it stands
+       when a shown row is left unopened a while. */
+    .work-list.is-idle .work-walker-d2 .walker-stand,
+    .work-list.is-idle .work-walker-d2 .walker-step,
+    .work-walker-d2.is-bored .walker-stand,
+    .work-walker-d2.is-bored .walker-step {
+      display: none;
+    }
+    /* The squat is always laid out and only hidden, so its drawing keeps
+       running: Safari does not start an SVG animation that comes back
+       from display: none, and the figure squatted with a still circle. */
+    .work-walker-d2 .work-card-walker .walker-squat {
+      display: inline;
+      visibility: hidden;
+    }
+    .work-list.is-idle .work-walker-d2 .walker-squat,
+    .work-walker-d2.is-bored .walker-squat {
+      visibility: visible;
+    }
+  }
+  /* Arriving on the page, the open row and the figure are set in place at
+     once; only later changes animate. */
   .work-list[data-still] .work-walker-d2,
   .work-list[data-still] .work-card h2,
   .work-list[data-still] .work-card-num {
     transition: none !important;
-  }
-  .work-walker-d2 .walker-eye {
-    fill: rgb(242, 242, 242);
-  }
-  html.dark .work-walker-d2 .walker-eye {
-    fill: rgb(34, 33, 37);
-  }
-  /* A row folding away because one further down was opened: its figure
-     and lit line step back at once, so only one figure is on the route. */
-  .work-card.is-handoff .work-card-cap {
-    visibility: hidden;
-  }
-  .work-card-caption {
-    display: none;
-  }
-  /* A row that has just folded shut: its small photo fades back in. */
-  .work-card.is-settling .work-card-thumb {
-    animation: settle-in 0.45s ease-out;
-  }
-  @keyframes settle-in {
-    from {
-      opacity: 0;
-    }
-  }
-  /* Cue options (html[data-cue], dev/preview only; phones, H5/H9): one
-     way into the project from an open row, nothing over the photo, and
-     no new rule: "View project" uses the rule that already opens the
-     facts under the photo.
-     C0: as before, "View project" only at the foot, on the route line;
-     the photo links too, unmarked.
-     C3: "View project →" stands on that rule at its right end, the way
-     "All works" stands on the corner line.
-     C4: the rule itself ends in an arrowhead at the right, with "View
-     project" set just above its end.
-     C5: as C3, on the rule under the facts instead: after the photo
-     and its facts, before the description.
-     C3-C5: the foot keeps only "Close". */
-  .work-card-photo-link {
-    display: none;
-  }
-  @media (max-width: 799px) {
-    html:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c3"],
-        [data-cue="c4"],
-        [data-cue="c5"]
-      )
-      .work-card-detail-text {
-      position: relative;
-    }
-    /* Room between the photo and the rule for the words on it; C0
-       keeps the same air, so the rule never sits on the photo. */
-    html:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c0"],
-        [data-cue="c3"]
-      )
-      .work-card.is-open
-      .work-card-detail-text {
-      margin-top: 1.6rem;
-    }
-    html:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c3"],
-        [data-cue="c4"],
-        [data-cue="c5"]
-      )
-      .work-card.is-open
-      .work-card-photo-link {
-      position: absolute;
-      top: 0;
-      right: 0;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      /* The ground covers only the words' band of the rule, so the
-         labels under it stay clear; the 44px target is the ::before. */
-      padding: 0.25rem 0 0.25rem 0.8rem;
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
-      line-height: 0.75rem;
-      text-transform: uppercase;
-      color: inherit;
-      text-decoration: none;
-      background: rgb(242, 242, 242);
-      transform: translateY(-50%);
-    }
-    html:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c3"],
-        [data-cue="c4"],
-        [data-cue="c5"]
-      )
-      .work-card.is-open
-      .work-card-photo-link::before {
-      content: "";
-      position: absolute;
-      inset: -0.75rem 0;
-    }
-    html.dark:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c3"],
-        [data-cue="c4"],
-        [data-cue="c5"]
-      )
-      .work-card.is-open
-      .work-card-photo-link {
-      background: rgb(34, 33, 37);
-    }
-    html:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c3"],
-        [data-cue="c4"],
-        [data-cue="c5"]
-      )
-      .work-card.is-open
-      .work-card-photo-link
-      .work-card-photo-arrow {
-      flex: none;
-      width: 1.75rem;
-      height: 8px;
-      background: currentColor;
-      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 8'%3E%3Cpath d='M0 4H31M27 .5 30.5 4 27 7.5' fill='none' stroke='%23000'/%3E%3C/svg%3E")
-        center / 100% 100% no-repeat;
-      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 8'%3E%3Cpath d='M0 4H31M27 .5 30.5 4 27 7.5' fill='none' stroke='%23000'/%3E%3C/svg%3E")
-        center / 100% 100% no-repeat;
-    }
-    /* C4: no ground; the words sit above the rule, and the arrowhead is
-       drawn on the rule's own end. */
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c4"]
-      .work-card.is-open
-      .work-card-detail-text {
-      margin-top: 2.6rem;
-    }
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c4"]
-      .work-card.is-open
-      .work-card-photo-link {
-      padding: 1rem 0 0.75rem 1rem;
-      background: none;
-      transform: translateY(-100%);
-    }
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c4"]
-      .work-card.is-open
-      .work-card-photo-link
-      .work-card-photo-arrow {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      width: 7px;
-      height: 7px;
-      background: none;
-      border-top: 1px solid currentColor;
-      border-right: 1px solid currentColor;
-      -webkit-mask: none;
-      mask: none;
-      transform: translate(-1px, 50%) rotate(45deg);
-    }
-    /* C3/C4: the foot keeps only "Close". */
-    html:is([data-list="h5"], [data-list="h9"]):is(
-        [data-cue="c3"],
-        [data-cue="c4"],
-        [data-cue="c5"]
-      )
-      .work-card-actions
-      > .work-card-more {
-      display: none;
-    }
-    /* C5: air around it, from the photo, the values and the words. */
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c5"]
-      .work-card.is-open
-      .work-card-detail-text {
-      margin-top: 1.25rem;
-    }
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c5"]
-      .work-card.is-open
-      .work-card-facts {
-      /* Even between the two rules. */
-      position: relative;
-      padding-block: 1rem 1.1rem;
-    }
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c5"]
-      .work-card.is-open
-      .work-card-detail-desc {
-      /* Clear of the words on the lower rule. */
-      margin-top: 2rem;
-    }
-    /* H9: as the figure walks in, its route joins the lower rule. */
-    html[data-list="h9"][data-cue="c5"]
-      .work-card.is-walking
-      .work-card-facts::after {
-      content: "";
-      position: absolute;
-      bottom: -1px;
-      left: calc(var(--rx) - var(--dx));
-      width: calc(var(--dx) - var(--rx));
-      border-top: 1px solid rgba(34, 33, 37, 0.3);
-      animation: settle-in 0.3s ease-out;
-    }
-    html.dark[data-list="h9"][data-cue="c5"]
-      .work-card.is-walking
-      .work-card-facts::after {
-      border-top-color: rgba(245, 245, 245, 0.3);
-    }
-    /* C3: the sign is on the upper rule, so the route joins that one. */
-    html[data-list="h9"][data-cue="c3"]
-      .work-card.is-walking
-      .work-card-detail-text::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: calc(var(--rx) - var(--dx));
-      width: calc(var(--dx) - var(--rx));
-      border-top: 1px solid rgba(34, 33, 37, 0.3);
-      animation: settle-in 0.3s ease-out;
-    }
-    html.dark[data-list="h9"][data-cue="c3"]
-      .work-card.is-walking
-      .work-card-detail-text::after {
-      border-top-color: rgba(245, 245, 245, 0.3);
-    }
-    /* C5: in the flow, centred on the facts' lower rule; its negative
-       margins give it no height of its own. */
-    html:is([data-list="h5"], [data-list="h9"])[data-cue="c5"]
-      .work-card.is-open
-      .work-card-photo-link {
-      position: relative;
-      top: auto;
-      right: auto;
-      width: fit-content;
-      margin: -0.625rem 0 -0.625rem auto;
-      transform: none;
-    }
   }
 </style>
 
 <script>
   import { navigate } from "astro:transitions/client";
 
-  // G: feed the cursor position to the floating preview photo.
-  // G1/H1/H4: tapping a row opens its details, one row at a time. On
-  // desktop they show as a side panel that closes on Close, a click
-  // outside, or Escape. On a phone, opening or closing changes the page
-  // height above and below, so the row the reader acted on is held in
-  // place on screen (Safari has no CSS scroll anchoring to do it).
+  // Phones and tablets (H9): tapping a row opens its details in place,
+  // one row at a time. Opening or closing changes the page height above
+  // and below, so the row the reader acted on is held in place on screen
+  // (Safari has no CSS scroll anchoring to do it). Wide screens (D3):
+  // the list keeps the left half and a pane on the right shows one row.
   let cleanupList: () => void = () => {};
 
   document.addEventListener("astro:page-load", () => {
@@ -2932,37 +883,16 @@ const orient =
     }
     const root = document.documentElement;
     const wide = window.matchMedia("(min-width: 800px)");
-    // "desktop" here means the side panel is in use: a wide screen that
-    // is not set to open rows in place (D1).
-    const split = () =>
-      wide.matches &&
-      (root.dataset.desk === "d2" || root.dataset.desk === "d3");
-    const desktop = {
-      get matches() {
-        return (
-          wide.matches &&
-          root.dataset.desk !== "d1" &&
-          root.dataset.desk !== "d2" &&
-          root.dataset.desk !== "d3"
-        );
-      },
-    };
-    const expandable = () =>
-      ["g1", "h1", "h5", "h6", "h8", "h9", "h10"].includes(
-        root.dataset.list ?? "",
-      );
+    // The split view (D3) is in use.
+    const split = () => wide.matches;
 
     const setOpen = (card: Element, open: boolean) => {
       card.classList.toggle("is-open", open);
-      card
-        .querySelector(".work-card-toggle")
-        ?.setAttribute("aria-expanded", open ? "true" : "false");
     };
     const closeAll = () => {
       list.querySelectorAll(".work-card.is-open").forEach((card) => {
         setOpen(card, false);
       });
-      root.classList.remove("has-sheet");
     };
     // Run a change, then scroll so `anchor` sits where it was on screen.
     // Mark scrolls made here so the header does not react to them.
@@ -2985,7 +915,7 @@ const orient =
     const keepInPlace = (anchor: Element | null, change: () => void) => {
       const before = anchor?.getBoundingClientRect().top;
       change();
-      if (!anchor || before === undefined || desktop.matches) return;
+      if (!anchor || before === undefined) return;
       realign(anchor, before);
     };
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -3001,12 +931,11 @@ const orient =
       const top = anchor?.getBoundingClientRect().top;
       const finish = () => {
         setOpen(card, false);
-        root.classList.remove("has-sheet");
         card.classList.remove("is-closing", "is-handoff");
         card.style.removeProperty("height");
         card.style.removeProperty("overflow");
         detail?.removeAttribute("style");
-        if (anchor && top !== undefined && !desktop.matches) {
+        if (anchor && top !== undefined) {
           realign(anchor, top - extra);
         }
         // What only a closed row shows (its small photo) fades in rather
@@ -3016,7 +945,7 @@ const orient =
           window.setTimeout(() => card.classList.remove("is-settling"), 450);
         }
       };
-      if (!detail || calm.matches || desktop.matches) {
+      if (!detail || calm.matches) {
         finish();
         return;
       }
@@ -3071,13 +1000,8 @@ const orient =
     // its title sits just under the header (or the top of the screen).
     // Rows whose photo already shows are left where they are.
     const liftFor = (card: Element) => {
-      if (desktop.matches || split()) return 0;
-      // The photo, and the "View project" under it when that shows.
-      const link = card.querySelector<HTMLElement>(".work-card-photo-link");
-      const photo =
-        link && link.offsetHeight > 0
-          ? link
-          : card.querySelector(".work-card-big");
+      if (split()) return 0;
+      const photo = card.querySelector(".work-card-big");
       if (!photo) return 0;
       const view = window.visualViewport;
       const bottom = view ? view.offsetTop + view.height : window.innerHeight;
@@ -3106,10 +1030,6 @@ const orient =
       requestAnimationFrame(step);
     };
 
-    const onMove = (event: PointerEvent) => {
-      list.style.setProperty("--mx", `${event.clientX}px`);
-      list.style.setProperty("--my", `${event.clientY}px`);
-    };
     // D3: set while the figure walks to a tapped row on its way in.
     let going = false;
     // Whether the click about to come was a finger or pen, not a mouse
@@ -3121,10 +1041,9 @@ const orient =
     const onClick = (event: MouseEvent) => {
       const wasTouch = touched;
       touched = false;
-      if (!expandable()) return;
       const target = event.target as Element;
-      if (target.closest(".work-card-close-bottom, .work-card-cap")) {
-        // Closing from the foot of the details: hold the next row still so
+      if (target.closest(".work-card-cap")) {
+        // Closing with the figure: hold the next row still so
         // the details fold up into their row just above the finger. The
         // last row has nothing below it, so it holds itself instead.
         const card = target.closest<HTMLElement>(".work-card");
@@ -3132,56 +1051,37 @@ const orient =
         fold(card, card.nextElementSibling ?? card);
         return;
       }
-      if (target.closest(".work-card-close, .work-card-backdrop")) {
-        closeAll();
-        return;
-      }
       // H9: the figure walks into the project before the page changes:
       // to "View project" at the foot, or, from the photo or the "View
       // project" by the facts, out along its line to the right.
       const view = target.closest<HTMLAnchorElement>(
-        ".work-card-detail .work-card-more, .work-card-detail .work-card-photo-link, .work-card-detail .work-card-big",
+        ".work-card-detail .work-card-more, .work-card-detail .work-card-big",
       );
-      if (
-        view &&
-        root.dataset.list === "h9" &&
-        !desktop.matches &&
-        !split() &&
-        !calm.matches
-      ) {
+      if (view && !split() && !calm.matches) {
         const cap = view
           .closest(".work-card")
           ?.querySelector<HTMLElement>(".work-card-cap");
         if (cap && !cap.classList.contains("is-leaving")) {
           event.preventDefault();
-          // It walks to the "View project" that shows (by the facts, or
-          // at the foot), to just before its words, whichever way in was
-          // tapped.
+          // It walks to "View project" at the foot, to just before its
+          // words, whichever way in was tapped.
           const card = view.closest(".work-card");
-          const sign = [
-            card?.querySelector<HTMLElement>(".work-card-photo-link"),
-            card?.querySelector<HTMLElement>(
-              ".work-card-actions > .work-card-more",
-            ),
-          ].find((el) => el && el.offsetHeight > 0);
+          const sign = card?.querySelector<HTMLElement>(
+            ".work-card-actions > .work-card-more",
+          );
           // The way a person would walk it: up the route first, then
           // right along the line to the sign, at one steady pace. The
-          // foot sign stands on the line under it, so the figure keeps
-          // to that line instead of rising to the words.
+          // sign stands on the line under it, so the figure keeps to that
+          // line instead of rising to the words.
           const c = cap.getBoundingClientRect();
           const t = sign?.getBoundingClientRect();
           const line = sign?.closest(".work-card-actions");
-          const y = line
-            ? line.getBoundingClientRect().bottom
-            : t
-              ? t.top + t.height / 2
-              : 0;
+          const y = line ? line.getBoundingClientRect().bottom : 0;
           const dx = t ? t.left - c.right : 0;
           const dy = t ? y - (c.top + c.height / 2) : 0;
           const run = Math.abs(dx) + Math.abs(dy);
           const time = Math.min(1100, Math.max(600, run * 1.6));
           cap.classList.add("is-leaving");
-          card?.classList.add("is-walking");
           cap.animate(
             [
               { transform: "translate(0, 0)" },
@@ -3209,10 +1109,9 @@ const orient =
       const card = target.closest(".work-card");
       if (!card) return;
       event.preventDefault();
-      // D2/D3: the whole row is the way into its project. A row not yet
-      // in the pane shows first. With a mouse (the pointer usually showed
-      // it already) the page then changes, in D3 once the figure has
-      // walked to it. A touch screen has no hover, so there the first
+      // D3: the whole row is the way into its project. A row not yet in
+      // the pane shows first. With a mouse (the pointer usually showed it
+      // already) the page then changes, once the figure has walked to it. A touch screen has no hover, so there the first
       // tap only shows the row, and a tap on the shown row goes in.
       if (split()) {
         const href = card.querySelector<HTMLAnchorElement>("h2 a")?.href;
@@ -3228,7 +1127,7 @@ const orient =
         setOpen(card, true);
         list.classList.remove("is-idle");
         if (wasTouch) return;
-        if (root.dataset.desk !== "d3" || calm.matches) {
+        if (calm.matches) {
           navigate(href);
           return;
         }
@@ -3247,7 +1146,6 @@ const orient =
         open &&
         prev &&
         prev !== card &&
-        !desktop.matches &&
         prev.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING
       ) {
         prev.classList.add("is-handoff");
@@ -3263,7 +1161,6 @@ const orient =
       });
       if (open) glide(liftFor(card));
       if (open) onPlace();
-      if (open && desktop.matches) root.classList.add("has-sheet");
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !split()) closeAll();
@@ -3275,7 +1172,6 @@ const orient =
     // iPhone sits above Safari's toolbar while that is showing. That
     // changes only when the toolbar comes or goes, not on every scroll.
     const placeCap = () => {
-      if (root.dataset.list !== "h9" || desktop.matches) return;
       const view = window.visualViewport;
       const hidden = view
         ? Math.max(
@@ -3302,7 +1198,7 @@ const orient =
     let walkLast = 0;
     let walkIdle = 0;
     const onWalk = () => {
-      if (root.dataset.list !== "h9" || calm.matches) return;
+      if (calm.matches) return;
       const cap = list.querySelector<HTMLElement>(
         ".work-card.is-open:not(.is-closing) .work-card-cap",
       );
@@ -3319,10 +1215,10 @@ const orient =
       walkIdle = window.setTimeout(() => cap.classList.remove("is-step"), 180);
     };
 
-    // D2: pointing at a row shows it in the pane; the first row shows
+    // D3: pointing at a row shows it in the pane; the first row shows
     // until then.
     const showFirst = () => {
-      if (!split() || !expandable()) return;
+      if (!split()) return;
       if (!list.querySelector(".work-card.is-open")) {
         const first = list.querySelector(".work-card");
         if (first) setOpen(first, true);
@@ -3346,7 +1242,7 @@ const orient =
       }, 130);
     };
     const onHover = (event: PointerEvent) => {
-      if (!split() || !expandable() || event.pointerType !== "mouse") return;
+      if (!split() || event.pointerType !== "mouse") return;
       window.clearTimeout(hoverTimer);
       const card = (event.target as Element).closest(".work-card");
       hoverCard =
@@ -3369,7 +1265,7 @@ const orient =
       hoverCard = null;
     };
 
-    // D2 + H9: one figure for the whole list, moved along the route to
+    // D3: one figure for the whole list, moved along the route to
     // the open row; it steps while moving and faces up or down.
     const walker = document.createElement("span");
     walker.className = "work-walker-d2";
@@ -3383,10 +1279,8 @@ const orient =
     let boredTimer = 0;
     const placeWalker = () => {
       const card = list.querySelector<HTMLElement>(".work-card.is-open");
-      const num = card?.querySelector<HTMLElement>(
-        ".work-card-body > .work-card-num",
-      );
-      if (!split() || root.dataset.desk !== "d3" || !card || !num) return;
+      const num = card?.querySelector<HTMLElement>(".work-card-num");
+      if (!split() || !card || !num) return;
       // Measured from where the row sits in the layout (offsetTop), not
       // where it is drawn: rows rise into place as the page opens
       // (Reveal), and the figure should neither ride nor walk that rise.
@@ -3435,21 +1329,12 @@ const orient =
       attributes: true,
       attributeFilter: ["class"],
     });
-    const watchModes = new MutationObserver(() => {
-      showFirst();
-      walkerY = null;
-      placeWalker();
-    });
-    watchModes.observe(root, {
-      attributes: true,
-      attributeFilter: ["data-desk", "data-list"],
-    });
     window.addEventListener("resize", placeWalker);
 
     // Arriving on the page (or coming back to it), the open row and the
     // figure are set in place at once; only later changes animate.
     list.setAttribute("data-still", "");
-    if (split() && root.dataset.desk === "d3") list.classList.add("is-idle");
+    if (split()) list.classList.add("is-idle");
     showFirst();
     placeWalker();
     requestAnimationFrame(() =>
@@ -3459,8 +1344,6 @@ const orient =
     list.addEventListener("pointerover", onHover);
     list.addEventListener("pointerleave", onLeave);
     list.addEventListener("pointermove", onAim, { passive: true });
-
-    list.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("scroll", onWalk, { passive: true });
     window.visualViewport?.addEventListener("resize", onPlace);
     window.visualViewport?.addEventListener("scroll", onPlace);
@@ -3470,13 +1353,11 @@ const orient =
     wide.addEventListener("change", closeAll);
     document.addEventListener("astro:before-swap", closeAll, { once: true });
     cleanupList = () => {
-      list.removeEventListener("pointermove", onMove);
       list.removeEventListener("pointerover", onHover);
       list.removeEventListener("pointerleave", onLeave);
       list.removeEventListener("pointermove", onAim);
       window.clearTimeout(hoverTimer);
       watchOpen.disconnect();
-      watchModes.disconnect();
       window.removeEventListener("resize", placeWalker);
       window.clearInterval(stepTimer);
       window.clearTimeout(stopTimer);
@@ -3490,7 +1371,6 @@ const orient =
       list.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKey);
       wide.removeEventListener("change", closeAll);
-      root.classList.remove("has-sheet");
     };
   });
 </script>

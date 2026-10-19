@@ -2,9 +2,11 @@
 // Panel for comparing layout options before one is chosen. Rendered
 // under `astro dev` and in PUBLIC_PREVIEW=1 builds (see BaseLayout.astro).
 // Remove once settled.
-// Settled with the client: H9 route (D3 on desktop), "Discover more" as
-// R without the figure, cue C0, view P1. Only Gap is still open, until
-// the real write-ups come in.
+// Settled with the client and now built into the styles (BlogPost.astro,
+// NextPost.astro):
+// H9 route (D3 on desktop), "Discover more" as R without the figure,
+// lead L2-1, cue C0, view P1. Only Gap is still open, until the real
+// write-ups come in.
 const groups = [{ key: "gap", label: "Gap", options: ["s0", "s1"] }];
 // Options per key, so a choice remembered from an earlier round that is
 // no longer offered falls back to the default.
@@ -16,19 +18,10 @@ for (const g of groups) {
 
 <script is:inline define:vars={{ allowed }}>
   (() => {
-    // Settled: always set, never read back from an earlier round.
-    const fixed = {
-      list: "h9",
-      desk: "d3",
-      more: "r",
-      lead: "l2-1",
-      cue: "c0",
-      vp: "p1",
-    };
+    // Settled choices are built into the styles; only open ones are set here.
     const defaults = { gap: "s0" };
     const apply = () => {
       const root = document.documentElement;
-      for (const [k, v] of Object.entries(fixed)) root.dataset[k] = v;
       for (const [k, d] of Object.entries(defaults)) {
         let v = d;
         try {
@@ -37,8 +30,6 @@ for (const g of groups) {
         if (!allowed[k]?.includes(v)) v = d;
         root.dataset[k] = v;
       }
-      // No figure in "Discover more" (html[data-fig] stays unset).
-      delete root.dataset.fig;
     };
     window.__pvApply = apply;
     // Folded or not is set on <html> here, before the page is drawn, so
@@ -94,6 +85,13 @@ for (const g of groups) {
     max-width: calc(100vw - 24px);
     background: rgba(200, 60, 40, 0.92);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  /* From 800px the scroll-to-top button sits higher (5.5rem up, 44px
+     tall); stay above it. */
+  @media (min-width: 800px) {
+    #preview-switcher {
+      bottom: 9.5rem;
+    }
   }
   #preview-switcher .pv-min {
     align-self: flex-end;

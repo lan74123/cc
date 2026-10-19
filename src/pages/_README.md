@@ -41,10 +41,10 @@ Dynamic routes are generated from content collections defined in [content.config
 
 ```astro
 ---
-import { getCollection } from "astro:content";
+import { getEntries } from "../../scripts/collections";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("works");
+  const posts = await getEntries("works");
   return posts.map((post) => ({
     params: { id: post.id },
     props: { post },
@@ -55,7 +55,7 @@ const { post } = Astro.props;
 ---
 ```
 
-Most of this boilerplate is handled by the shared helpers in [collections.ts](../scripts/collections.ts) - `buildDetailPaths()` and `buildTagPaths()`.
+Load entries with `getEntries()` rather than `getCollection()`: it drops `placeholder: true` stand-in entries from production builds (they still show in `astro dev` and on the preview site). Most of this boilerplate is handled by the shared helpers in [collections.ts](../scripts/collections.ts) - `buildDetailPaths()` and `buildTagPaths()`.
 
 ## RSS Feed Generation
 
@@ -68,7 +68,7 @@ The feeds are not linked from the site UI but remain available at these URLs.
 
 ## Type Safety
 
-- **[collection] routes**: `ROUTE_COLLECTIONS` is declared `as const` and typed with `CollectionName`, so `getCollection(config.name)` receives a literal collection key.
+- **[collection] routes**: `ROUTE_COLLECTIONS` is declared `as const` and typed with `CollectionName`, so `getEntries(config.name)` receives a literal collection key.
 
 ## Component Integration
 

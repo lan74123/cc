@@ -14,9 +14,7 @@ Layouts provide the reusable page-level structures that wrap content throughout 
 
 2. **[MarkdownPostLayout.astro](MarkdownPostLayout.astro)**: Wraps MDX content pages. Handles the hero image (via `HeroImage.astro` vanilla component), formatted dates, Masonry galleries, and the `NextPost` related-content component.
 
-3. **[AuthorLayout.astro](AuthorLayout.astro)**: Layout for author profile pages. Similar structure to MarkdownPostLayout but tailored for contributor bios.
-
-4. **[TagLayout.astro](TagLayout.astro)**: Layout for tag listing pages. Features a random hero image (via `GetRandomImage`) and renders tagged content. Uses a single `getImage()` call with `widths` array and quality 85 for responsive `<img srcset>` output instead of multiple separate `getImage()` calls.
+3. **[TagLayout.astro](TagLayout.astro)**: Layout for tag listing pages. Features a random hero image (via `GetRandomImage`) and renders tagged content. Uses a single `getImage()` call with `widths` array and quality 85 for responsive `<img srcset>` output instead of multiple separate `getImage()` calls.
 
 ## Content Injection
 

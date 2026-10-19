@@ -12,13 +12,13 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 ### Page & Layout Components
 
-- **[BlogPost.astro](BlogPost.astro)**: Card component for post previews on the `/works/` and `/research/` index pages and tag pages, including the category/year line for works.
+- **[BlogPost.astro](BlogPost.astro)**: Row on the `/works/` and `/research/` index pages and tag pages, hung on one route line. Phones open a row in place (large photo, facts, description, "View project") with a walking figure that closes it; from 800px the list keeps the left half and a fixed pane on the right shows the pointed-at project, with one figure walking the route between rows. These are the layouts settled with the client (H9 / D3, P1, C0); they are plain styles, not toggled by attributes.
 
 - **[Homepage.astro](Homepage.astro)**: Random-image landing component backed by [homePage.ts](../scripts/homePage.ts). Currently unused — `/` redirects to `/works/`.
 
-- **[HeroImage.astro](HeroImage.astro)**: Vanilla parallax hero image on content pages. Uses a `<picture>` element with `<source>` for responsive image delivery; the `<img>` carries real alt text (no separate sr-only element). An `IntersectionObserver` ensures the parallax scroll handler only runs while visible, and `will-change: transform` keeps it on the compositor. Supports per-image `positionX`/`positionY` focal point overrides and absolute tag links with collection awareness. The `-20%`/`120%` oversized inner div gives headroom for the parallax offset. All hooks re-wire on `astro:page-load`.
+- **[HeroImage.astro](HeroImage.astro)**: Vanilla parallax hero image on content pages. Uses one `<img>` with a width-based `srcset` (640-3200w) and a `sizes` that covers the cropped parallax box, so portrait covers stay sharp on wide screens; the `<img>` carries real alt text (no separate sr-only element). An `IntersectionObserver` ensures the parallax scroll handler only runs while visible, and `will-change: transform` keeps it on the compositor. Supports per-image `positionX`/`positionY` focal point overrides and absolute tag links with collection awareness. The `-20%`/`120%` oversized inner div gives headroom for the parallax offset. All hooks re-wire on `astro:page-load`.
 
-- **[NextPost.astro](NextPost.astro)**: Related content suggestion shown at the bottom of posts. Picks random posts from the same collection (excluding the current one) and renders them as linked preview cards. Posts without a hero image show the `src/assets/logo/ccspace_b.svg` wordmark as a placeholder (inverted in dark mode).
+- **[NextPost.astro](NextPost.astro)**: "Discover more" at the bottom of posts: every entry of the collection in index order on a route line, the current one marked with a solid number, under a corner line carrying the "All works" link (layout R / L2-1). Rendered on the server; no client script.
 
 ### Header Components
 
@@ -66,7 +66,7 @@ Several components carry inline type declarations to satisfy `astro check` witho
 
 - **Header.astro**: Imports the light/dark SVG wordmarks from `src/assets/logo/` and swaps them with `dark:hidden` / `hidden dark:block`.
 - **Masonry.astro**: Avoids `key` props on native HTML elements (unlike React, Astro templates don't support `key` on non-component elements).
-- **NextPost.astro**: Uses a `CollectionName` type (from `collections.ts`) for the collection prop, a `PostData` interface for frontmatter fields, and typed `getImage()` parameters.
+- **NextPost.astro**: Uses a `CollectionName` type (from `collections.ts`) for the collection prop and loads entries through `getEntries()`.
 
 ## Shared Utilities
 

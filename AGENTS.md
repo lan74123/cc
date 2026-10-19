@@ -57,7 +57,7 @@ node scripts/parser.js         # verify CLI/content schema drift
 
 ## Single-Test / Targeted Verification
 
-The repository has a Playwright end-to-end test suite inherited from the template. Most specs still target the template's old routes (`/muses/`, `/long_form/`) and fail until they are rewritten for `works` / `research`.
+The repository has a Playwright end-to-end suite in `tests/` covering the index route list (phone and split view), project pages, Discover more, the lightbox, islands across ClientRouter swaps, theme (including no dark-mode flash), navigation, SEO and assets. It runs in the installed Google Chrome (`channel: "chrome"` in `playwright.config.ts`) against `bun run preview`, so build first. Pages it visits are listed in `tests/pages.ts`. Against a production build, the 3 specs that need several projects skip (placeholders are preview-only); build with `PUBLIC_PREVIEW=1` to run all of them. When an AI agent runs it, Astro puts `astro preview` in the background and Playwright's web server exits, so set `ASTRO_PREVIEW_BACKGROUND=1` first.
 
 ```sh
 bunx playwright test                                    # run full test suite
@@ -78,6 +78,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - `bun run build` triggers `prebuild` automatically via package scripts.
 - `prebuild` runs `scripts/sync-readme-versions.js`.
 - `lint:html` and `lint:links` require built files in `dist/`.
+- `.htmlvalidate.json` extends the recommended preset: inline `style` is allowed only for `object-position` (per-photo focal points), and `void-style` is off because MDX emits `<hr/>`.
 - Build concurrency is set to 4 in `astro.config.mjs` (a holdover from remote-CDN builds; harmless with local images).
 
 ## Image Handling
@@ -202,7 +203,8 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - Deployment target is Cloudflare Workers (static assets). Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
 - The Worker is named `cc-space` (`wrangler.jsonc`) and deploys via Cloudflare Workers Builds connected to GitHub: build command `bun run build`, deploy command `npx wrangler deploy` (`bun run deploy` locally).
 - Design-review test site: `bun run deploy:preview` builds with `PUBLIC_PREVIEW=1` (shows the `PreviewSwitcher` layout panel and adds `noindex`) and deploys it with `wrangler deploy --name cc-space-preview` to https://cc-space-preview.lan74123.workers.dev, a separate Worker from `cc-space`. Deployed by hand; not wired to Workers Builds.
-- Settled layout choices (H9 / D3, more R without the figure, C0, P1) are set on `<html>` by `PreviewSwitcher.astro`, which only renders in dev and preview builds. A normal production build does not set them yet, so bake them in before pushing these layouts to `ccspace.tw`.
+- Settled layout choices (H9 / D3, "Discover more" R without the figure, L2-1, C0, P1) are built into the styles of `BlogPost.astro` and `NextPost.astro`, so production and preview render the same layout. `PreviewSwitcher.astro` (dev and preview builds only) now offers just the still-open Gap option (`html[data-gap]`); production uses its default, S0.
+- Placeholder content: entries with `placeholder: true` in frontmatter (the three `sample-*` works) appear in `astro dev` and preview builds only. Pages load entries through `getEntries()` in `src/scripts/collections.ts`, which filters them out of production builds; use it instead of `getCollection()` for anything visitors see. Delete or flip the flag once real projects replace them.
 - `site` in `astro.config.mjs` reads `SITE_URL`, set as a Workers Builds env var to `https://ccspace.tw`. `robots.txt` is generated from `site` by `src/pages/robots.txt.ts`.
 - Domain `ccspace.tw` is registered at PChome with nameservers delegated to Cloudflare and DNSSEC enabled (DS record at PChome). Before moving DNS off Cloudflare, clear the DS record at PChome first or the domain will stop resolving.
 - `ccspace.tw` and `www.ccspace.tw` are Worker custom domains; the workers.dev URL is disabled. `www` -> apex and HTTP -> HTTPS are Cloudflare dashboard rules (Redirect Rules, Always Use HTTPS), not Worker code, because static asset requests never reach `src/index.ts`. `/` -> `/works/` is a 301 in `public/_redirects`.

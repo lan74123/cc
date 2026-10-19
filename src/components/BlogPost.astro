@@ -3182,6 +3182,7 @@ const orient =
     list.append(walker);
     let walkerY: number | null = null;
     let stepTimer = 0;
+    let stopTimer = 0;
     const placeWalker = () => {
       const card = list.querySelector<HTMLElement>(".work-card.is-open");
       const num = card?.querySelector<HTMLElement>(
@@ -3203,9 +3204,11 @@ const orient =
           () => walker.classList.toggle("is-step"),
           130,
         );
-        window.setTimeout(() => {
+        // Once it arrives it turns back to face the project on the right.
+        window.clearTimeout(stopTimer);
+        stopTimer = window.setTimeout(() => {
           window.clearInterval(stepTimer);
-          walker.classList.remove("is-step");
+          walker.classList.remove("is-step", "is-left");
         }, 600);
       }
       walkerY = y;
@@ -3254,6 +3257,7 @@ const orient =
       watchModes.disconnect();
       window.removeEventListener("resize", placeWalker);
       window.clearInterval(stepTimer);
+      window.clearTimeout(stopTimer);
       walker.remove();
       wide.removeEventListener("change", showFirst);
       window.removeEventListener("scroll", onWalk);

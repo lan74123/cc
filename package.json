@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "deploy": "wrangler deploy",
+    "deploy:preview": "PUBLIC_PREVIEW=1 bun run build && wrangler deploy --name cc-space-preview",
     "astro": "astro",
     "create": "node scripts/create-content.js",
     "update-post": "node scripts/update-post.js",

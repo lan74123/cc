@@ -42,6 +42,7 @@ bun run dev                    # Astro dev server
 bun run start                  # alias for dev
 bun run build                  # production build; also runs the prebuild hook
 bun run preview                # preview built site from dist/
+bun run deploy:preview         # PUBLIC_PREVIEW=1 build, deploy to the cc-space-preview test site
 bun run prebuild               # sync README/doc version badges
 bun run lint:html              # validate generated HTML in dist/
 bun run lint:links             # check internal links from dist/works/index.html
@@ -200,6 +201,8 @@ bun x hyperlink dist/path/to/page.html --skip-external
 
 - Deployment target is Cloudflare Workers (static assets). Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
 - The Worker is named `cc-space` (`wrangler.jsonc`) and deploys via Cloudflare Workers Builds connected to GitHub: build command `bun run build`, deploy command `npx wrangler deploy` (`bun run deploy` locally).
+- Design-review test site: `bun run deploy:preview` builds with `PUBLIC_PREVIEW=1` (shows the `PreviewSwitcher` layout panel and adds `noindex`) and deploys it with `wrangler deploy --name cc-space-preview` to https://cc-space-preview.lan74123.workers.dev, a separate Worker from `cc-space`. Deployed by hand; not wired to Workers Builds.
+- Settled layout choices (H9 / D3, more R without the figure, C0, P1) are set on `<html>` by `PreviewSwitcher.astro`, which only renders in dev and preview builds. A normal production build does not set them yet, so bake them in before pushing these layouts to `ccspace.tw`.
 - `site` in `astro.config.mjs` reads `SITE_URL`, set as a Workers Builds env var to `https://ccspace.tw`. `robots.txt` is generated from `site` by `src/pages/robots.txt.ts`.
 - Domain `ccspace.tw` is registered at PChome with nameservers delegated to Cloudflare and DNSSEC enabled (DS record at PChome). Before moving DNS off Cloudflare, clear the DS record at PChome first or the domain will stop resolving.
 - `ccspace.tw` and `www.ccspace.tw` are Worker custom domains; the workers.dev URL is disabled. `www` -> apex and HTTP -> HTTPS are Cloudflare dashboard rules (Redirect Rules, Always Use HTTPS), not Worker code, because static asset requests never reach `src/index.ts`. `/` -> `/works/` is a 301 in `public/_redirects`.

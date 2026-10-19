@@ -222,6 +222,51 @@ const orient =
           <circle class="walker-eye" cx="13.2" cy="5.6" r="0.5"></circle>
           <circle class="walker-eye" cx="14.9" cy="5.6" r="0.5"></circle>
         </g>
+        <g class="walker-squat" fill="currentColor">
+          <circle cx="10.2" cy="8" r="3.7"></circle>
+          <rect
+            x="7.2"
+            y="11.2"
+            width="5.4"
+            height="6.6"
+            rx="2.7"
+            transform="rotate(14 9.9 14.5)"></rect>
+          <rect x="8.4" y="17.6" width="4.4" height="2.8" rx="1.4"></rect>
+          <rect
+            x="9.6"
+            y="15.2"
+            width="5.4"
+            height="2.2"
+            rx="1.1"
+            transform="rotate(-24 10.7 16.3)"></rect>
+          <rect x="13" y="14.4" width="2" height="6.2" rx="1"></rect>
+          <rect
+            x="10.6"
+            y="12.6"
+            width="1.8"
+            height="3.4"
+            rx="0.9"
+            transform="rotate(-60 11.5 13)"></rect>
+          <g class="walker-draw">
+            <rect
+              x="11.1"
+              y="12"
+              width="1.8"
+              height="10"
+              rx="0.9"
+              transform="rotate(-42.5 12 12.4)"></rect>
+          </g>
+          <path
+            class="walker-doodle"
+            d="M19.2 19.65a2.4 0.85 0 1 1 0 1.7a2.4 0.85 0 1 1 0 -1.7"
+            pathLength="1"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="0.7"
+            stroke-linecap="round"></path>
+          <circle class="walker-eye" cx="11.2" cy="8.7" r="0.75"></circle>
+          <circle class="walker-eye" cx="13" cy="8.5" r="0.75"></circle>
+        </g>
       </svg>
       <span class="work-card-cap-up" aria-hidden="true">↑</span>
     </button>
@@ -2268,6 +2313,15 @@ const orient =
       pointer-events: auto;
       transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
     }
+    /* Below 1200px the footer stacks its two lines; keep the pane clear
+       of it. */
+    @media (max-width: 1199px) {
+      html:is([data-desk="d2"], [data-desk="d3"])[data-list]
+        .work-card
+        .work-card-detail {
+        bottom: 6rem;
+      }
+    }
     html:is([data-desk="d2"], [data-desk="d3"])[data-list]
       .work-card-detail-head {
       display: none;
@@ -2519,9 +2573,115 @@ const orient =
       > .work-card-num {
       visibility: hidden;
     }
+    /* Before anything is chosen (.is-idle) the figure waits at the start
+       of the route, a little above 01, and no row looks chosen: every
+       title is lit, none is pushed in, and 01 shows. The pane still
+       shows the first project. */
+    html[data-desk="d3"][data-list] .work-list {
+      padding-top: 1.5rem;
+    }
+    html[data-desk="d3"][data-list] .work-card:first-child::before {
+      top: -0.75rem;
+    }
+    html[data-desk="d3"][data-list]
+      .work-list.is-idle
+      .work-card.is-open
+      .work-card-body
+      > .work-card-num {
+      visibility: visible;
+      transition: none;
+    }
+    html[data-desk="d3"][data-list] .work-list.is-idle .work-card h2 {
+      opacity: 1;
+      transform: none;
+    }
+    /* Touch: no hover, so the row shown in the pane keeps its title
+       underlined, a sign that tapping it again goes in. */
+    @media (hover: none) {
+      html:is([data-desk="d2"], [data-desk="d3"])[data-list]
+        .work-list:not(.is-idle)
+        .work-card.is-open
+        h2
+        a {
+        text-decoration-color: currentColor;
+      }
+    }
   }
   .work-walker-d2 {
     display: none;
+  }
+  /* Idle (D3, before anything is chosen): the figure squats at the start
+     of the route, idly drawing circles on the ground. Bored: it does the
+     same where it stands when a shown row is left unopened a while. */
+  .work-card-walker .walker-squat {
+    display: none;
+  }
+  html[data-desk][data-list] .work-list.is-idle .work-walker-d2 .walker-stand,
+  html[data-desk][data-list] .work-list.is-idle .work-walker-d2 .walker-step,
+  html[data-desk][data-list] .work-walker-d2.is-bored .walker-stand,
+  html[data-desk][data-list] .work-walker-d2.is-bored .walker-step {
+    display: none;
+  }
+  /* The squat is always laid out and only hidden, so its drawing keeps
+     running: Safari does not start an SVG animation that comes back from
+     display: none, and the figure squatted with a still circle. */
+  .work-walker-d2 .work-card-walker .walker-squat {
+    display: inline;
+    visibility: hidden;
+  }
+  .work-list.is-idle .work-walker-d2 .walker-squat,
+  .work-walker-d2.is-bored .walker-squat {
+    visibility: visible;
+  }
+  .walker-draw {
+    transform-box: view-box;
+    transform-origin: 12px 12.4px;
+    animation: walker-draw 1.2s ease-in-out infinite;
+  }
+  .walker-doodle {
+    stroke-dasharray: 1 1;
+    animation: walker-doodle 2.4s linear infinite;
+  }
+  @keyframes walker-draw {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(5deg) translateY(-0.3px);
+    }
+    50% {
+      transform: rotate(0deg) translateY(0.3px);
+    }
+    75% {
+      transform: rotate(-5deg) translateY(-0.3px);
+    }
+  }
+  @keyframes walker-doodle {
+    0% {
+      stroke-dashoffset: 1;
+      opacity: 1;
+    }
+    75% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+    95%,
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .walker-draw,
+    .walker-doodle {
+      animation: none;
+    }
+  }
+  .work-list[data-still] .work-walker-d2,
+  .work-list[data-still] .work-card h2,
+  .work-list[data-still] .work-card-num {
+    transition: none !important;
   }
   .work-walker-d2 .walker-eye {
     fill: rgb(242, 242, 242);
@@ -2950,7 +3110,17 @@ const orient =
       list.style.setProperty("--mx", `${event.clientX}px`);
       list.style.setProperty("--my", `${event.clientY}px`);
     };
+    // D3: set while the figure walks to a tapped row on its way in.
+    let going = false;
+    // Whether the click about to come was a finger or pen, not a mouse
+    // or a key.
+    let touched = false;
+    const onDown = (event: PointerEvent) => {
+      touched = event.pointerType !== "mouse";
+    };
     const onClick = (event: MouseEvent) => {
+      const wasTouch = touched;
+      touched = false;
       if (!expandable()) return;
       const target = event.target as Element;
       if (target.closest(".work-card-close-bottom, .work-card-cap")) {
@@ -3039,10 +3209,31 @@ const orient =
       const card = target.closest(".work-card");
       if (!card) return;
       event.preventDefault();
-      // D2/D3: the whole row is the way into its project.
+      // D2/D3: the whole row is the way into its project. A row not yet
+      // in the pane shows first. With a mouse (the pointer usually showed
+      // it already) the page then changes, in D3 once the figure has
+      // walked to it. A touch screen has no hover, so there the first
+      // tap only shows the row, and a tap on the shown row goes in.
       if (split()) {
         const href = card.querySelector<HTMLAnchorElement>("h2 a")?.href;
-        if (href) navigate(href);
+        if (!href || going) return;
+        if (
+          card.classList.contains("is-open") &&
+          !list.classList.contains("is-idle")
+        ) {
+          navigate(href);
+          return;
+        }
+        closeAll();
+        setOpen(card, true);
+        list.classList.remove("is-idle");
+        if (wasTouch) return;
+        if (root.dataset.desk !== "d3" || calm.matches) {
+          navigate(href);
+          return;
+        }
+        going = true;
+        window.setTimeout(() => navigate(href), 650);
         return;
       }
       const open = !card.classList.contains("is-open");
@@ -3147,9 +3338,10 @@ const orient =
     const swapLater = () => {
       window.clearTimeout(hoverTimer);
       hoverTimer = window.setTimeout(() => {
-        if (!hoverCard) return;
+        if (!hoverCard || going) return;
         closeAll();
         setOpen(hoverCard, true);
+        list.classList.remove("is-idle");
         hoverCard = null;
       }, 130);
     };
@@ -3157,7 +3349,12 @@ const orient =
       if (!split() || !expandable() || event.pointerType !== "mouse") return;
       window.clearTimeout(hoverTimer);
       const card = (event.target as Element).closest(".work-card");
-      hoverCard = card && !card.classList.contains("is-open") ? card : null;
+      hoverCard =
+        card &&
+        (!card.classList.contains("is-open") ||
+          list.classList.contains("is-idle"))
+          ? card
+          : null;
       if (hoverCard) swapLater();
     };
     const onAim = (event: PointerEvent) => {
@@ -3183,20 +3380,32 @@ const orient =
     let walkerY: number | null = null;
     let stepTimer = 0;
     let stopTimer = 0;
+    let boredTimer = 0;
     const placeWalker = () => {
       const card = list.querySelector<HTMLElement>(".work-card.is-open");
       const num = card?.querySelector<HTMLElement>(
         ".work-card-body > .work-card-num",
       );
       if (!split() || root.dataset.desk !== "d3" || !card || !num) return;
-      const box = list.getBoundingClientRect();
+      // Measured from where the row sits in the layout (offsetTop), not
+      // where it is drawn: rows rise into place as the page opens
+      // (Reveal), and the figure should neither ride nor walk that rise.
+      const c = card.getBoundingClientRect();
       const n = num.getBoundingClientRect();
       const half = walker.offsetWidth / 2;
-      const x = n.left + n.width / 2 - box.left - half;
-      const y = n.top + n.height / 2 - box.top - half;
+      const x = card.offsetLeft + n.left - c.left + n.width / 2 - half;
+      // Idle: at the start of the route, where the line begins (the CSS
+      // starts it 0.75rem above the first row).
+      const rem = parseFloat(getComputedStyle(root).fontSize);
+      const idle = list.classList.contains("is-idle");
+      const y = idle
+        ? card.offsetTop - 0.75 * rem - half
+        : card.offsetTop + n.top - c.top + n.height / 2 - half;
       walker.style.setProperty("--wx", `${x}px`);
       walker.style.setProperty("--wy", `${y}px`);
-      if (walkerY !== null && y !== walkerY && !calm.matches) {
+      if (walkerY !== null && y !== walkerY && !idle && !calm.matches) {
+        window.clearTimeout(boredTimer);
+        walker.classList.remove("is-bored");
         walker.classList.toggle("is-left", y < walkerY);
         window.clearInterval(stepTimer);
         walker.classList.add("is-step");
@@ -3204,11 +3413,16 @@ const orient =
           () => walker.classList.toggle("is-step"),
           130,
         );
-        // Once it arrives it turns back to face the project on the right.
+        // Once it arrives it turns back to face the project on the right,
+        // and if no one goes in for a while it squats there and draws.
         window.clearTimeout(stopTimer);
         stopTimer = window.setTimeout(() => {
           window.clearInterval(stepTimer);
           walker.classList.remove("is-step", "is-left");
+          boredTimer = window.setTimeout(
+            () => walker.classList.add("is-bored"),
+            5000,
+          );
         }, 600);
       }
       walkerY = y;
@@ -3232,8 +3446,15 @@ const orient =
     });
     window.addEventListener("resize", placeWalker);
 
+    // Arriving on the page (or coming back to it), the open row and the
+    // figure are set in place at once; only later changes animate.
+    list.setAttribute("data-still", "");
+    if (split() && root.dataset.desk === "d3") list.classList.add("is-idle");
     showFirst();
     placeWalker();
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => list.removeAttribute("data-still")),
+    );
     wide.addEventListener("change", showFirst);
     list.addEventListener("pointerover", onHover);
     list.addEventListener("pointerleave", onLeave);
@@ -3243,6 +3464,7 @@ const orient =
     window.addEventListener("scroll", onWalk, { passive: true });
     window.visualViewport?.addEventListener("resize", onPlace);
     window.visualViewport?.addEventListener("scroll", onPlace);
+    list.addEventListener("pointerdown", onDown, { passive: true });
     list.addEventListener("click", onClick);
     document.addEventListener("keydown", onKey);
     wide.addEventListener("change", closeAll);
@@ -3258,11 +3480,13 @@ const orient =
       window.removeEventListener("resize", placeWalker);
       window.clearInterval(stepTimer);
       window.clearTimeout(stopTimer);
+      window.clearTimeout(boredTimer);
       walker.remove();
       wide.removeEventListener("change", showFirst);
       window.removeEventListener("scroll", onWalk);
       window.visualViewport?.removeEventListener("resize", onPlace);
       window.visualViewport?.removeEventListener("scroll", onPlace);
+      list.removeEventListener("pointerdown", onDown);
       list.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKey);
       wide.removeEventListener("change", closeAll);

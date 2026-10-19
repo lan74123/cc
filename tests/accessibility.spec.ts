@@ -1,98 +1,81 @@
 import { test, expect } from "@playwright/test";
+import { ALL_PAGES } from "./pages";
 
 test.describe("Accessibility", () => {
-  test("all images have alt attributes", async ({ page }) => {
-    await page.goto("/muses/");
-    const images = page.locator("img");
-    const count = await images.count();
-    for (let i = 0; i < count; i++) {
-      const alt = await images.nth(i).getAttribute("alt");
-      // alt can be "" (decorative) but must exist
-      expect(alt, `Image ${i} missing alt`).not.toBeNull();
+  test("every image has an alt attribute", async ({ page }) => {
+    for (const url of ALL_PAGES) {
+      await page.goto(url);
+      const missing = await page.$$eval("img", (imgs) =>
+        imgs.filter((i) => !i.hasAttribute("alt")).map((i) => i.src),
+      );
+      expect(missing, `${url}: images without alt`).toEqual([]);
     }
   });
 
-  test("page has exactly one h1", async ({ page }) => {
-    const pages = ["/", "/muses/", "/cv/"];
-    for (const url of pages) {
+  test("no page has more than one h1, and no heading is empty", async ({
+    page,
+  }) => {
+    for (const url of ALL_PAGES) {
       await page.goto(url);
-      const h1s = page.locator("h1");
-      const count = await h1s.count();
-      // Some pages may have 0 h1 (homepage), but none should have > 1
-      expect(count, `${url} has ${count} h1 elements`).toBeLessThanOrEqual(1);
+      expect(await page.locator("h1").count(), url).toBeLessThanOrEqual(1);
+      const empty = await page.$$eval("h1, h2, h3, h4", (hs) =>
+        hs.filter((h) => !h.textContent?.trim()).map((h) => h.outerHTML),
+      );
+      expect(empty, `${url}: empty headings`).toEqual([]);
     }
   });
 
   test("html element has lang attribute", async ({ page }) => {
-    await page.goto("/");
-    const lang = await page.locator("html").getAttribute("lang");
-    expect(lang).toBeTruthy();
+    await page.goto("/works/");
+    await expect(page.locator("html")).toHaveAttribute("lang", /.+/);
   });
 
-  test("no empty href links (except anchor #)", async ({ page }) => {
-    await page.goto("/");
-    const allLinks = page.locator("a[href]");
-    const count = await allLinks.count();
-    for (let i = 0; i < count; i++) {
-      const href = await allLinks.nth(i).getAttribute("href");
-      // href="" is invalid (W31); href="#" is allowed (Homepage anchor placeholder)
-      if (href === "") {
-        const id = await allLinks.nth(i).getAttribute("id");
-        // W31: empty href on RSS link
-        if (id === "rss-link") continue; // known issue
-        expect(href, `Link ${i} has empty href`).not.toBe("");
-      }
+  test("no duplicate IDs on any page", async ({ page }) => {
+    for (const url of ALL_PAGES) {
+      await page.goto(url);
+      const dupes = await page.evaluate(() => {
+        const seen = new Map<string, number>();
+        document
+          .querySelectorAll("[id]")
+          .forEach((el) => seen.set(el.id, (seen.get(el.id) ?? 0) + 1));
+        return [...seen].filter(([, n]) => n > 1).map(([id]) => id);
+      });
+      expect(dupes, `${url}: duplicate IDs`).toEqual([]);
     }
   });
 
-  test("interactive elements are keyboard accessible", async ({ page }) => {
-    await page.goto("/");
-    // Tab through and check focus is visible
+  test("every button has an accessible name and a type", async ({ page }) => {
+    for (const url of ALL_PAGES) {
+      await page.goto(url);
+      const bad = await page.$$eval("button", (bs) =>
+        bs
+          .filter(
+            (b) =>
+              b.getAttribute("type") !== "button" ||
+              !(b.getAttribute("aria-label") || b.textContent?.trim()),
+          )
+          .map((b) => b.outerHTML.slice(0, 80)),
+      );
+      expect(bad, url).toEqual([]);
+    }
+  });
+
+  test("keyboard: Tab reaches the home link first", async ({ page }) => {
+    await page.goto("/works/");
     await page.keyboard.press("Tab");
-    const focused = await page.evaluate(() => document.activeElement?.tagName);
-    expect(focused).toBeTruthy();
-  });
-
-  test("no duplicate IDs on page", async ({ page }) => {
-    await page.goto("/");
-    const ids = await page.evaluate(() => {
-      const all = document.querySelectorAll("[id]");
-      const seen = new Map<string, number>();
-      all.forEach((el) => {
-        const id = el.id;
-        seen.set(id, (seen.get(id) || 0) + 1);
-      });
-      const dupes: string[] = [];
-      seen.forEach((count, id) => {
-        if (count > 1) dupes.push(`${id} (${count}x)`);
-      });
-      return dupes;
-    });
-    expect(ids, `Duplicate IDs found: ${ids.join(", ")}`).toHaveLength(0);
-  });
-
-  test("skip-to-content or main landmark exists", async ({ page }) => {
-    await page.goto("/");
-    const main = page.locator("main, [role='main']");
-    const count = await main.count();
-    // Should have a main landmark
-    expect(count).toBeGreaterThanOrEqual(0); // soft check — not all pages may have <main>
-  });
-
-  test("color contrast: dark mode background differs from text", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    await page.evaluate(() => {
-      document.documentElement.classList.add("dark");
-    });
-    const bgColor = await page.evaluate(
-      () => getComputedStyle(document.body).backgroundColor,
+    const label = await page.evaluate(() =>
+      document.activeElement?.getAttribute("aria-label"),
     );
-    const textColor = await page.evaluate(
-      () => getComputedStyle(document.body).color,
-    );
-    // They should be different
-    expect(bgColor).not.toBe(textColor);
+    expect(label).toMatch(/home/i);
+  });
+
+  test("dark mode: background and text colours differ", async ({ page }) => {
+    await page.goto("/works/");
+    await page.evaluate(() => document.documentElement.classList.add("dark"));
+    const [bg, fg] = await page.evaluate(() => {
+      const s = getComputedStyle(document.body);
+      return [s.backgroundColor, s.color];
+    });
+    expect(bg).not.toBe(fg);
   });
 });

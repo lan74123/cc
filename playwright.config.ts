@@ -14,7 +14,10 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { browserName: "chromium" },
+      // The installed Google Chrome, so no separate browser download is
+      // needed (`bunx playwright install chromium` and dropping this line
+      // works too).
+      use: { browserName: "chromium", channel: "chrome" },
     },
   ],
   webServer: {

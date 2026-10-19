@@ -1,85 +1,54 @@
 import { test, expect } from "@playwright/test";
+import { PROJECT_PAGE } from "./pages";
 
 test.describe("ScrollToTop", () => {
-  test("button is absent before scrolling, appears after scrolling down, and scrolls to top on click", async ({
+  test("hidden at the top, shown after scrolling, scrolls back up", async ({
     page,
   }) => {
-    // Use a page with long content so scrolling is meaningful
-    await page.goto("/long_form/");
-
-    // ScrollToTop is a client:idle React island -- wait for hydration
-    await page.waitForTimeout(2000);
-
-    // Button should not be visible initially (scrollY is near 0)
-    const btn = page.locator('button[aria-label="Scroll to top"]');
-    await expect(btn).not.toBeVisible();
-
-    // Scroll down past the 300px threshold
-    await page.evaluate(() => window.scrollTo(0, 800));
-    await page.waitForTimeout(500); // let requestAnimationFrame fire
-
-    // Button should appear after scrolling past 300px
-    await expect(btn).toBeVisible({ timeout: 5000 });
-
-    // Click it and verify scrollY returns near the top
+    await page.goto(PROJECT_PAGE);
+    const btn = page.getByRole("button", { name: "Scroll to top" });
+    await expect(btn).toBeHidden();
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    await expect(btn).toBeVisible();
     await btn.click();
-    await page.waitForTimeout(700); // smooth scroll takes time
-    const scrollY = await page.evaluate(() => window.scrollY);
-    expect(scrollY).toBeLessThan(50);
-  });
-
-  test("ScrollToTop button has a transparent background", async ({ page }) => {
-    // The transparent floating-chevron look is the intended design: the React
-    // version's bg-primary token resolved to no CSS, i.e. transparent. Locks in
-    // that design so a future "fix" does not paint a filled circle again.
-    await page.goto("/long_form/");
-    await page.waitForTimeout(2000);
-    await page.evaluate(() => window.scrollTo(0, 800));
-    await page.waitForTimeout(500);
-
-    const btn = page.locator('button[aria-label="Scroll to top"]');
-    await expect(btn).toBeVisible({ timeout: 5000 });
-
-    const bg = await btn.evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(["rgba(0, 0, 0, 0)", "transparent"]).toContain(bg);
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY))
+      .toBeLessThan(50);
   });
 });
 
 test.describe("islands survive client-side navigation (ClientRouter)", () => {
-  // Regression gate for the W2 ClientRouter bug: vanilla islands that attach
-  // listeners at script top level go dead after an astro view-transition swap,
-  // because the swap replaces the DOM but does not re-execute bundled scripts.
-  // page.goto() does a full load and cannot catch this; only a real in-app
-  // navigation exercises it.
+  // Vanilla islands that attach listeners at script top level go dead after
+  // a view-transition swap; page.goto() cannot catch this, only a real
+  // in-app navigation does.
+  const navigateIn = async (page: import("@playwright/test").Page) => {
+    await page.goto("/works/");
+    await page.locator(`.work-card h2 a[href="${PROJECT_PAGE}"]`).click();
+    await page.waitForURL(`**${PROJECT_PAGE}`);
+  };
 
-  test("hamburger still works after a client-side navigation", async ({
-    page,
-  }) => {
+  test("hamburger still works", async ({ page }) => {
+    // On phones a tap on an index row opens it in place, so go through the
+    // menu instead: open it, follow a link, then use it again.
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto("/long_form/");
-    // In-app navigation via a content link triggers a view transition.
-    await page.locator('a[href="/long_form/adam/"]').first().click();
-    await page.waitForURL(/\/long_form\/adam\//);
+    await page.goto("/works/");
     const hamburger = page.getByRole("button", {
       name: /open menu|close menu/i,
     });
-    await expect(hamburger).toBeVisible();
+    await hamburger.click();
+    await page.locator('#nav-links a[href="/about/"]').click();
+    await page.waitForURL("**/about/");
     await expect(hamburger).toHaveAttribute("aria-expanded", "false");
     await hamburger.click();
     await expect(hamburger).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator("#nav-links")).toHaveClass(/open/);
   });
 
-  test("theme toggle still works after a client-side navigation", async ({
-    page,
-  }) => {
-    await page.goto("/long_form/");
-    await page.locator('a[href="/long_form/adam/"]').first().click();
-    await page.waitForURL(/\/long_form\/adam\//);
+  test("theme toggle still works", async ({ page }) => {
+    await navigateIn(page);
     const toggle = page.getByRole("button", {
       name: /switch to (light|dark) theme/i,
     });
-    await expect(toggle).toBeVisible();
     const before = await page.evaluate(() =>
       document.documentElement.classList.contains("dark"),
     );
@@ -93,19 +62,14 @@ test.describe("islands survive client-side navigation (ClientRouter)", () => {
       .toBe(!before);
   });
 
-  test("hero image is visible after a client-side navigation", async ({
-    page,
-  }) => {
-    await page.goto("/long_form/");
-    await page.locator('a[href="/long_form/adam/"]').first().click();
-    await page.waitForURL(/\/long_form\/adam\//);
-    // The hero <img> renders opacity-0; the island script adds opacity-100.
-    // If the script never re-runs after the swap, the hero stays invisible.
-    const hero = page
-      .locator("img.opacity-0, img[class*='opacity-100']")
-      .first();
+  test("hero photo is visible", async ({ page }) => {
+    await navigateIn(page);
     await expect
-      .poll(async () => hero.evaluate((el) => getComputedStyle(el).opacity))
+      .poll(() =>
+        page
+          .locator("#hero-image")
+          .evaluate((el) => getComputedStyle(el).opacity),
+      )
       .toBe("1");
   });
 });

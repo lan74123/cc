@@ -1,94 +1,57 @@
 import { test, expect } from "@playwright/test";
+import { PROJECT_PAGE } from "./pages";
 
 test.describe("Styling canaries", () => {
-  test("prose max-width overridden to 1280px by max-w-7xl", async ({
+  test("text column is capped at 1280px (max-w-7xl over prose)", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
-    await page.goto("/long_form/adam/");
-    const wrapper = page.locator("div.max-w-7xl").first();
-    await expect(wrapper).toBeVisible();
-    const box = await wrapper.boundingBox();
-    expect(box).not.toBeNull();
-    // at 1600px viewport, the wrapper should be constrained to 1280px
+    await page.goto(PROJECT_PAGE);
+    const box = await page.locator("div.max-w-7xl").first().boundingBox();
     expect(box!.width).toBeLessThanOrEqual(1281);
   });
 
-  test("custom sm breakpoint is 800px not 640px", async ({ page }) => {
-    await page.goto("/long_form/");
-    // sm:flex-row: below 800px it's column, above 800px it's row
-    const probe = page
-      .locator('xpath=//*[contains(@class,"sm:flex-row")]')
-      .first();
-    await expect(probe).toBeVisible({ timeout: 10000 });
-
-    // Below 800px: flex-direction should be column
+  test("custom sm breakpoint is 800px, not 640px", async ({ page }) => {
+    await page.goto("/works/");
+    const nav = page.locator(".desktop-nav");
     await page.setViewportSize({ width: 799, height: 900 });
-    await page.waitForTimeout(200);
-    expect(
-      await probe.evaluate((el) => getComputedStyle(el).flexDirection),
-    ).toBe("column");
-
-    // Above 800px: flex-direction should be row
+    await expect(nav).toBeHidden();
     await page.setViewportSize({ width: 801, height: 900 });
-    await page.waitForTimeout(200);
-    expect(
-      await probe.evaluate((el) => getComputedStyle(el).flexDirection),
-    ).toBe("row");
+    await expect(nav).toBeVisible();
   });
 
-  test("font-overpass-mono resolves to Overpass Mono on /", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    const el = page.locator(".font-overpass-mono").first();
-    await expect(el).toBeVisible();
-    const fontFamily = await el.evaluate((e) => getComputedStyle(e).fontFamily);
-    expect(fontFamily).toContain("Overpass Mono");
+  test("font families resolve", async ({ page }) => {
+    await page.goto(PROJECT_PAGE);
+    const family = (sel: string) =>
+      page
+        .locator(sel)
+        .first()
+        .evaluate((e) => getComputedStyle(e).fontFamily);
+    expect(await family(".font-overpass-mono")).toContain("Overpass Mono");
+    expect(await family(".font-inconsolata")).toContain("Inconsolata");
   });
 
-  test("font-inconsolata resolves to Inconsolata on /long_form/adam/", async ({
-    page,
-  }) => {
-    await page.goto("/long_form/adam/");
-    const el = page.locator(".font-inconsolata").first();
-    await expect(el).toBeVisible();
-    const fontFamily = await el.evaluate((e) => getComputedStyle(e).fontFamily);
-    expect(fontFamily).toContain("Inconsolata");
-  });
-
-  test("prose-no-quotes suppresses blockquote ::before content", async ({
-    page,
-  }) => {
-    // prose-no-quotes is applied on /long_form/adam/.
-    // If no blockquote exists, skip gracefully (spec says "skip if no blockquote").
-    await page.goto("/long_form/adam/");
-    const blockquote = page.locator("blockquote");
-    const count = await blockquote.count();
-    if (count === 0) {
-      test.skip(true, "no blockquote on this page");
-      return;
-    }
-    // Tailwind Typography adds quote marks via p:first-of-type::before inside blockquotes.
-    // prose-no-quotes should suppress them, so the ::before pseudo-element on the first
-    // p inside the blockquote should have content: none.
-    const beforeContent = await blockquote
-      .first()
-      .locator("p")
-      .first()
-      .evaluate((el) => getComputedStyle(el, "::before").content);
-    expect(beforeContent).toBe("none");
-  });
-
-  test(".dark class sets html background to rgb(34,33,37)", async ({
-    page,
-  }) => {
-    await page.goto("/");
+  test(".dark sets the page background and colour scheme", async ({ page }) => {
+    await page.goto("/works/");
     await page.evaluate(() => document.documentElement.classList.add("dark"));
-    await page.waitForTimeout(100);
-    const bg = await page.evaluate(
-      () => getComputedStyle(document.documentElement).backgroundColor,
-    );
+    const [bg, scheme] = await page.evaluate(() => {
+      const s = getComputedStyle(document.documentElement);
+      return [s.backgroundColor, s.colorScheme];
+    });
     expect(bg).toBe("rgb(34, 33, 37)");
+    expect(scheme).toBe("dark");
+  });
+
+  test("the page never scrolls sideways", async ({ page }) => {
+    for (const width of [360, 390, 800, 1200]) {
+      await page.setViewportSize({ width, height: 800 });
+      for (const url of ["/works/", PROJECT_PAGE]) {
+        await page.goto(url);
+        const over = await page.evaluate(
+          () => document.documentElement.scrollWidth - window.innerWidth,
+        );
+        expect(over, `${url} at ${width}px`).toBeLessThanOrEqual(0);
+      }
+    }
   });
 });

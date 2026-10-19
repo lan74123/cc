@@ -20,16 +20,18 @@ export interface Props {
 }
 
 const { images } = Astro.props;
+// Copies by width for the srcset. Photos show at most 60rem (landscape)
+// or 34rem (portrait) wide, so 1920px covers a 2x screen; the lightbox
+// opens the original.
+const WIDTHS = [480, 800, 1200, 1600, 1920];
+// Remote images have no known size; they keep a 1920x1080 box.
 const MAX_W = 1920;
 const MAX_H = 1080;
 
-// getImage() reports the requested box (1920x1080) as width/height, not the
-// size it actually produces with fit: "inside". Work the real output size
-// out from the source so the <img> reserves the right shape before it
-// loads. Remote images have no known size and keep the box.
+// The <img> reserves the photo's shape before it loads.
 function outputSize(src: string | ImageMetadata) {
   if (typeof src === "string") return { width: MAX_W, height: MAX_H };
-  const scale = Math.min(MAX_W / src.width, MAX_H / src.height, 1);
+  const scale = Math.min(MAX_W / src.width, 1);
   return {
     width: Math.round(src.width * scale),
     height: Math.round(src.height * scale),
@@ -38,19 +40,22 @@ function outputSize(src: string | ImageMetadata) {
 
 const imageAssets = await Promise.all(
   images.map(async (image) => {
-    if (image) {
-      return await getImage({
-        src: image.src,
-        alt: image.alt,
-        width: MAX_W,
-        height: MAX_H,
-        fit: "inside",
-        decoding: "async",
-        format: "avif",
-        loading: "lazy",
-      });
-    }
-    return null;
+    if (!image) return null;
+    const common = {
+      src: image.src,
+      alt: image.alt,
+      decoding: "async",
+      format: "avif",
+      loading: "lazy",
+    } as const;
+    return typeof image.src === "string"
+      ? await getImage({
+          ...common,
+          width: MAX_W,
+          height: MAX_H,
+          fit: "inside",
+        })
+      : await getImage({ ...common, width: 1200, widths: WIDTHS });
   }),
 );
 ---
@@ -64,6 +69,14 @@ const imageAssets = await Promise.all(
       // Orientation lets the layout size portrait and landscape photos
       // differently.
       const orient = size.height > size.width ? "portrait" : "landscape";
+      // Shown width: the text column (page padding plus the Prose
+      // column's own, 2rem + 1.25rem a side on phones, 2rem + 6rem from
+      // 800px, 4rem + 6rem from 1200px), capped at 60rem for landscapes
+      // and 34rem for portraits (MasonryLayout.css).
+      const sizes =
+        orient === "portrait"
+          ? "(min-width: 800px) 34rem, calc(100vw - 6.5rem)"
+          : "(min-width: 1280px) 60rem, (min-width: 1200px) calc(100vw - 20rem), (min-width: 800px) calc(100vw - 16rem), calc(100vw - 6.5rem)";
       // Link to the original full-resolution asset for the lightbox: for
       // remote images that's the raw src string, for local imports it's
       // ImageMetadata.src (the unprocessed copy Astro emits on import).
@@ -80,6 +93,8 @@ const imageAssets = await Promise.all(
           >
             <img
               src={imageAsset.src}
+              srcset={imageAsset.srcSet.attribute || undefined}
+              sizes={imageAsset.srcSet.attribute ? sizes : undefined}
               alt={imageAsset.attributes.alt}
               loading={imageAsset.attributes.loading}
               decoding={imageAsset.attributes.decoding}

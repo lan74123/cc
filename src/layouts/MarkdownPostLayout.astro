@@ -43,35 +43,24 @@ const positionx = frontmatter?.image?.positionx;
 const positiony = frontmatter?.image?.positiony;
 const baseUrl = new URL(Astro.request.url).origin;
 
-const backgroundImage = image
-  ? await getImage({
-      src: image,
-      alt: alt,
-      width: 3840,
-      height: 2160,
-      fit: "inside",
-      format: "avif",
-      quality: 85,
-      loading: "eager",
-      decoding: "sync",
-      fetchpriority: "high",
-    })
-  : null;
-
-const mobileBackgroundImage = image
+// Hero photo: one srcset by width, so a portrait cover is as sharp as a
+// landscape one on a wide screen (a height cap made portraits only 1620px
+// wide). The photo fills a box 100vw wide and at most about 94% of the
+// screen high (78vh plus the 20% parallax overscan), so a landscape cover
+// may need more than 100vw of width to cover it; sizes asks for that.
+const heroImage = image
   ? await getImage({
       src: image,
       alt: alt,
       width: 1920,
-      height: 1080,
-      fit: "inside",
+      widths: [640, 960, 1280, 1920, 2560, 3200],
       format: "avif",
       quality: 85,
-      loading: "eager",
-      decoding: "sync",
-      fetchpriority: "high",
     })
   : null;
+const heroAspect =
+  image && typeof image === "object" ? image.width / image.height : 16 / 9;
+const heroSizes = `max(100vw, ${(heroAspect * 94).toFixed(1)}svh)`;
 
 const metaImage = image
   ? await getImage({
@@ -100,8 +89,9 @@ const metaImage = image
     image ? (
       <HeroImage
         title={title}
-        backgroundImage={backgroundImage!.src}
-        mobileBackgroundImage={mobileBackgroundImage!.src}
+        src={heroImage!.src}
+        srcset={heroImage!.srcSet.attribute}
+        sizes={heroSizes}
         positionX={positionx}
         positionY={positiony}
         alt={alt ?? ""}

@@ -8,8 +8,9 @@ import Prose from "./Prose.astro";
 
 export interface Props {
   title: string;
-  backgroundImage: string;
-  mobileBackgroundImage: string;
+  src: string;
+  srcset: string;
+  sizes: string;
   positionX?: string;
   positionY?: string;
   alt: string;
@@ -17,8 +18,9 @@ export interface Props {
 
 const {
   title,
-  backgroundImage,
-  mobileBackgroundImage,
+  src,
+  srcset,
+  sizes,
   positionX = "30%",
   positionY = "50%",
   alt,
@@ -28,18 +30,17 @@ const {
 <section class="work-hero">
   <div id="hero-container" class="work-hero-media">
     <div id="hero-parallax" class="absolute inset-0">
-      <picture>
-        <source media="(min-width: 1200px)" srcset={backgroundImage} />
-        <img
-          id="hero-image"
-          src={mobileBackgroundImage}
-          alt={alt}
-          fetchpriority="high"
-          decoding="sync"
-          class="absolute left-0 right-0 w-full object-cover transition-opacity duration-700 opacity-0"
-          style={`object-position: ${positionX} ${positionY}; top: -20%; height: 120%;`}
-        />
-      </picture>
+      <img
+        id="hero-image"
+        src={src}
+        srcset={srcset}
+        sizes={sizes}
+        alt={alt}
+        fetchpriority="high"
+        decoding="sync"
+        class="absolute left-0 right-0 top-[-20%] h-[120%] w-full object-cover transition-opacity duration-700 opacity-0"
+        style={`object-position: ${positionX} ${positionY}`}
+      />
     </div>
   </div>
   <div class="work-hero-text">
@@ -52,6 +53,13 @@ const {
 </section>
 
 <style is:global>
+  /* The photo fades in once loaded (script below); without scripting it
+     shows at once. */
+  @media (scripting: none) {
+    #hero-image {
+      opacity: 1;
+    }
+  }
   /* Full-bleed photo: negative margins cancel the body padding. */
   .work-hero-media {
     position: relative;

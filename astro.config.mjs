@@ -18,9 +18,9 @@ const isDev =
 
 // https://astro.build/config
 export default defineConfig({
-  // Canonical/sitemap/RSS origin. Until the custom domain is bought, set
-  // SITE_URL to the workers.dev URL (Cloudflare Workers Builds env vars).
-  site: process.env.SITE_URL ?? "https://cc-space.workers.dev",
+  // Canonical/sitemap/RSS origin. Workers Builds sets SITE_URL; local
+  // builds fall back to the production domain.
+  site: process.env.SITE_URL ?? "https://ccspace.tw",
 
   // Hide Astro's dev toolbar so local previews look like the real site.
   devToolbar: { enabled: false },

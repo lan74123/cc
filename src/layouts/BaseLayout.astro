@@ -87,17 +87,16 @@ const documentTitle =
   title && title !== SITE_TITLE ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 
 // Build breadcrumb from URL path segments
-const pathSegments = Astro.url.pathname
-  .split("/")
-  .filter((s) => s.length > 0);
+const pathSegments = Astro.url.pathname.split("/").filter((s) => s.length > 0);
 const breadcrumbItems = [
   { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
   ...pathSegments.map((segment, i) => ({
     "@type": "ListItem",
     position: i + 2,
-    name: i === pathSegments.length - 1 && title
-      ? title
-      : segment.replace(/[-_]/g, " "),
+    name:
+      i === pathSegments.length - 1 && title
+        ? title
+        : segment.replace(/[-_]/g, " "),
     item: `${baseUrl}/${pathSegments.slice(0, i + 1).join("/")}`,
   })),
 ];
@@ -109,16 +108,40 @@ const breadcrumbSchema = {
 
 // Format dates for structured data — accept Date objects or ISO strings
 const formattedPubDate = pubDate
-  ? (pubDate instanceof Date ? pubDate.toISOString() : new Date(pubDate).toISOString())
+  ? pubDate instanceof Date
+    ? pubDate.toISOString()
+    : new Date(pubDate).toISOString()
   : null;
 const formattedUpdatedDate = updatedDate
-  ? (updatedDate instanceof Date ? updatedDate.toISOString() : new Date(updatedDate).toISOString())
+  ? updatedDate instanceof Date
+    ? updatedDate.toISOString()
+    : new Date(updatedDate).toISOString()
   : null;
 ---
 
 <html class="bg-[rgb(242,242,242)] dark:bg-[rgb(34,33,37)]" lang={SITE_LANG}>
   <head>
     <meta charset="utf-8" />
+    <!-- Browser bar colour on phones; follows the theme (theme.ts). -->
+    <meta name="theme-color" content="#f2f2f2" />
+    <!-- Dark theme before the first paint, so a dark-theme visitor never
+         sees the light page flash first. theme.ts takes over after load. -->
+    <script is:inline>
+      (() => {
+        let t = null;
+        try {
+          t = localStorage.getItem("theme");
+        } catch {}
+        const dark =
+          t === "dark" ||
+          (t !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", dark ? "#222125" : "#f2f2f2");
+      })();
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -162,7 +185,10 @@ const formattedUpdatedDate = updatedDate
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title || SITE_TITLE} />
-    <meta name="twitter:description" content={description || SITE_DESCRIPTION} />
+    <meta
+      name="twitter:description"
+      content={description || SITE_DESCRIPTION}
+    />
     <meta
       name="twitter:image"
       content={image || `${baseUrl}${metaImage?.src}`}
@@ -189,14 +215,17 @@ const formattedUpdatedDate = updatedDate
 
     <!-- Structured Data -->
     <script
+      is:inline
       type="application/ld+json"
       set:html={safeJsonLd(organizationSchema)}
     />
     <script
+      is:inline
       type="application/ld+json"
       set:html={safeJsonLd(websiteSchema)}
     />
     <script
+      is:inline
       type="application/ld+json"
       set:html={safeJsonLd(breadcrumbSchema)}
     />

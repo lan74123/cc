@@ -47,11 +47,13 @@ html {
   background-color: #f2f2f2;
   font-family: sans-serif;
   height: 100%;
+  color-scheme: light;
 }
 
 html.dark {
   background-color: rgb(34, 33, 37);
   color: #fff;
+  color-scheme: dark;
 }
 
 .dark .nav-links a {

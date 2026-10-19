@@ -14,6 +14,9 @@ export function getThemePreference(): Theme {
 
 export function applyTheme(theme: Theme): void {
   document.documentElement.classList.toggle("dark", theme === "dark");
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", theme === "dark" ? "#222125" : "#f2f2f2");
   try {
     localStorage.setItem("theme", theme);
   } catch {
@@ -33,7 +36,7 @@ export function toggleTheme(): void {
 
 /**
  * Initialize theme handling: apply stored preference, listen for
- * toggle events from the React ThemeToggle component, and re-apply
+ * toggle events from ThemeToggle.astro, and re-apply
  * on Astro client-side navigations.
  *
  * Safe to call multiple times — listeners are registered only once.

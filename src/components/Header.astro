@@ -16,7 +16,7 @@ const pathname = Astro.url.pathname;
 const isCurrent = (href: string): boolean => pathname.startsWith(href);
 ---
 
-<header class="relative mb-[20px] mt-[-10px]">
+<header id="site-header" class="site-header mb-[20px]">
   <nav
     aria-label="Main navigation"
     class="flex items-center justify-between w-full h-[30px]"
@@ -95,4 +95,84 @@ const isCurrent = (href: string): boolean => pathname.startsWith(href);
   .desktop-nav a[aria-current="page"] {
     border-bottom-color: currentColor;
   }
+
+  /* Sticky header: stays at the top, slides away while scrolling down and
+     returns on the way up. It has a solid page-colour background and a
+     smaller logo once off the top, and no rule underneath. Negative
+     margins span the body padding so the background runs edge to edge. */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    margin-inline: -2rem;
+    padding: 16px 2rem 12px;
+    margin-top: -2rem;
+    background: rgb(242, 242, 242);
+    transition: transform 0.35s ease-out;
+  }
+  :global(html.dark) .site-header {
+    background: rgb(34, 33, 37);
+  }
+  @media (min-width: 1200px) {
+    .site-header {
+      margin-inline: -4rem;
+      padding-inline: 4rem;
+    }
+  }
+  /* Keep the mobile menu inset from the screen edge. */
+  .site-header :global(.nav-links) {
+    right: 2rem;
+  }
+  .site-header.is-hidden {
+    transform: translateY(-100%);
+  }
+  .site-header .favicon {
+    transition: height 0.3s ease-out;
+  }
+  .site-header.is-scrolled .favicon {
+    height: 24px;
+  }
 </style>
+
+<script>
+  let cleanupHeader: () => void = () => {};
+
+  document.addEventListener("astro:page-load", () => {
+    cleanupHeader();
+    const header = document.getElementById("site-header");
+    if (!header) {
+      cleanupHeader = () => {};
+      return;
+    }
+    let lastY = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY;
+      if (document.documentElement.hasAttribute("data-scroll-hold")) {
+        lastY = y;
+        return;
+      }
+      const menuOpen = !!document.querySelector(".nav-links.open");
+      header.classList.toggle("is-scrolled", y > 10);
+      if (menuOpen || y < 120 || y < lastY - 4) {
+        header.classList.remove("is-hidden");
+      } else if (y > lastY + 4) {
+        header.classList.add("is-hidden");
+      }
+      if (Math.abs(y - lastY) > 4) lastY = y;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    // Pages that hold content in place by script (BlogPost.astro) set
+    // <html data-scroll-hold> meanwhile; those scrolls are not the
+    // reader's, so update() only takes the new position as its baseline.
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    cleanupHeader = () => window.removeEventListener("scroll", onScroll);
+  });
+</script>

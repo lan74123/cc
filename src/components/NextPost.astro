@@ -7,6 +7,7 @@ import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import type { CollectionName } from "../scripts/collections";
+import { sortByDate } from "./sortByDate";
 import logo from "../assets/logo/ccspace_b.svg";
 
 export interface Props {
@@ -51,6 +52,34 @@ const postsData = await Promise.all(
       meta: [post.data.category, post.data.year].filter(Boolean).join(" · "),
       image: imageData ? imageData.src : null,
       alt: post.data.image?.alt || post.data.title,
+    };
+  }),
+);
+
+// Route options (html[data-more], dev/preview only): every project in
+// index order, numbered as on the index, with the current one marked and
+// the one after it (wrapping round) as the "next stop".
+const ordered = [...allPosts].sort(sortByDate).slice(0, MAX_CANDIDATES);
+const hereIndex = ordered.findIndex((post) => post.id === currentId);
+const nextIndex =
+  ordered.length > 1 && hereIndex >= 0 ? (hereIndex + 1) % ordered.length : -1;
+const route = await Promise.all(
+  ordered.map(async (post, i) => {
+    const imageData = post.data.image
+      ? await optimizeImage(
+          post.data.image.src,
+          post.data.image.alt || post.data.title,
+        )
+      : null;
+    return {
+      url: `/${collection}/${post.id}/`,
+      num: String(i + 1).padStart(2, "0"),
+      title: post.data.title,
+      meta: [post.data.category, post.data.year].filter(Boolean).join(" · "),
+      image: imageData ? imageData.src : null,
+      here: i === hereIndex,
+      next: i === nextIndex,
+      last: i === ordered.length - 1,
     };
   }),
 );
@@ -107,6 +136,120 @@ const indexLabel = isWorks ? "All works" : "All research";
           </a>
         ))}
       </div>
+      <ol class="more-route">
+        {route.map((stop) => {
+          const Row = stop.here ? "div" : "a";
+          return (
+            <li
+              class:list={[
+                "route-stop",
+                {
+                  "is-here": stop.here,
+                  "is-next": stop.next,
+                  "is-last": stop.last,
+                },
+              ]}
+            >
+              <Row
+                href={stop.here ? undefined : stop.url}
+                class="route-row"
+                aria-current={stop.here ? "page" : undefined}
+              >
+                <span class="route-num font-overpass-mono">{stop.num}</span>
+                {stop.here && (
+                  <span class="route-walker" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <g fill="currentColor">
+                        <circle cx="12" cy="6.2" r="3.7" />
+                        <rect
+                          x="9.2"
+                          y="10.4"
+                          width="5.6"
+                          height="6"
+                          rx="2.8"
+                        />
+                        <rect
+                          x="9.9"
+                          y="14.6"
+                          width="1.9"
+                          height="5.2"
+                          rx="0.95"
+                        />
+                        <rect
+                          x="12.2"
+                          y="14.6"
+                          width="1.9"
+                          height="5.2"
+                          rx="0.95"
+                        />
+                        <rect
+                          x="7.6"
+                          y="11"
+                          width="1.8"
+                          height="4.2"
+                          rx="0.9"
+                          transform="rotate(12 8.5 11.4)"
+                        />
+                        <rect
+                          x="14.6"
+                          y="11"
+                          width="1.8"
+                          height="4.2"
+                          rx="0.9"
+                          transform="rotate(-12 15.5 11.4)"
+                        />
+                        <circle class="route-eye" cx="12.9" cy="6" r="0.5" />
+                        <circle class="route-eye" cx="14.6" cy="6" r="0.5" />
+                      </g>
+                    </svg>
+                  </span>
+                )}
+                <span class="route-label font-overpass-mono">
+                  {stop.here ? "You are here" : ""}
+                </span>
+                <span class="route-title font-overpass-mono">{stop.title}</span>
+                {stop.meta && (
+                  <span class="route-meta font-overpass-mono">{stop.meta}</span>
+                )}
+                {stop.image && (
+                  <img
+                    class="route-thumb"
+                    src={stop.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                {stop.next && stop.image && (
+                  <img
+                    class="route-big"
+                    src={stop.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                {stop.next && (
+                  <span class="route-go font-overpass-mono">
+                    Next project <span aria-hidden="true">→</span>
+                  </span>
+                )}
+              </Row>
+            </li>
+          );
+        })}
+        <li class="route-stop route-terminal">
+          <a href={`/${collection}/`} class="route-row">
+            <span class="route-end" aria-hidden="true" />
+            <span class="route-title font-overpass-mono">
+              {indexLabel} <span aria-hidden="true">→</span>
+            </span>
+            <span class="route-meta font-overpass-mono">
+              {ordered.length} projects
+            </span>
+          </a>
+        </li>
+      </ol>
     </section>
   )
 }
@@ -201,6 +344,9 @@ const indexLabel = isWorks ? "All works" : "All research";
     text-transform: uppercase;
     opacity: 0.55;
   }
+  html.dark .more-meta {
+    opacity: 0.7;
+  }
   .more-meta:empty {
     display: none;
   }
@@ -225,6 +371,1211 @@ const indexLabel = isWorks ? "All works" : "All research";
   }
   .more-item:hover .more-img:not(.is-logo) {
     filter: none;
+  }
+
+  /* ── Route options (html[data-more], dev/preview only; default A) ──
+     R: the plain one. The route, this project marked solid with a quiet
+     "You are here", and the short line under the heading; no figure.
+     R1: the other projects threaded on the route line, as on the index.
+     R2: the next project first, as a large "Next stop", then the rest.
+     R3: the whole route with this project marked "You are here".
+     R4: R3 with the little figure standing at this project's stop. */
+  .more-route {
+    display: none;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r1"],
+      [data-more="r2"],
+      [data-more="r3"],
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"],
+      [data-more="r10"]
+    )
+    #randomPosts {
+    display: none;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r1"],
+      [data-more="r2"],
+      [data-more="r3"],
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"],
+      [data-more="r10"]
+    )
+    .more-route {
+    display: flex;
+    flex-direction: column;
+  }
+  html:is([data-more="r1"], [data-more="r2"]) .route-stop.is-here {
+    display: none;
+  }
+  html[data-more="r2"] .route-stop.is-next {
+    order: -1;
+  }
+  .route-stop {
+    position: relative;
+  }
+  /* The route line, through every number. */
+  .route-stop::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(1.125rem - 0.5px);
+    border-left: 1px solid rgba(34, 33, 37, 0.3);
+  }
+  html.dark .route-stop::before {
+    border-left-color: rgba(245, 245, 245, 0.3);
+  }
+  .route-stop:first-child::before,
+  html[data-more="r2"] .route-stop.is-next::before {
+    top: 1.9rem;
+  }
+  .route-stop.is-last::before {
+    bottom: auto;
+    height: 1.9rem;
+  }
+  html[data-more="r2"] .route-stop.is-next::before {
+    bottom: 0;
+    height: auto;
+  }
+  .route-row {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr) 4.5rem;
+    /* The empty 1fr row soaks up the photo height so the title and
+       type line stay together. */
+    grid-template-areas:
+      "num label thumb"
+      "num title thumb"
+      ". meta thumb"
+      ". . thumb"
+      ". big big"
+      ". go go";
+    grid-template-rows: auto auto auto 1fr auto auto;
+    column-gap: 0.75rem;
+    align-content: start;
+    padding-block: 1.25rem;
+    color: inherit;
+    text-decoration: none;
+  }
+  .route-num {
+    position: relative;
+    z-index: 1;
+    grid-area: num;
+    align-self: start;
+    justify-self: center;
+    margin-top: 0.45rem;
+    padding: 0.2rem 0;
+    font-size: 0.7rem;
+    line-height: 1;
+    background: rgb(242, 242, 242);
+  }
+  html.dark .route-num {
+    background: rgb(34, 33, 37);
+  }
+  .route-label {
+    grid-area: label;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  .route-label:empty {
+    display: none;
+  }
+  html[data-more="r1"] .route-label {
+    display: none;
+  }
+  .route-title {
+    grid-area: title;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+  }
+  .route-meta {
+    grid-area: meta;
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+  .route-thumb {
+    grid-area: thumb;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    filter: grayscale(1) sepia(0.35) brightness(0.92);
+    transition: filter 0.4s ease-out;
+  }
+  a.route-row:hover .route-thumb {
+    filter: none;
+  }
+  .route-big,
+  .route-go,
+  .route-walker {
+    display: none;
+  }
+
+  /* R2: the next stop is large, with its own way on. */
+  html[data-more="r2"] .route-stop.is-next .route-thumb {
+    display: none;
+  }
+  html[data-more="r2"] .route-stop.is-next .route-row {
+    grid-template-areas:
+      "num label label"
+      "num title title"
+      ". meta meta"
+      ". . ."
+      ". big big"
+      ". go go";
+  }
+  html[data-more="r2"] .route-stop.is-next .route-big {
+    display: block;
+    grid-area: big;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    margin-top: 1rem;
+    object-fit: cover;
+  }
+  html[data-more="r2"] .route-stop.is-next .route-go {
+    position: relative;
+    display: inline-flex;
+    gap: 0.5rem;
+    grid-area: go;
+    justify-self: end;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  /* A branch leaves the route and runs under "Next project", as on H9. */
+  html[data-more="r2"] .route-stop.is-next .route-row {
+    position: relative;
+  }
+  html[data-more="r2"] .route-stop.is-next .route-row::after {
+    content: "";
+    position: absolute;
+    left: calc(1.125rem - 0.5px);
+    right: 0;
+    bottom: 1.25rem;
+    border-top: 1px solid currentColor;
+  }
+  html[data-more="r2"] .route-stop.is-next .route-num {
+    color: rgb(242, 242, 242);
+    background: rgb(34, 33, 37);
+    padding: 0.3rem 0.35rem;
+    border-radius: 2px;
+  }
+
+  /* R3/R4: this project is a stop on the route, marked solid. */
+  html:is(
+      [data-more="r"],
+      [data-more="r3"],
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"]
+    )
+    .route-stop.is-here
+    .route-num {
+    color: rgb(242, 242, 242);
+    background: rgb(34, 33, 37);
+    padding: 0.3rem 0.35rem;
+    border-radius: 2px;
+  }
+  html.dark:is(
+      [data-more="r"],
+      [data-more="r3"],
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"]
+    )
+    .route-stop.is-here
+    .route-num,
+  html.dark[data-more="r2"] .route-stop.is-next .route-num {
+    color: rgb(34, 33, 37);
+    background: rgb(245, 245, 245);
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r3"],
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"]
+    )
+    .route-stop.is-here
+    .route-thumb {
+    opacity: 0.5;
+  }
+  html:is(
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"]
+    )
+    .route-stop.is-here
+    .route-num {
+    display: none;
+  }
+  html:is(
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"]
+    )
+    .route-stop.is-here
+    .route-walker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    grid-area: num;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: rgb(242, 242, 242);
+  }
+  html.dark:is(
+      [data-more="r4"],
+      [data-more="r5"],
+      [data-more="r6"],
+      [data-more="r7"],
+      [data-more="r8"],
+      [data-more="r9"]
+    )
+    .route-stop.is-here
+    .route-walker {
+    background: rgb(34, 33, 37);
+  }
+  .route-walker svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+  .route-eye {
+    fill: rgb(242, 242, 242);
+  }
+  html.dark .route-eye {
+    fill: rgb(34, 33, 37);
+  }
+
+  /* ── R5: start and end. The heading is where the route begins (an
+     open ring), and "All works" is where it ends (a square stop with
+     the project count), instead of a link in the corner. ── */
+  .route-terminal {
+    display: none;
+  }
+  html[data-more="r5"] .more-index {
+    display: none;
+  }
+  html[data-more="r5"] .more-head {
+    position: relative;
+    padding-left: 3rem;
+  }
+  html[data-more="r5"] .more-head::before {
+    content: "";
+    position: absolute;
+    left: calc(1.125rem - 0.4rem);
+    top: 2.85rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+  }
+  html[data-more="r5"] .more-head::after {
+    content: "";
+    position: absolute;
+    left: calc(1.125rem - 0.5px);
+    top: 3.65rem;
+    bottom: -1.75rem;
+    border-left: 1px solid rgba(34, 33, 37, 0.3);
+  }
+  html.dark[data-more="r5"] .more-head::after {
+    border-left-color: rgba(245, 245, 245, 0.3);
+  }
+  html[data-more="r5"] .route-stop:first-child::before {
+    top: 0;
+  }
+  html[data-more="r5"] .route-stop.is-last::before {
+    bottom: 0;
+    height: auto;
+  }
+  html[data-more="r5"] .route-terminal {
+    display: block;
+  }
+  html[data-more="r5"] .route-terminal::before {
+    bottom: auto;
+    height: 1.9rem;
+  }
+  .route-end {
+    position: relative;
+    z-index: 1;
+    grid-area: num;
+    justify-self: center;
+    margin-top: 1.5rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    background: currentColor;
+  }
+  .route-terminal .route-title {
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    align-self: end;
+    padding-top: 1.1rem;
+  }
+
+  /* ── R6: speech bubble. The figure says "You are here" in a small
+     bubble, and a light line under the heading sets the tone. ── */
+  html:is(
+      [data-more="r6"],
+      [data-more="r8"],
+      [data-more="r9"],
+      [data-more="r10"]
+    )
+    .route-stop.is-here
+    .route-label {
+    position: relative;
+    justify-self: start;
+    margin: 0 0 0.4rem 0.35rem;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    opacity: 1;
+    border: 1px solid currentColor;
+    /* Rounded, but with a straight left side for the tail to sit on. */
+    border-radius: 0.45rem;
+    white-space: nowrap;
+  }
+  /* The tail: a small square turned 45°, page-coloured inside with two
+     outlined sides, covering the bubble's edge where they meet. Both of
+     its edges are straight lines, so the join is clean. */
+  html:is(
+      [data-more="r6"],
+      [data-more="r8"],
+      [data-more="r9"],
+      [data-more="r10"]
+    )
+    .route-stop.is-here
+    .route-label::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -4px;
+    width: 7px;
+    height: 7px;
+    border-left: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    background: var(--paper, rgb(242, 242, 242));
+    transform: translateY(-50%) rotate(45deg);
+  }
+  html:is(
+      [data-more="r6"],
+      [data-more="r8"],
+      [data-more="r9"],
+      [data-more="r10"]
+    )
+    .route-stop.is-here
+    .route-label::after {
+    display: none;
+  }
+
+  /* ── R8: as R6 with larger photos, portrait 4:5 beside each title. ── */
+  html[data-more="r8"] .route-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr) 7.25rem;
+  }
+  html[data-more="r8"] .route-thumb {
+    aspect-ratio: 4 / 5;
+  }
+
+  /* ── R9: as R6 with each photo at full width under its title, on the
+     title line, so the route reads as a sequence of rooms. ── */
+  html[data-more="r9"] .route-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    grid-template-areas:
+      "num label"
+      "num title"
+      ". meta"
+      ". thumb";
+    grid-template-rows: auto auto auto auto;
+    padding-block: 1.5rem;
+  }
+  html[data-more="r9"] .route-thumb {
+    margin-top: 0.9rem;
+    aspect-ratio: 3 / 2;
+  }
+
+  /* ── R10: spray-paint mark. No figure: this project's number is
+     ringed by hand, in the orange of the studio's avatar, the way the
+     crew circles a spot on a site wall. ── */
+  html[data-more="r10"] .route-stop.is-here .route-num {
+    overflow: visible;
+  }
+  html[data-more="r10"] .route-stop.is-here .route-num::before {
+    content: "";
+    position: absolute;
+    inset: -0.7rem -0.85rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'%3E%3Cpath d='M9 23C6 11 21 4 34 5c13 1 22 8 21 17-1 10-14 15-27 14C14 35 5 29 7 19c1-5 7-10 13-12' fill='none' stroke='%23e0692c' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+  html[data-more="r10"] .route-stop.is-here .route-label {
+    color: rgb(224, 105, 44);
+    border-color: rgb(224, 105, 44);
+  }
+  html[data-more="r10"] .route-stop.is-here .route-label::before {
+    border-color: rgb(224, 105, 44);
+  }
+  @media (min-width: 800px) {
+    html[data-more="r8"] .route-row {
+      grid-template-columns: 4rem minmax(0, 1fr) 16rem;
+    }
+    html[data-more="r9"] .route-row {
+      grid-template-columns: 4rem minmax(0, 1fr);
+    }
+    html[data-more="r9"] .route-thumb {
+      max-width: 44rem;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* ── R7: footprints. The way behind the figure is a solid line; the
+     way ahead is a trail of small footprints, an invitation to keep
+     walking rather than a push. ── */
+  html[data-more="r7"] .route-stop.is-here::before {
+    bottom: auto;
+    height: 2.4rem;
+  }
+  html[data-more="r7"] .route-stop.is-here::after,
+  html[data-more="r7"] .route-stop.is-here ~ .route-stop::before {
+    content: "";
+    position: absolute;
+    left: calc(1.125rem - 6px);
+    width: 12px;
+    border: 0;
+    background: currentColor;
+    opacity: 0.4;
+    -webkit-mask: var(--footprints) repeat-y;
+    mask: var(--footprints) repeat-y;
+  }
+  html[data-more="r7"] .route-stop.is-here::after {
+    top: 3.9rem;
+    bottom: 0;
+  }
+  html[data-more="r7"] .more-route {
+    --footprints: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='18'%3E%3Cellipse cx='3.6' cy='4.5' rx='1.7' ry='2.7'/%3E%3Cellipse cx='8.4' cy='13.5' rx='1.7' ry='2.7'/%3E%3C/svg%3E");
+  }
+
+  @media (min-width: 800px) {
+    html[data-more="r5"] .more-head {
+      padding-left: 6rem;
+    }
+    html[data-more="r5"] .more-head::before {
+      left: calc(2rem - 0.4rem);
+      top: 3.4rem;
+    }
+    html[data-more="r5"] .more-head::after {
+      left: calc(2rem - 0.5px);
+      top: 4.2rem;
+    }
+    html[data-more="r7"] .route-stop.is-here::after,
+    html[data-more="r7"] .route-stop.is-here ~ .route-stop::before {
+      left: calc(2rem - 6px);
+    }
+    html[data-more="r7"] .route-stop.is-here::before {
+      height: 2.9rem;
+    }
+    html[data-more="r7"] .route-stop.is-here::after {
+      top: 4.4rem;
+    }
+    .route-stop::before,
+    html[data-more="r2"] .route-stop.is-next .route-row::after {
+      left: calc(2rem - 0.5px);
+    }
+    html[data-more="r2"] .route-stop.is-next .route-row::after {
+      bottom: 1.75rem;
+    }
+    .route-row {
+      grid-template-columns: 4rem minmax(0, 1fr) 12rem;
+      column-gap: 2rem;
+      padding-block: 1.75rem;
+    }
+    .route-title {
+      font-size: 1.75rem;
+    }
+    .route-thumb {
+      aspect-ratio: 4 / 3;
+    }
+    html[data-more="r2"] .route-stop.is-next .route-big {
+      aspect-ratio: 21 / 9;
+    }
+  }
+
+  /* ── Lead options (html[data-lead], dev/preview only; L2 by default):
+     how the section is set apart from the project above and joined to
+     its list.
+     L2: the hairline over the heading turns the corner and runs down
+     into the route; "All works" stands on the line at the right.
+     L2-1 to L2-3: L2 with no heading; the corner line and "All works"
+     do the separating, with more air above.
+       L2-1: "All works" and a drawn arrow sit on the line, right.
+       L2-2: the line is an index: the project count where it starts,
+       "All works" where it ends.
+       L2-3: the line itself ends in an arrowhead; "All works" is set
+       above its end, like the figure on a dimension line.
+     L7-1 to L7-3 borrow the language of a drawing set. The heading is a
+     drawing title (small capitals over a double rule, with its scale),
+     and "you are here" is drawn the same way in each, so the More
+     options' figure, bubble and spray ring step aside here.
+       L7-1: plan. The projects are rooms stacked down one plan, sharing
+       walls, each with a door swing; this one is hatched.
+       L7-2: grid lines. Each project hangs on a dash-dot grid line
+       with its numbered grid bubble.
+       L7-3: dimensions. The route becomes a dimension string, ticked at
+       every room, its numbers set into the line. ── */
+  .more-section {
+    --lx: 1.125rem;
+    --lpad: 3rem;
+    --line: rgba(34, 33, 37, 0.3);
+    /* The same line made opaque (the line over the page colour), for
+       lines that overlap, so the overlap does not show darker. */
+    --line-solid: rgb(179, 179, 180);
+    --wall: rgba(34, 33, 37, 0.38);
+    --hatch: rgba(34, 33, 37, 0.14);
+    --paper: rgb(242, 242, 242);
+  }
+  html.dark .more-section {
+    --line: rgba(245, 245, 245, 0.3);
+    --line-solid: rgb(97, 97, 99);
+    --wall: rgba(245, 245, 245, 0.34);
+    --hatch: rgba(245, 245, 245, 0.12);
+    --paper: rgb(34, 33, 37);
+  }
+  @media (min-width: 800px) {
+    .more-section {
+      --lx: 2rem;
+      --lpad: 6rem;
+    }
+  }
+
+  /* ── L2 family: the corner. ── */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-head {
+    position: relative;
+    padding-left: var(--lpad);
+    border-top-color: transparent;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .route-stop:first-child::before {
+    top: 0;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-head::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: calc(var(--lx) - 0.5px);
+    right: 0;
+    bottom: -1.75rem;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+    border-top-left-radius: 1.25rem;
+    pointer-events: none;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-index {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    /* A 44px-tall target; the words still sit on the line. */
+    padding: 1rem 0 1rem 1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    /* Softer words on an opaque ground, so the line never shows
+       through them. */
+    color: color-mix(in srgb, currentColor 80%, transparent);
+    opacity: 1;
+    background: var(--paper);
+    transform: translateY(-50%);
+  }
+  /* A drawn hairline arrow, the weight of the line it sits on; it
+     reaches a little further on hover. */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-index
+    span {
+    position: relative;
+    width: 2.25rem;
+    height: 9px;
+    font-size: 0;
+    transition: width 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-index
+    span::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 1px;
+    top: 50%;
+    border-top: 1px solid currentColor;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-index
+    span::after {
+    content: "";
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-top: 1px solid currentColor;
+    border-right: 1px solid currentColor;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2"],
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-index:hover
+    span {
+    width: 3rem;
+  }
+  /* No heading (kept for screen readers); more air above instead. */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-section {
+    margin-top: 8rem;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-head
+    h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-head {
+    min-height: 0;
+    padding-top: 0;
+    margin-bottom: 2.25rem;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is(
+      [data-lead="l2-1"],
+      [data-lead="l2-5"],
+      [data-lead="l2-3"],
+      [data-lead="l2-4"],
+      [data-lead="l2-6"]
+    )
+    .more-head::before {
+    bottom: -2.25rem;
+  }
+  /* L2-3: the line ends in an arrowhead, and "All works" is set just
+     above its end. The words and the arrowhead are one link with a
+     generous target; on hover the words take an underline and the
+     arrowhead steps on, so the quiet end still reads as a way on. */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index {
+    padding: 0.9rem 0 0.7rem 1.5rem;
+    color: inherit;
+    opacity: 1;
+    background: none;
+    transform: translateY(-100%);
+    text-decoration: underline 1px transparent;
+    text-underline-offset: 0.35em;
+    transition: text-decoration-color 0.25s ease-out;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index:hover {
+    text-decoration-color: currentColor;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index
+    span,
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index:hover
+    span {
+    position: absolute;
+    right: 1px;
+    bottom: 0;
+    width: 7px;
+    height: 7px;
+    border-top: 1px solid currentColor;
+    border-right: 1px solid currentColor;
+    transform: translateY(50%) rotate(45deg);
+    transition: translate 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index
+    span::before,
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index
+    span::after {
+    display: none;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-3"], [data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index:hover
+    span {
+    translate: 4px 0;
+  }
+
+  /* L2-4: L2-3 with "All works" under the end of the line, inside the
+     section, so the line stays the clean edge between the project and
+     what follows. */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index {
+    transform: none;
+    padding: 0.7rem 0 0.9rem 1.5rem;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index
+    span,
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-4"], [data-lead="l2-6"])
+    .more-index:hover
+    span {
+    top: 0;
+    bottom: auto;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  /* Room under the line for the words before the first stop. */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-4"], [data-lead="l2-6"])
+    .more-head {
+    margin-bottom: 3.75rem;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-4"], [data-lead="l2-6"])
+    .more-head::before {
+    bottom: -3.75rem;
+  }
+
+  /* ── Gap options (html[data-gap], dev/preview only; S0 by default):
+     how the section is kept apart from the end of the project above.
+     S1: air. A much larger space, nothing else. ── */
+  html[data-gap="s1"][data-lead] .more-section {
+    margin-top: 10rem;
+  }
+  @media (min-width: 800px) {
+    html[data-gap="s1"][data-lead] .more-section {
+      margin-top: 13rem;
+    }
+  }
+
+  /* ── The figure follows the Route choice (html[data-fig], set with
+     H9): R and R6 show it at this stop in place of the number; without
+     it, R6 keeps its bubble beside the solid number. R10 marks this
+     stop with its ring either way. ── */
+  html[data-fig]:is([data-more="r"], [data-more="r6"])
+    .route-stop.is-here
+    .route-num {
+    display: none;
+  }
+  html[data-fig]:is([data-more="r"], [data-more="r6"])
+    .route-stop.is-here
+    .route-walker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    grid-area: num;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--paper);
+  }
+  html:not([data-fig])[data-more="r6"] .route-stop.is-here .route-num {
+    display: block;
+  }
+  html:not([data-fig])[data-more="r6"] .route-stop.is-here .route-walker {
+    display: none;
+  }
+
+  /* ── R11: no "You are here". The route itself turns into this
+     project: at this stop a branch leaves the line round a soft corner,
+     the same corner as the line over "All works", and runs straight to
+     the title, in the same hairline as the route. Without the figure
+     it meets the middle of the title, however many lines that takes;
+     with H9 the figure stands where it leaves the line. ── */
+  html[data-more="r11"] #randomPosts {
+    display: none;
+  }
+  html[data-more="r11"] .more-route {
+    display: flex;
+    flex-direction: column;
+  }
+  html[data-more="r11"] .route-stop.is-here .route-label,
+  html[data-more="r11"] .route-stop.is-here .route-num {
+    display: none;
+  }
+  html[data-more="r11"] .route-stop.is-here .route-thumb {
+    opacity: 0.5;
+  }
+  html[data-more="r11"] .route-stop.is-here {
+    --r11-r: 0.9rem;
+    /* From the route (x) to just short of the title (to). */
+    --r11-x: 1.125rem;
+    --r11-to: 3rem;
+  }
+  @media (min-width: 800px) {
+    html[data-more="r11"] .route-stop.is-here {
+      --r11-r: 1.25rem;
+      --r11-x: 2rem;
+      --r11-to: 6rem;
+    }
+  }
+  /* No figure: hung on the title, so it meets the title's middle. At
+     this stop the title draws the route itself, the line coming in from
+     above, the corner, and (unless this is the last stop) the line
+     going on below, all from one origin, so on a high-density screen
+     the joins cannot slip apart by a fraction of a pixel. */
+  html:not([data-fig])[data-more="r11"] .route-stop.is-here {
+    --r11-pad: 1.25rem;
+    overflow: clip;
+  }
+  html:not([data-fig])[data-more="r11"] .route-stop.is-here::before {
+    display: none;
+  }
+  html:not([data-fig])[data-more="r11"] .route-stop.is-here .route-title {
+    position: relative;
+  }
+  html:not([data-fig])[data-more="r11"]
+    .route-stop.is-here
+    .route-title::before,
+  html:not([data-fig])[data-more="r11"]
+    .route-stop.is-here:not(.is-last)
+    .route-title::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--r11-x) - var(--r11-to) - 0.5px);
+    border-left: 1px solid var(--line-solid);
+    pointer-events: none;
+  }
+  /* In from the top of the stop, round the corner, on to the title. */
+  html:not([data-fig])[data-more="r11"]
+    .route-stop.is-here
+    .route-title::before {
+    top: calc(-1 * var(--r11-pad));
+    width: calc(var(--r11-to) - var(--r11-x) - 0.5rem);
+    height: calc(var(--r11-pad) + 50%);
+    border-bottom: 1px solid var(--line-solid);
+    border-bottom-left-radius: var(--r11-r);
+  }
+  /* On down to the next stop (clipped at the bottom of this one). */
+  html:not([data-fig])[data-more="r11"]
+    .route-stop.is-here:not(.is-last)
+    .route-title::after {
+    top: calc(50% - var(--r11-r));
+    height: 100vh;
+  }
+  @media (min-width: 800px) {
+    html:not([data-fig])[data-more="r11"] .route-stop.is-here {
+      --r11-pad: 1.75rem;
+    }
+  }
+  /* With the figure: no branch, the figure alone marks this stop on the
+     route, nudged onto the title's first line on phones. */
+  @media (max-width: 799px) {
+    html[data-fig][data-more="r11"] .route-stop.is-here .route-walker {
+      translate: 0 6px;
+    }
+  }
+  html[data-fig][data-more="r11"] .route-stop.is-here .route-walker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    grid-area: num;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--paper);
+  }
+  /* R: no "You are here" either; the solid number (or the figure)
+     says it. */
+  html[data-more="r"] .route-stop.is-here .route-label {
+    display: none;
+  }
+  /* ── L2-5 and L2-6: L2-1 and L2-4 with the arrow drawn in the same
+     hairline as the corner line, so the line and the arrow read as one
+     stroke. Only the words keep the text colour; on hover the arrow
+     takes it too and reaches on, to show it is the way in. ── */
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-5"], [data-lead="l2-6"])
+    .more-index
+    span {
+    color: var(--line-solid);
+    transition:
+      width 0.4s cubic-bezier(0.215, 0.61, 0.355, 1),
+      translate 0.35s cubic-bezier(0.215, 0.61, 0.355, 1),
+      color 0.25s ease-out;
+  }
+  html:is(
+      [data-more="r"],
+      [data-more="r4"],
+      [data-more="r6"],
+      [data-more="r10"],
+      [data-more="r11"]
+    ):is([data-lead="l2-5"], [data-lead="l2-6"])
+    .more-index:hover
+    span {
+    color: currentColor;
   }
 </style>
 

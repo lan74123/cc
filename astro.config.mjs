@@ -22,6 +22,9 @@ export default defineConfig({
   // SITE_URL to the workers.dev URL (Cloudflare Workers Builds env vars).
   site: process.env.SITE_URL ?? "https://cc-space.workers.dev",
 
+  // Hide Astro's dev toolbar so local previews look like the real site.
+  devToolbar: { enabled: false },
+
   // Production: `/` -> `/works/` is a real 301 from public/_redirects
   // (Cloudflare). Astro's redirect would emit a meta-refresh page that
   // flashes "Redirecting from / to /works", so it is only used in dev.

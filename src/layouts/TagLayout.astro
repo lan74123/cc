@@ -56,6 +56,7 @@ for (const post of allContent) {
 ---
 
 <BaseLayout title={title} is404Page={false}>
+  <h1 class="sr-only">{title}</h1>
   <div>
     {
       tags.length === 1 ? (

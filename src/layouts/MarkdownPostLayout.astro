@@ -27,6 +27,7 @@ export interface Props {
     location?: string;
     year?: string;
     client?: string;
+    category?: string;
   };
   currentId: string;
   collection: CollectionName;
@@ -119,6 +120,7 @@ const metaImage = image
         location={frontmatter.location}
         year={frontmatter.year}
         client={frontmatter.client}
+        category={frontmatter.category}
       />
       <slot />
     </Prose>

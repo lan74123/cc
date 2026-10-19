@@ -1,0 +1,178 @@
+---
+// Panel for comparing layout options before one is chosen. Rendered
+// under `astro dev` and in PUBLIC_PREVIEW=1 builds (see BaseLayout.astro).
+// Remove once settled.
+// Settled with the client: H9 route (D3 on desktop), "Discover more" as
+// R without the figure, cue C0, view P1. Only Gap is still open, until
+// the real write-ups come in.
+const groups = [{ key: "gap", label: "Gap", options: ["s0", "s1"] }];
+// Options per key, so a choice remembered from an earlier round that is
+// no longer offered falls back to the default.
+const allowed: Record<string, string[]> = {};
+for (const g of groups) {
+  allowed[g.key] = [...(allowed[g.key] ?? []), ...g.options];
+}
+---
+
+<script is:inline define:vars={{ allowed }}>
+  (() => {
+    // Settled: always set, never read back from an earlier round.
+    const fixed = {
+      list: "h9",
+      desk: "d3",
+      more: "r",
+      lead: "l2-1",
+      cue: "c0",
+      vp: "p1",
+    };
+    const defaults = { gap: "s0" };
+    const apply = () => {
+      const root = document.documentElement;
+      for (const [k, v] of Object.entries(fixed)) root.dataset[k] = v;
+      for (const [k, d] of Object.entries(defaults)) {
+        let v = d;
+        try {
+          v = localStorage.getItem("pv-" + k) || d;
+        } catch {}
+        if (!allowed[k]?.includes(v)) v = d;
+        root.dataset[k] = v;
+      }
+      // No figure in "Discover more" (html[data-fig] stays unset).
+      delete root.dataset.fig;
+    };
+    window.__pvApply = apply;
+    // Folded or not is set on <html> here, before the page is drawn, so
+    // the panel does not open for a moment while a new page comes in.
+    const fold = () => {
+      let min = false;
+      try {
+        min = localStorage.getItem("pv-min") === "1";
+      } catch {}
+      if (min) document.documentElement.dataset.pvMin = "";
+      else delete document.documentElement.dataset.pvMin;
+    };
+    apply();
+    fold();
+    document.addEventListener("astro:after-swap", apply);
+    document.addEventListener("astro:after-swap", fold);
+  })();
+</script>
+
+<div id="preview-switcher" class="font-overpass-mono">
+  <button type="button" class="pv-min" aria-label="Fold the preview panel">
+    <span class="pv-min-open">–</span><span class="pv-min-closed">PV</span>
+  </button>
+  {
+    groups.map((g) => (
+      <div class="pv-row">
+        <span class="pv-label">{g.label}</span>
+        {g.options.map((o) => (
+          <button type="button" data-key={g.key} data-value={o}>
+            {o.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    ))
+  }
+</div>
+
+<style is:global>
+  #preview-switcher {
+    /* Right side, above the scroll-to-top button, clear of the route
+       line and its close node on the left. */
+    position: fixed;
+    right: 12px;
+    bottom: calc(6.5rem + env(safe-area-inset-bottom));
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #fff;
+    max-width: calc(100vw - 24px);
+    background: rgba(200, 60, 40, 0.92);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  #preview-switcher .pv-min {
+    align-self: flex-end;
+    min-width: 0;
+    height: 18px;
+    padding: 0 4px;
+    border: 0;
+  }
+  /* Folded: just a small tab, so the panel never covers the page. */
+  html[data-pv-min] #preview-switcher {
+    padding: 4px 6px;
+  }
+  html[data-pv-min] #preview-switcher .pv-row,
+  html[data-pv-min] #preview-switcher .pv-min-open,
+  html:not([data-pv-min]) #preview-switcher .pv-min-closed {
+    display: none;
+  }
+  #preview-switcher .pv-row {
+    flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  #preview-switcher .pv-label {
+    width: 56px;
+  }
+  #preview-switcher button {
+    min-width: 28px;
+    height: 26px;
+    padding-inline: 4px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  #preview-switcher button.active {
+    background: #fff;
+    color: rgb(200, 60, 40);
+  }
+</style>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const panel = document.getElementById("preview-switcher");
+    if (!panel) return;
+    const buttons =
+      panel.querySelectorAll<HTMLButtonElement>("button[data-key]");
+    const min = panel.querySelector<HTMLButtonElement>(".pv-min");
+    const root = document.documentElement;
+    min?.addEventListener("click", () => {
+      const on = !("pvMin" in root.dataset);
+      if (on) root.dataset.pvMin = "";
+      else delete root.dataset.pvMin;
+      try {
+        localStorage.setItem("pv-min", on ? "1" : "0");
+      } catch {}
+    });
+    const sync = () => {
+      for (const b of buttons) {
+        const k = b.dataset.key ?? "";
+        b.classList.toggle(
+          "active",
+          document.documentElement.dataset[k] === b.dataset.value,
+        );
+      }
+    };
+    for (const b of buttons) {
+      b.addEventListener("click", () => {
+        const k = b.dataset.key ?? "";
+        const v = b.dataset.value ?? "";
+        document.documentElement.dataset[k] = v;
+        try {
+          localStorage.setItem("pv-" + k, v);
+        } catch {}
+        (window as unknown as { __pvApply?: () => void }).__pvApply?.();
+        sync();
+      });
+    }
+    sync();
+  });
+</script>

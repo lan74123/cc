@@ -1,0 +1,65 @@
+---
+// Scroll reveal: gallery photos and project cards fade in and rise slightly
+// as they enter the viewport. Hidden only when scripting is on and the
+// visitor has not asked for reduced motion, so content never stays hidden
+// without the observer that reveals it.
+---
+
+<style is:global>
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .image-container,
+    .work-card,
+    .more-item {
+      transition:
+        opacity 0.9s ease-out,
+        transform 0.9s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    .image-container:not(.is-visible),
+    .work-card:not(.is-visible),
+    .more-item:not(.is-visible) {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+  }
+</style>
+
+<script>
+  let cleanupReveal: () => void = () => {};
+
+  // A project's cover photo (HeroImage.astro) fades in on a direct visit.
+  // Arriving from another page of the site, the view transition already
+  // fades the new page in, and a second fade made the photo vanish and
+  // come back; so it is shown at once, before the new page is drawn.
+  // This lives here, on every page, because the hero's own script only
+  // loads with the hero, after this moment on the first such visit.
+  document.addEventListener("astro:after-swap", () => {
+    const hero = document.getElementById("hero-image");
+    if (!hero) return;
+    hero.style.transition = "none";
+    hero.classList.add("opacity-100");
+  });
+
+  document.addEventListener("astro:page-load", () => {
+    cleanupReveal();
+    const targets = document.querySelectorAll<HTMLElement>(
+      ".image-container, .work-card, .more-item",
+    );
+    if (targets.length === 0 || !("IntersectionObserver" in window)) {
+      targets.forEach((el) => el.classList.add("is-visible"));
+      cleanupReveal = () => {};
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    targets.forEach((el) => observer.observe(el));
+    cleanupReveal = () => observer.disconnect();
+  });
+</script>

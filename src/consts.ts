@@ -4,6 +4,11 @@ export const SITE_TITLE = "CC Space";
 export const SITE_DESCRIPTION = "Interior design studio.";
 export const SITE_AUTHOR = "CC Space";
 
+/** Page language and its OpenGraph locale. The content is written in
+ *  English; switch both to "zh-Hant" / "zh_TW" if it moves to Chinese. */
+export const SITE_LANG = "en";
+export const SITE_LOCALE = "en_US";
+
 /** Studio name shown in the footer copyright notice. */
 export const SITE_COPYRIGHT_OWNER = "CC Space";
 

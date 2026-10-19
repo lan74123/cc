@@ -1,14 +1,18 @@
 ---
+// Project facts under the title: a row of labelled columns between hairlines
+// (two per row on phones), set apart from the description below.
 export interface Props {
   location?: string;
   year?: string;
   client?: string;
+  category?: string;
 }
 
-const { location, year, client } = Astro.props;
+const { location, year, client, category } = Astro.props;
 
 const fields = [
   { label: "Location", value: location },
+  { label: "Type", value: category },
   { label: "Year", value: year },
   { label: "Client", value: client },
 ].filter((field) => field.value);
@@ -16,15 +20,48 @@ const fields = [
 
 {
   fields.length > 0 && (
-    <dl class="font-inconsolata not-prose flex flex-col gap-1 mb-6">
+    <dl class="work-meta font-inconsolata not-prose">
       {fields.map((field) => (
-        <div class="flex gap-2 items-baseline">
-          <dt class="font-overpass-mono uppercase text-sm text-gray-600 dark:text-gray-400 shrink-0 w-20">
-            {field.label}
-          </dt>
-          <dd class="text-slate-700 dark:text-slate-300">{field.value}</dd>
+        <div>
+          <dt class="font-overpass-mono">{field.label}</dt>
+          <dd>{field.value}</dd>
         </div>
       ))}
     </dl>
   )
 }
+
+<style>
+  .work-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding-block: 1.25rem;
+    margin-bottom: 2rem;
+    border-block: 1px solid rgba(34, 33, 37, 0.2);
+  }
+  :global(html.dark) .work-meta {
+    border-color: rgba(245, 245, 245, 0.22);
+  }
+  @media (min-width: 800px) {
+    .work-meta {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2rem;
+      padding-block: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+  }
+  dt {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  :global(html.dark) dt {
+    opacity: 0.7;
+  }
+  dd {
+    margin-top: 0.25rem;
+    font-size: 1rem;
+  }
+</style>

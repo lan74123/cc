@@ -84,7 +84,8 @@ const {
     const heroImg = document.getElementById(
       "hero-image",
     ) as HTMLImageElement | null;
-    if (heroImg) {
+    // Already shown when arriving from another page (see Reveal.astro).
+    if (heroImg && !heroImg.classList.contains("opacity-100")) {
       if (heroImg.complete) {
         heroImg.classList.add("opacity-100");
       } else {

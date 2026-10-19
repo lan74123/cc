@@ -34,19 +34,24 @@ const sorted = [...posts].sort(sortByDate);
 ---
 
 <BaseLayout title={`${tag} -- ${collectionSlug}`} is404Page={false}>
-  {
-    sorted.map((post) => (
-      <BlogPost
-        url={`/${collectionSlug}/${post.id}/`}
-        image={post.data?.image?.src || ""}
-        alt={post.data?.image?.alt || ""}
-        title={post.data?.title || ""}
-        description={post.data?.description || ""}
-        category={post.data?.category}
-        year={post.data?.year}
-        positionx={post.data?.image?.positionx || ""}
-        positiony={post.data?.image?.positiony || ""}
-      />
-    ))
-  }
+  <h1 class="sr-only">{tag}</h1>
+  <div class="work-list">
+    {
+      sorted.map((post, i) => (
+        <BlogPost
+          index={i + 1}
+          url={`/${collectionSlug}/${post.id}/`}
+          image={post.data?.image?.src || ""}
+          alt={post.data?.image?.alt || ""}
+          title={post.data?.title || ""}
+          description={post.data?.description || ""}
+          category={post.data?.category}
+          year={post.data?.year}
+          location={post.data?.location}
+          positionx={post.data?.image?.positionx || ""}
+          positiony={post.data?.image?.positiony || ""}
+        />
+      ))
+    }
+  </div>
 </BaseLayout>

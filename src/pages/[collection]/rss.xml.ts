@@ -1,5 +1,4 @@
-import { getCollection } from "astro:content";
-import { generateRss } from "../../scripts/collections";
+import { generateRss, getEntries } from "../../scripts/collections";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
@@ -13,6 +12,6 @@ export async function getStaticPaths() {
 export async function GET(context: APIContext) {
   const { collection } = context.params;
   const config = getRouteCollection(collection!);
-  const entries = await getCollection(config.name);
+  const entries = await getEntries(config.name);
   return generateRss(entries, config.name, context);
 }

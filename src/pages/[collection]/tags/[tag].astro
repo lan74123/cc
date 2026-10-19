@@ -1,9 +1,8 @@
 ---
-import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import BlogPost from "../../../components/BlogPost.astro";
 import { sortByDate } from "../../../components/sortByDate";
-import { buildTagPaths } from "../../../scripts/collections";
+import { buildTagPaths, getEntries } from "../../../scripts/collections";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
@@ -15,7 +14,7 @@ export async function getStaticPaths() {
     props: { posts: any; collectionSlug: string };
   }[] = [];
   for (const config of ROUTE_COLLECTIONS) {
-    const entries = await getCollection(config.name);
+    const entries = await getEntries(config.name);
     for (const tp of buildTagPaths(entries, config.name)) {
       paths.push({
         params: { collection: config.name, ...tp.params },

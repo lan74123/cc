@@ -1,4 +1,5 @@
 import rss from "@astrojs/rss";
+import { getCollection } from "astro:content";
 import sanitizeHtml from "sanitize-html";
 import MarkdownIt from "markdown-it";
 import type { ImageMetadata } from "astro";
@@ -19,6 +20,22 @@ function stripMdx(body: string): string {
 
 /** Valid content collection names for use with getCollection(). */
 export type CollectionName = "works" | "research";
+
+/** Placeholder entries show in dev and on the preview site only. */
+const SHOW_PLACEHOLDERS =
+  import.meta.env.DEV || import.meta.env.PUBLIC_PREVIEW === "1";
+
+/**
+ * A collection's entries as this build should show them: every entry in
+ * dev and preview builds, and no `placeholder: true` stand-ins in
+ * production. Use this instead of getCollection() for anything a visitor
+ * sees (pages, tags, RSS, "Discover more").
+ */
+export function getEntries<C extends CollectionName>(name: C) {
+  return getCollection(name, (entry) =>
+    SHOW_PLACEHOLDERS ? true : !entry.data.placeholder,
+  );
+}
 
 /** Shared shape of a content collection entry used across all collections. */
 interface CollectionPost {
@@ -60,7 +77,9 @@ export function buildTagPaths<T extends CollectionPost>(
   collectionSlug: string,
 ) {
   const uniqueTags = [
-    ...new Set(entries.flatMap((post) => (post.data.tags ?? []).filter(Boolean))),
+    ...new Set(
+      entries.flatMap((post) => (post.data.tags ?? []).filter(Boolean)),
+    ),
   ];
   return uniqueTags.map((tag: string) => {
     const filteredPosts = entries.filter((post) =>

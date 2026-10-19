@@ -1,10 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GetRandomImage from "../components/GetRandomImage.astro";
-import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
-import type { CollectionName } from "../scripts/collections";
+import { getEntries, type CollectionName } from "../scripts/collections";
 
 export interface Props {
   directory: CollectionName;
@@ -12,13 +11,18 @@ export interface Props {
 }
 
 const { directory, title } = Astro.props;
-const allContent = await getCollection(directory);
+const allContent = await getEntries(directory);
 const tags = [
-  ...new Set(allContent.flatMap((post) => (post.data.tags ?? []).filter(Boolean))),
+  ...new Set(
+    allContent.flatMap((post) => (post.data.tags ?? []).filter(Boolean)),
+  ),
 ];
 
 // De-duplicate image optimization: process each unique src only once
-const imageCache = new Map<string | ImageMetadata, { src: string; srcset: string }>();
+const imageCache = new Map<
+  string | ImageMetadata,
+  { src: string; srcset: string }
+>();
 
 async function getOptimizedImage(src: string | ImageMetadata, alt: string) {
   if (imageCache.has(src)) return imageCache.get(src)!;
@@ -38,14 +42,20 @@ async function getOptimizedImage(src: string | ImageMetadata, alt: string) {
   return optimized;
 }
 
-const imagesByTag: Record<string, { src: string; srcset: string; alt: string }[]> = {};
+const imagesByTag: Record<
+  string,
+  { src: string; srcset: string; alt: string }[]
+> = {};
 for (const post of allContent) {
   for (const tag of (post.data.tags ?? []).filter(Boolean)) {
     if (!imagesByTag[tag]) {
       imagesByTag[tag] = [];
     }
     if (post.data.image?.src) {
-      const optimized = await getOptimizedImage(post.data.image.src, post.data.image.alt);
+      const optimized = await getOptimizedImage(
+        post.data.image.src,
+        post.data.image.alt,
+      );
       imagesByTag[tag].push({
         ...optimized,
         alt: post.data.image.alt,
@@ -64,7 +74,7 @@ for (const post of allContent) {
           <GetRandomImage
             images={JSON.stringify(imagesByTag[tags[0]])}
             tag={tags[0]}
-            url={`/${directory}/tags/${tags[0]}`}
+            url={`/${directory}/tags/${tags[0]}/`}
           />
           <slot />
         </div>
@@ -75,7 +85,7 @@ for (const post of allContent) {
               <GetRandomImage
                 images={JSON.stringify(imagesByTag[tag])}
                 tag={tag}
-                url={`/${directory}/tags/${tag}`}
+                url={`/${directory}/tags/${tag}/`}
               />
             </div>
           ))}

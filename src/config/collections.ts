@@ -5,8 +5,6 @@ export interface RouteCollection {
   name: CollectionName;
   /** Title shown on the collection index page. */
   title: string;
-  /** Layout used by the detail route. */
-  layout: "post" | "author";
 }
 
 /**
@@ -15,8 +13,8 @@ export interface RouteCollection {
  * and RSS routes.
  */
 export const ROUTE_COLLECTIONS: readonly RouteCollection[] = [
-  { name: "works", title: "Works", layout: "post" },
-  { name: "research", title: "Research", layout: "post" },
+  { name: "works", title: "Works" },
+  { name: "research", title: "Research" },
 ] as const;
 
 export function getRouteCollection(name: string): RouteCollection {

@@ -4,6 +4,9 @@
 // height:120%), rAF+lerp loop, IntersectionObserver gate,
 // prefers-reduced-motion respect, fade-in on load.
 // All hooks re-wire on astro:page-load so they survive view transitions.
+// The fade-in starts from the <img>'s inline onload, as soon as the photo
+// arrives: waiting for the page's scripts held the photo (the page's
+// largest paint) back by seconds on a slow phone.
 import Prose from "./Prose.astro";
 
 export interface Props {
@@ -40,6 +43,7 @@ const {
         decoding="sync"
         class="absolute left-0 right-0 top-[-20%] h-[120%] w-full object-cover transition-opacity duration-700 opacity-0"
         style={`object-position: ${positionX} ${positionY}`}
+        onload="this.classList.add('opacity-100')"
       />
     </div>
   </div>

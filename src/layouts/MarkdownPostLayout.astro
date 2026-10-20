@@ -44,9 +44,10 @@ const baseUrl = new URL(Astro.request.url).origin;
 
 // Hero photo: one srcset by width, so a portrait cover is as sharp as a
 // landscape one on a wide screen (a height cap made portraits only 1620px
-// wide). The photo fills a box 100vw wide and at most about 94% of the
-// screen high (78vh plus the 20% parallax overscan), so a landscape cover
-// may need more than 100vw of width to cover it; sizes asks for that.
+// wide). The photo fills a box 100vw wide and, with the 20% parallax
+// overscan, 86.4% of the screen high below 1200px (72svh box) and 93.6%
+// from 1200px (78vh box), so a landscape cover may need more than 100vw
+// of width to cover it; sizes asks for exactly that.
 const heroImage = image
   ? await getImage({
       src: image,
@@ -59,7 +60,10 @@ const heroImage = image
   : null;
 const heroAspect =
   image && typeof image === "object" ? image.width / image.height : 16 / 9;
-const heroSizes = `max(100vw, ${(heroAspect * 94).toFixed(1)}svh)`;
+const heroSizes = [
+  `(min-width: 1200px) max(100vw, ${(heroAspect * 93.6).toFixed(1)}vh)`,
+  `max(100vw, ${(heroAspect * 86.4).toFixed(1)}svh)`,
+].join(", ");
 
 const metaImage = image
   ? await getImage({

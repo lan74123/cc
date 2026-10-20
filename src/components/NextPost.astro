@@ -18,19 +18,27 @@ const shouldRender = allPosts.some((post) => post.id !== currentId);
 // Keep the route short enough to read on a phone.
 const MAX_STOPS = 20;
 
-// The thumbnails are at most 12rem wide (4:3), so 480px covers a 2x
-// screen.
+// The thumbnails cover a 4.5rem square on phones and a 12rem x 9rem (4:3)
+// frame from 800px; a landscape photo is cropped at the sides, so it needs
+// the frame's height times its aspect ratio in width. A srcset lets
+// phones take a small copy instead of the 480px one wide screens need.
+const THUMB_WIDTHS = [160, 240, 320, 480];
 async function optimizeImage(src: string | ImageMetadata, alt: string) {
-  return await getImage({
+  const image = await getImage({
     src,
     alt,
     width: 480,
-    height: 480,
-    fit: "inside",
+    widths: THUMB_WIDTHS,
     format: "avif",
     quality: 70,
     decoding: "async",
   });
+  const aspect = typeof src === "object" ? src.width / src.height : 1.5;
+  const sizes = [
+    `(min-width: 800px) max(12rem, ${(9 * aspect).toFixed(2)}rem)`,
+    `max(4.5rem, ${(4.5 * aspect).toFixed(2)}rem)`,
+  ].join(", ");
+  return { src: image.src, srcset: image.srcSet.attribute, sizes };
 }
 
 const ordered = [...allPosts].sort(sortByDate).slice(0, MAX_STOPS);
@@ -48,7 +56,7 @@ const route = await Promise.all(
       num: String(i + 1).padStart(2, "0"),
       title: post.data.title,
       meta: [post.data.category, post.data.year].filter(Boolean).join(" · "),
-      image: imageData ? imageData.src : null,
+      image: imageData,
       here: i === hereIndex,
       last: i === ordered.length - 1,
     };
@@ -100,7 +108,9 @@ const indexLabel = isWorks ? "All works" : "All research";
                 {stop.image && (
                   <img
                     class="route-thumb"
-                    src={stop.image}
+                    src={stop.image.src}
+                    srcset={stop.image.srcset || undefined}
+                    sizes={stop.image.srcset ? stop.image.sizes : undefined}
                     alt=""
                     loading="lazy"
                     decoding="async"

@@ -22,8 +22,9 @@ export interface Props {
 const { images } = Astro.props;
 // Copies by width for the srcset. Photos show at most 60rem (landscape)
 // or 34rem (portrait) wide, so 1920px covers a 2x screen; the lightbox
-// opens its own larger copy (LIGHTBOX_MAX).
-const WIDTHS = [480, 800, 1200, 1600, 1920];
+// opens its own larger copy (LIGHTBOX_MAX). 640 and 960 fit phones: a
+// photo about 290px wide wants 580px at 2x and 870px at 3x.
+const WIDTHS = [480, 640, 800, 960, 1200, 1600, 1920];
 // Remote images have no known size; they keep a 1920x1080 box.
 const MAX_W = 1920;
 const MAX_H = 1080;

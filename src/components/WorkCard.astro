@@ -53,6 +53,20 @@ const orient =
   typeof image === "object" && image.height > image.width
     ? "portrait"
     : "landscape";
+// The first rows' small photos are on a phone's first screen (the first
+// is its largest paint), so they load at once rather than lazily.
+const thumbLoading = index !== undefined && index <= 4 ? "eager" : "lazy";
+// The large photo covers its frame. On phones the frame follows the
+// photo's shape, so the frame's width is enough. The wide-screen pane is
+// taller than it is wide (top 6.5rem, bottom 4.5rem; 6rem below 1200px),
+// so a landscape photo is cropped at the sides and needs the pane's
+// height times its aspect ratio in width.
+const aspect = typeof image === "object" ? image.width / image.height : 1.5;
+const paneSizes = [
+  `(min-width: 1200px) max(calc(54vw - 6rem), calc((100vh - 11rem) * ${aspect.toFixed(3)}))`,
+  `(min-width: 800px) max(calc(54vw - 6rem), calc((100vh - 12.5rem) * ${aspect.toFixed(3)}))`,
+  "calc(100vw - 7rem)",
+].join(", ");
 ---
 
 <article class="work-card" data-orient={orient}>
@@ -64,6 +78,7 @@ const orient =
           alt=""
           widths={[176, 264]}
           sizes="5.5rem"
+          loading={thumbLoading}
           decoding="async"
           format="avif"
           quality={85}
@@ -87,8 +102,8 @@ const orient =
           <Image
             src={image as ImageMetadata}
             alt={alt}
-            widths={[480, 800, 1200, 1600, 1920]}
-            sizes="(min-width: 800px) calc(54vw - 6rem), calc(100vw - 7rem)"
+            widths={[480, 640, 800, 960, 1200, 1600, 1920]}
+            sizes={paneSizes}
             decoding="async"
             loading="lazy"
             format="avif"

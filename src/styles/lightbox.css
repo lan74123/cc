@@ -19,10 +19,17 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Visible at once on open (the fade is the opacity), so focus can move
+   into the dialog straight away; on close it stays visible until the
+   fade ends. */
 .lightbox-overlay.lightbox-visible {
   opacity: 1;
   visibility: visible;
   background: rgba(0, 0, 0, 0.94);
+  transition:
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s,
+    background 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Image – scale up on open, crossfade on navigate.

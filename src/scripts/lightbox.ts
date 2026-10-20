@@ -53,6 +53,8 @@ let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 let linkController: AbortController | null = null;
 // Document-level drag listeners added with the overlay; aborted with it.
 let overlayController: AbortController | null = null;
+// The gallery link that opened the lightbox; focus returns to it on close.
+let opener: HTMLElement | null = null;
 
 // rAF throttle for drag/pan — prevents layout thrash on high-Hz displays
 let dragRafId = 0;
@@ -148,6 +150,7 @@ function toggleNavVisibility(visible: boolean): void {
 function updateZoomIcon(): void {
   const zoomBtn = overlay?.querySelector<HTMLElement>(".lightbox-zoom");
   if (!zoomBtn) return;
+  zoomBtn.setAttribute("aria-label", isZoomed() ? "Zoom out" : "Zoom in");
   zoomBtn.innerHTML = isZoomed()
     ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`
     : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`;
@@ -175,7 +178,7 @@ function createOverlay(): HTMLDivElement {
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
     </button>
     <img class="lightbox-img" alt="" />
-    <div class="lightbox-counter"></div>
+    <div class="lightbox-counter" aria-live="polite"></div>
   `;
   document.body.appendChild(el);
   return el;
@@ -254,9 +257,17 @@ function open(index: number): void {
   }
   showImage(index, false);
 
+  opener =
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
   void overlay.offsetHeight;
   overlay.classList.add("lightbox-visible");
   document.body.style.overflow = "hidden";
+  // Keyboard and screen-reader users land in the dialog, not behind it.
+  overlay
+    .querySelector<HTMLButtonElement>(".lightbox-close")
+    ?.focus({ preventScroll: true });
 
   // After open animation, strip the transform transition so drag is instant
   setTimeout(() => {
@@ -274,6 +285,28 @@ function close(): void {
   }
   overlay.classList.remove("lightbox-visible");
   document.body.style.overflow = "";
+  opener?.focus({ preventScroll: true });
+  opener = null;
+}
+
+/** Keep Tab inside the open dialog, skipping buttons hidden while zoomed. */
+function trapFocus(e: KeyboardEvent): void {
+  if (!overlay) return;
+  const buttons = Array.from(
+    overlay.querySelectorAll<HTMLButtonElement>("button"),
+  ).filter((b) => b.style.pointerEvents !== "none");
+  const first = buttons[0];
+  const last = buttons[buttons.length - 1];
+  if (!first || !last) return;
+  const active = document.activeElement;
+  const inside = active instanceof Node && overlay.contains(active);
+  if (e.shiftKey && (active === first || !inside)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (active === last || !inside)) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 // --------------- Events ---------------
@@ -515,6 +548,9 @@ function onKeyDown(e: KeyboardEvent): void {
     case "ArrowRight":
       if (!isZoomed()) showImage(currentIndex + 1);
       break;
+    case "Tab":
+      trapFocus(e);
+      break;
   }
 }
 
@@ -539,6 +575,7 @@ function destroy(): void {
   }
   overlay = null;
   imgEl = null;
+  opener = null;
   images = [];
   currentIndex = 0;
   isAnimating = false;

@@ -1,14 +1,22 @@
 ---
 import TagLayout from "../../../layouts/TagLayout.astro";
+import { getEntries } from "../../../scripts/collections";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
 } from "../../../config/collections";
 
+// Only collections with at least one tag get a tag index; an empty one
+// would be a blank page in the sitemap.
 export async function getStaticPaths() {
-  return ROUTE_COLLECTIONS.map((c) => ({
-    params: { collection: c.name },
-  }));
+  const paths: { params: { collection: string } }[] = [];
+  for (const c of ROUTE_COLLECTIONS) {
+    const entries = await getEntries(c.name);
+    if (entries.some((e) => (e.data.tags ?? []).some(Boolean))) {
+      paths.push({ params: { collection: c.name } });
+    }
+  }
+  return paths;
 }
 
 const { collection } = Astro.params;

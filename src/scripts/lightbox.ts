@@ -54,7 +54,7 @@ let linkController: AbortController | null = null;
 // Document-level drag listeners added with the overlay; aborted with it.
 let overlayController: AbortController | null = null;
 // The gallery link that opened the lightbox; focus returns to it on close.
-let opener: HTMLElement | null = null;
+let openerLink: HTMLElement | null = null;
 
 // rAF throttle for drag/pan — prevents layout thrash on high-Hz displays
 let dragRafId = 0;
@@ -257,7 +257,7 @@ function open(index: number): void {
   }
   showImage(index, false);
 
-  opener =
+  openerLink =
     document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
@@ -285,8 +285,8 @@ function close(): void {
   }
   overlay.classList.remove("lightbox-visible");
   document.body.style.overflow = "";
-  opener?.focus({ preventScroll: true });
-  opener = null;
+  openerLink?.focus({ preventScroll: true });
+  openerLink = null;
 }
 
 /** Keep Tab inside the open dialog, skipping buttons hidden while zoomed. */
@@ -575,7 +575,7 @@ function destroy(): void {
   }
   overlay = null;
   imgEl = null;
-  opener = null;
+  openerLink = null;
   images = [];
   currentIndex = 0;
   isAnimating = false;

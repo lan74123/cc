@@ -30,9 +30,23 @@ document.addEventListener("astro:page-load", () => {
     // Lay the closed pane out once, so it still fades in when opened.
     void (card as HTMLElement).offsetWidth;
   };
+  // Phones: a row's title opens its details in place instead of going to
+  // the project, so screen readers are told it expands and whether it
+  // is open. Wide screens: the title goes to the project; no state.
+  const syncExpanded = (card: Element) => {
+    const title = card.querySelector("h2 a");
+    if (!title) return;
+    if (split()) title.removeAttribute("aria-expanded");
+    else
+      title.setAttribute(
+        "aria-expanded",
+        String(card.classList.contains("is-open")),
+      );
+  };
   const setOpen = (card: Element, open: boolean) => {
     if (open) warm(card);
     card.classList.toggle("is-open", open);
+    syncExpanded(card);
   };
   const closeAll = () => {
     list.querySelectorAll(".work-card.is-open").forEach((card) => {
@@ -499,14 +513,22 @@ document.addEventListener("astro:page-load", () => {
 
   // Arriving on the page (or coming back to it), the open row and the
   // figure are set in place at once; only later changes animate.
-  list.setAttribute("data-still", "");
-  if (split()) list.classList.add("is-idle");
-  showFirst();
-  placeWalker();
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => list.removeAttribute("data-still")),
-  );
-  wide.addEventListener("change", showFirst);
+  // Crossing 800px (an iPad turned on its side) starts the list over as
+  // on arrival in the new layout: every row closed and, on wide screens,
+  // the first project in the pane with the figure waiting at the start.
+  const arrange = () => {
+    list.setAttribute("data-still", "");
+    closeAll();
+    list.classList.toggle("is-idle", split());
+    showFirst();
+    list.querySelectorAll(".work-card").forEach(syncExpanded);
+    placeWalker();
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => list.removeAttribute("data-still")),
+    );
+  };
+  arrange();
+  wide.addEventListener("change", arrange);
   list.addEventListener("pointerover", onHover);
   list.addEventListener("pointerleave", onLeave);
   list.addEventListener("focusin", onFocus);
@@ -517,7 +539,6 @@ document.addEventListener("astro:page-load", () => {
   list.addEventListener("pointerdown", onDown, { passive: true });
   list.addEventListener("click", onClick);
   document.addEventListener("keydown", onKey);
-  wide.addEventListener("change", closeAll);
   document.addEventListener("astro:before-swap", closeAll, { once: true });
   cleanupList = () => {
     list.removeEventListener("pointerover", onHover);
@@ -531,13 +552,12 @@ document.addEventListener("astro:page-load", () => {
     window.clearTimeout(stopTimer);
     window.clearTimeout(boredTimer);
     walker.remove();
-    wide.removeEventListener("change", showFirst);
+    wide.removeEventListener("change", arrange);
     window.removeEventListener("scroll", onWalk);
     window.visualViewport?.removeEventListener("resize", onPlace);
     window.visualViewport?.removeEventListener("scroll", onPlace);
     list.removeEventListener("pointerdown", onDown);
     list.removeEventListener("click", onClick);
     document.removeEventListener("keydown", onKey);
-    wide.removeEventListener("change", closeAll);
   };
 });

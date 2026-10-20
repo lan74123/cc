@@ -47,6 +47,30 @@ test.describe("Index on a phone", () => {
     await expect(row).not.toHaveClass(/is-open/);
   });
 
+  test("a row's title tells screen readers whether it is open", async ({
+    page,
+  }) => {
+    await page.goto("/works/");
+    const row = page.locator(".work-card").first();
+    const title = row.locator("h2 a");
+    await expect(title).toHaveAttribute("aria-expanded", "false");
+    await row.locator(".work-card-meta").click();
+    await expect(title).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("turning to a wide screen shows the first project in the pane", async ({
+    page,
+  }) => {
+    await page.goto("/works/");
+    await page.locator(".work-card-meta").first().click();
+    await page.setViewportSize({ width: 1133, height: 744 });
+    const first = page.locator(".work-card").first();
+    await expect(page.locator(".work-list")).toHaveClass(/is-idle/);
+    await expect(first).toHaveClass(/is-open/);
+    await expect(first.locator(".work-card-detail")).toBeVisible();
+    await expect(first.locator("h2 a")).not.toHaveAttribute("aria-expanded");
+  });
+
   test("opening a lower row folds the open one", async ({ page }) => {
     await page.goto("/works/");
     const rows = page.locator(".work-card");

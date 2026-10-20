@@ -7,6 +7,8 @@
 // H9 route (D3 on desktop), "Discover more" as R without the figure,
 // lead L2-1, cue C0, view P1. Only Gap is still open, until the real
 // write-ups come in.
+// The font rows let the client try their own font files on the real
+// pages before a font change is made; the files stay in their browser.
 const groups = [{ key: "gap", label: "Gap", options: ["s0", "s1"] }];
 // Options per key, so a choice remembered from an earlier round that is
 // no longer offered falls back to the default.
@@ -65,6 +67,48 @@ for (const g of groups) {
       </div>
     ))
   }
+  {
+    [
+      { slot: "en", label: "英文" },
+      { slot: "zh", label: "中文" },
+    ].map((f) => (
+      <div class="pv-row">
+        <span class="pv-label">{f.label}</span>
+        <label class="pv-file">
+          選擇字體
+          <input
+            type="file"
+            accept=".ttf,.otf,.woff,.woff2"
+            data-font-slot={f.slot}
+            hidden
+          />
+        </label>
+        <span class="pv-font-name" data-font-name={f.slot} />
+        <button
+          type="button"
+          data-font-clear={f.slot}
+          aria-label={`還原${f.label}字體`}
+          hidden
+        >
+          ×
+        </button>
+      </div>
+    ))
+  }
+  <div class="pv-row">
+    <span class="pv-label">範圍</span>
+    {
+      [
+        { value: "all", label: "全部" },
+        { value: "head", label: "標題" },
+        { value: "body", label: "內文" },
+      ].map((o) => (
+        <button type="button" data-font-scope={o.value}>
+          {o.label}
+        </button>
+      ))
+    }
+  </div>
 </div>
 
 <style is:global>
@@ -118,6 +162,21 @@ for (const g of groups) {
   #preview-switcher .pv-label {
     width: 56px;
   }
+  #preview-switcher .pv-file {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding-inline: 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+  }
+  #preview-switcher .pv-font-name {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   #preview-switcher button {
     min-width: 28px;
     height: 26px;
@@ -127,6 +186,9 @@ for (const g of groups) {
     background: transparent;
     color: inherit;
     cursor: pointer;
+  }
+  #preview-switcher button[hidden] {
+    display: none;
   }
   #preview-switcher button.active {
     background: #fff;
@@ -171,6 +233,189 @@ for (const g of groups) {
         sync();
       });
     }
+    sync();
+  });
+</script>
+
+<script>
+  // Font preview: a font file the client picks is stored in IndexedDB and
+  // laid over the site's fonts, so it holds across pages and reloads until
+  // they clear it. Module scripts run once per document, and FontFaces and
+  // adopted stylesheets survive ClientRouter swaps, so fonts load once.
+  type Slot = "en" | "zh";
+  type Scope = "all" | "head" | "body";
+  interface Stored {
+    name: string;
+    data: ArrayBuffer;
+  }
+
+  const SLOTS: Slot[] = ["en", "zh"];
+  // Chinese characters, bopomofo and full-width punctuation. The Chinese
+  // font only draws these, so its own Latin letters never replace the
+  // English font.
+  const CJK_RANGE =
+    "U+2E80-2FFF, U+3000-303F, U+3100-312F, U+31A0-31BF, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF, U+20000-2FA1F";
+
+  const faces: Partial<Record<Slot, FontFace>> = {};
+  const names: Partial<Record<Slot, string>> = {};
+  const sheet = new CSSStyleSheet();
+  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+
+  const store = <T,>(
+    mode: IDBTransactionMode,
+    run: (s: IDBObjectStore) => IDBRequest<T>,
+  ): Promise<T> =>
+    new Promise((resolve, reject) => {
+      const open = indexedDB.open("pv-fonts", 1);
+      open.onupgradeneeded = () => open.result.createObjectStore("files");
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const db = open.result;
+        const req = run(db.transaction("files", mode).objectStore("files"));
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+        req.transaction?.addEventListener("complete", () => db.close());
+      };
+    });
+
+  // A variable font (one with an fvar table) covers every weight; a
+  // static file is declared as regular so the browser fakes bold from it.
+  // WOFF2 compresses its table directory, so it counts as static.
+  const isVariable = (buf: ArrayBuffer): boolean => {
+    const v = new DataView(buf);
+    if (v.byteLength < 12) return false;
+    const tag = v.getUint32(0);
+    let count: number, start: number, step: number;
+    if (tag === 0x774f4646) {
+      // "wOFF"
+      if (v.byteLength < 44) return false;
+      [count, start, step] = [v.getUint16(12), 44, 20];
+    } else if ([0x00010000, 0x4f54544f, 0x74727565].includes(tag)) {
+      // TrueType, "OTTO", "true"
+      [count, start, step] = [v.getUint16(4), 12, 16];
+    } else return false;
+    for (let i = 0; i < count; i++) {
+      const at = start + i * step;
+      if (at + 4 > v.byteLength) break;
+      if (v.getUint32(at) === 0x66766172) return true; // "fvar"
+    }
+    return false;
+  };
+
+  const getScope = (): Scope => {
+    let v: string | null = null;
+    try {
+      v = localStorage.getItem("pv-font-scope");
+    } catch {}
+    return v === "head" || v === "body" ? v : "all";
+  };
+
+  const applyCss = () => {
+    // Chinese first: it only covers CJK, so Latin falls through to the
+    // English font, then to the site's own.
+    const lead = (["zh", "en"] as Slot[])
+      .filter((s) => faces[s])
+      .map((s) => `"pv-${s}", `)
+      .join("");
+    if (!lead) {
+      sheet.replaceSync("");
+      return;
+    }
+    const scope = getScope();
+    const rules: string[] = [];
+    if (scope !== "body")
+      rules.push(
+        `.font-overpass-mono { font-family: ${lead}var(--font-overpass-mono) !important; }`,
+      );
+    if (scope !== "head")
+      rules.push(
+        `.font-inconsolata { font-family: ${lead}var(--font-inconsolata) !important; }`,
+        `html { font-family: ${lead}sans-serif; }`,
+      );
+    sheet.replaceSync(rules.join("\n"));
+  };
+
+  const sync = () => {
+    for (const s of SLOTS) {
+      const name = document.querySelector(`[data-font-name="${s}"]`);
+      if (name) name.textContent = names[s] ?? "";
+      const clear = document.querySelector<HTMLButtonElement>(
+        `[data-font-clear="${s}"]`,
+      );
+      if (clear) clear.hidden = !faces[s];
+    }
+    const scope = getScope();
+    for (const b of document.querySelectorAll<HTMLButtonElement>(
+      "[data-font-scope]",
+    ))
+      b.classList.toggle("active", b.dataset.fontScope === scope);
+  };
+
+  const load = async (slot: Slot, file: Stored) => {
+    const face = new FontFace(`pv-${slot}`, file.data, {
+      weight: isVariable(file.data) ? "1 1000" : "400",
+      ...(slot === "zh" ? { unicodeRange: CJK_RANGE } : {}),
+    });
+    await face.load();
+    const old = faces[slot];
+    if (old) document.fonts.delete(old);
+    document.fonts.add(face);
+    faces[slot] = face;
+    names[slot] = file.name;
+    applyCss();
+    sync();
+  };
+
+  const clear = (slot: Slot) => {
+    const old = faces[slot];
+    if (old) document.fonts.delete(old);
+    delete faces[slot];
+    delete names[slot];
+    applyCss();
+    sync();
+    store("readwrite", (s) => s.delete(slot)).catch(() => {});
+  };
+
+  for (const slot of SLOTS) {
+    store<Stored | undefined>("readonly", (s) => s.get(slot))
+      .then((file) => file && load(slot, file))
+      .catch(() => {});
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    for (const input of document.querySelectorAll<HTMLInputElement>(
+      "input[data-font-slot]",
+    )) {
+      const slot = input.dataset.fontSlot as Slot;
+      input.addEventListener("change", async () => {
+        const f = input.files?.[0];
+        input.value = "";
+        if (!f) return;
+        const file = { name: f.name, data: await f.arrayBuffer() };
+        try {
+          await load(slot, file);
+        } catch {
+          const name = document.querySelector(`[data-font-name="${slot}"]`);
+          if (name) name.textContent = "無法讀取這個檔案";
+          return;
+        }
+        store("readwrite", (s) => s.put(file, slot)).catch(() => {});
+      });
+    }
+    for (const b of document.querySelectorAll<HTMLButtonElement>(
+      "[data-font-clear]",
+    ))
+      b.addEventListener("click", () => clear(b.dataset.fontClear as Slot));
+    for (const b of document.querySelectorAll<HTMLButtonElement>(
+      "[data-font-scope]",
+    ))
+      b.addEventListener("click", () => {
+        try {
+          localStorage.setItem("pv-font-scope", b.dataset.fontScope ?? "all");
+        } catch {}
+        applyCss();
+        sync();
+      });
     sync();
   });
 </script>

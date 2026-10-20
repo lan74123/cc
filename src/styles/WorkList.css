@@ -490,6 +490,13 @@ html.dark .work-card-facts {
     pointer-events: auto;
     transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
   }
+  /* A pane is laid out, and its large photo fetched, only once its row
+     has been pointed at or shown (.is-warm, set by script). A hidden
+     pane is still on screen, so lazy loading alone would fetch every
+     project's photo as the index opens. */
+  .work-card:not(.is-open):not(.is-warm) .work-card-detail {
+    display: none;
+  }
   /* Below 1200px the footer stacks its two lines; keep the pane clear
      of it. */
   @media (max-width: 1199px) {

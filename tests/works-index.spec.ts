@@ -109,6 +109,24 @@ test.describe("Index on a wide screen", () => {
     await expect.poll(walkerY).toBeGreaterThan(before);
   });
 
+  test("only the shown project's large photo loads up front", async ({
+    page,
+  }) => {
+    await page.goto("/works/");
+    const rows = page.locator(".work-card");
+    test.skip((await rows.count()) < 2, "needs two rows (preview build)");
+    const loaded = (i: number) =>
+      rows
+        .nth(i)
+        .locator(".work-card-big img")
+        .evaluate((img: HTMLImageElement) => img.currentSrc !== "");
+    await expect.poll(() => loaded(0)).toBe(true);
+    await page.waitForLoadState("networkidle");
+    expect(await loaded(1)).toBe(false);
+    await rows.nth(1).hover();
+    await expect.poll(() => loaded(1)).toBe(true);
+  });
+
   test("clicking a row opens its project", async ({ page }) => {
     await page.goto("/works/");
     const row = page.locator(".work-card").first();

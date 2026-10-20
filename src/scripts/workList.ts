@@ -22,7 +22,16 @@ document.addEventListener("astro:page-load", () => {
   // The split view (D3) is in use.
   const split = () => wide.matches;
 
+  // Wide screens lay a row's pane out only once it is warm (see
+  // WorkList.css), so its photo is fetched no earlier than needed.
+  const warm = (card: Element) => {
+    if (card.classList.contains("is-warm")) return;
+    card.classList.add("is-warm");
+    // Lay the closed pane out once, so it still fades in when opened.
+    void (card as HTMLElement).offsetWidth;
+  };
   const setOpen = (card: Element, open: boolean) => {
+    if (open) warm(card);
     card.classList.toggle("is-open", open);
   };
   const closeAll = () => {
@@ -381,6 +390,8 @@ document.addEventListener("astro:page-load", () => {
     if (!split() || event.pointerType !== "mouse") return;
     window.clearTimeout(hoverTimer);
     const card = (event.target as Element).closest(".work-card");
+    // Start fetching its photo now, before the row takes the pane.
+    if (card) warm(card);
     hoverCard =
       card &&
       (!card.classList.contains("is-open") ||

@@ -165,7 +165,7 @@ const isCurrent = (href: string): boolean => pathname.startsWith(href);
         requestAnimationFrame(update);
       }
     };
-    // Pages that hold content in place by script (BlogPost.astro) set
+    // Pages that hold content in place by script (WorkCard.astro) set
     // <html data-scroll-hold> meanwhile; those scrolls are not the
     // reader's, so update() only takes the new position as its baseline.
     window.addEventListener("scroll", onScroll, { passive: true });

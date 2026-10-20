@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import BlogPost from "../../../components/BlogPost.astro";
+import WorkCard from "../../../components/WorkCard.astro";
 import { sortByDate } from "../../../components/sortByDate";
 import { buildTagPaths, getEntries } from "../../../scripts/collections";
 import {
@@ -37,7 +37,7 @@ const sorted = [...posts].sort(sortByDate);
   <div class="work-list">
     {
       sorted.map((post, i) => (
-        <BlogPost
+        <WorkCard
           index={i + 1}
           url={`/${collectionSlug}/${post.id}/`}
           image={post.data?.image?.src || ""}

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { INDEX_PAGES } from "./pages";
 
-// The index rows (BlogPost.astro): the route list settled with the
+// The index rows (WorkCard.astro): the route list settled with the
 // client. Phones open a row in place; wide screens show it in a pane.
 
 const openRows = (page: Page) =>

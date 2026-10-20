@@ -1,0 +1,238 @@
+---
+// Row for the works / research index and tag pages. The rows hang off one
+// route line, each with its number, title and "category · year". Phones:
+// a small square photo on the right, and a tap opens the details in
+// place (large photo, facts, description, "View project"), with a little
+// walking figure on the route to close them. Wide screens: the list keeps
+// the left half and the right half is a pane showing one project's photo.
+// Pages wrap the rows in `.work-list`. The styles are in WorkList.css and
+// the behaviour (opening rows, the pane, the figure) in workList.ts.
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import "../styles/WorkList.css";
+
+export interface Props {
+  title: string;
+  url: string;
+  image: string | ImageMetadata;
+  alt: string;
+  description: string;
+  category?: string;
+  year?: string;
+  location?: string;
+  positionx: string;
+  positiony: string;
+  /** 1-based position in the list, shown as "01", "02"... */
+  index?: number;
+}
+
+const {
+  title,
+  url,
+  image,
+  alt,
+  description,
+  category,
+  year,
+  location,
+  positionx,
+  positiony,
+  index,
+} = Astro.props;
+const meta = [category, year].filter(Boolean).join(" · ");
+const number = index ? String(index).padStart(2, "0") : "";
+const facts = [
+  { label: "Location", value: location },
+  { label: "Type", value: category },
+  { label: "Year", value: year },
+].filter((fact) => fact.value);
+const position = `object-position: ${positionx || "50%"} ${positiony || "50%"}`;
+// The cover's own orientation picks the frame for the large photo, so
+// portrait and landscape covers are shown without heavy cropping.
+const orient =
+  typeof image === "object" && image.height > image.width
+    ? "portrait"
+    : "landscape";
+---
+
+<article class="work-card" data-orient={orient}>
+  <a href={url} class="work-card-thumb" tabindex="-1" aria-hidden="true">
+    {
+      image && (
+        <Image
+          src={image as ImageMetadata}
+          alt=""
+          widths={[176, 264]}
+          sizes="5.5rem"
+          decoding="async"
+          format="avif"
+          quality={85}
+          class="work-card-img"
+          style={position}
+        />
+      )
+    }
+  </a>
+  <div class="work-card-body">
+    {number && <span class="work-card-num font-overpass-mono">{number}</span>}
+    <h2 class="font-overpass-mono">
+      <a href={url}>{title}</a>
+    </h2>
+    {meta && <p class="work-card-meta font-overpass-mono">{meta}</p>}
+  </div>
+  <div class="work-card-detail">
+    {
+      image && (
+        <a href={url} class="work-card-big">
+          <Image
+            src={image as ImageMetadata}
+            alt={alt}
+            widths={[480, 800, 1200, 1600, 1920]}
+            sizes="(min-width: 800px) calc(54vw - 6rem), calc(100vw - 7rem)"
+            decoding="async"
+            loading="lazy"
+            format="avif"
+            quality={85}
+            class="work-card-img"
+            style={position}
+          />
+        </a>
+      )
+    }
+    <p class="work-card-caption font-overpass-mono">
+      {number && <span class="work-card-caption-num">{number}</span>}
+      {[location, category, year].filter(Boolean).join(" · ")}
+    </p>
+    <div class="work-card-detail-text">
+      {
+        facts.length > 0 && (
+          <dl class="work-card-facts font-inconsolata">
+            {facts.map((fact) => (
+              <div>
+                <dt class="font-overpass-mono">{fact.label}</dt>
+                <dd>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+      {
+        description && (
+          <p class="work-card-detail-desc font-inconsolata">{description}</p>
+        )
+      }
+      <div class="work-card-actions">
+        <a href={url} class="work-card-more font-overpass-mono">
+          View project <span class="work-card-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+    <button type="button" class="work-card-cap" aria-label="Close details">
+      <svg class="work-card-walker" viewBox="0 0 24 24" aria-hidden="true">
+        <g class="walker-stand" fill="currentColor">
+          <circle cx="12" cy="6.2" r="3.7"></circle>
+          <rect x="9.2" y="10.4" width="5.6" height="6" rx="2.8"></rect>
+          <rect x="9.9" y="14.6" width="1.9" height="5.2" rx="0.95"></rect>
+          <rect x="12.2" y="14.6" width="1.9" height="5.2" rx="0.95"></rect>
+          <rect
+            x="7.6"
+            y="11"
+            width="1.8"
+            height="4.2"
+            rx="0.9"
+            transform="rotate(12 8.5 11.4)"></rect>
+          <rect
+            x="14.6"
+            y="11"
+            width="1.8"
+            height="4.2"
+            rx="0.9"
+            transform="rotate(-12 15.5 11.4)"></rect>
+          <circle class="walker-eye" cx="12.9" cy="6" r="0.5"></circle>
+          <circle class="walker-eye" cx="14.6" cy="6" r="0.5"></circle>
+        </g>
+        <g class="walker-step" fill="currentColor">
+          <circle cx="12.3" cy="5.8" r="3.7"></circle>
+          <rect x="9.4" y="10" width="5.6" height="6" rx="2.8"></rect>
+          <rect
+            x="10.2"
+            y="14.4"
+            width="1.9"
+            height="5.4"
+            rx="0.95"
+            transform="rotate(26 11.15 14.8)"></rect>
+          <rect
+            x="12.3"
+            y="14.4"
+            width="1.9"
+            height="5.4"
+            rx="0.95"
+            transform="rotate(-26 13.25 14.8)"></rect>
+          <rect
+            x="7.8"
+            y="10.6"
+            width="1.8"
+            height="4.2"
+            rx="0.9"
+            transform="rotate(-30 8.7 11)"></rect>
+          <rect
+            x="14.8"
+            y="10.6"
+            width="1.8"
+            height="4.2"
+            rx="0.9"
+            transform="rotate(-38 15.7 11)"></rect>
+          <circle class="walker-eye" cx="13.2" cy="5.6" r="0.5"></circle>
+          <circle class="walker-eye" cx="14.9" cy="5.6" r="0.5"></circle>
+        </g>
+        <g class="walker-squat" fill="currentColor">
+          <circle cx="10.2" cy="8" r="3.7"></circle>
+          <rect
+            x="7.2"
+            y="11.2"
+            width="5.4"
+            height="6.6"
+            rx="2.7"
+            transform="rotate(14 9.9 14.5)"></rect>
+          <rect x="8.4" y="17.6" width="4.4" height="2.8" rx="1.4"></rect>
+          <rect
+            x="9.6"
+            y="15.2"
+            width="5.4"
+            height="2.2"
+            rx="1.1"
+            transform="rotate(-24 10.7 16.3)"></rect>
+          <rect x="13" y="14.4" width="2" height="6.2" rx="1"></rect>
+          <rect
+            x="10.6"
+            y="12.6"
+            width="1.8"
+            height="3.4"
+            rx="0.9"
+            transform="rotate(-60 11.5 13)"></rect>
+          <g class="walker-draw">
+            <rect
+              x="11.1"
+              y="12"
+              width="1.8"
+              height="10"
+              rx="0.9"
+              transform="rotate(-42.5 12 12.4)"></rect>
+          </g>
+          <path
+            class="walker-doodle"
+            d="M19.2 19.65a2.4 0.85 0 1 1 0 1.7a2.4 0.85 0 1 1 0 -1.7"
+            pathLength="1"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="0.7"
+            stroke-linecap="round"></path>
+          <circle class="walker-eye" cx="11.2" cy="8.7" r="0.75"></circle>
+          <circle class="walker-eye" cx="13" cy="8.5" r="0.75"></circle>
+        </g>
+      </svg>
+    </button>
+  </div>
+</article>
+
+<script src="../scripts/workList.ts"></script>

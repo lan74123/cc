@@ -1,0 +1,601 @@
+/* ── The route ──
+   One line runs down through every number, like the path you walk
+   through a plan; each project hangs off it. --rx is where the line
+   runs inside a row, --dx where the title (and anything lined up under
+   it) starts. */
+.work-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 1rem;
+  /* <main> centres short pages; keep the index at the top. */
+  margin-bottom: auto;
+}
+/* Opening and closing a row holds it in place by script (see below);
+   browser scroll anchoring would shift it a second time. */
+html:has(.work-list),
+html:has(.work-list) body {
+  overflow-anchor: none;
+}
+.work-card {
+  --rx: 1.125rem;
+  --dx: 3rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) 5.5rem;
+  /* The empty 1fr row soaks up the photo height so the type line stays
+     under the title. */
+  grid-template-areas:
+    "num title img"
+    ". meta img"
+    ". . img"
+    ". detail detail";
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: 0.75rem;
+  align-items: start;
+  padding-block: 1.5rem;
+  cursor: pointer;
+  /* Rows scrolled back to on close clear the sticky header. */
+  scroll-margin-top: 4.5rem;
+  transition: background-color 0.25s ease-out;
+}
+.work-card a {
+  color: inherit;
+  text-decoration: none;
+}
+/* No grey tap flash on iOS; the rows give their own feedback. */
+.work-card,
+.work-card a,
+.work-card button {
+  -webkit-tap-highlight-color: transparent;
+}
+.work-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--rx) - 0.5px);
+  border-left: 1px solid var(--line);
+  transition: border-color 0.3s ease-out;
+}
+/* The line starts at the first number and ends at the last (on
+   phones, an open last row runs it on down its details). */
+.work-card:first-child::before {
+  top: 1.9rem;
+}
+@media (max-width: 799px) {
+  .work-card:last-of-type:not(.is-open)::before {
+    bottom: auto;
+    height: 1.9rem;
+  }
+}
+.work-card-body {
+  display: contents;
+}
+.work-card-num {
+  position: relative;
+  z-index: 1;
+  grid-area: num;
+  justify-self: center;
+  padding: 0.2rem 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  /* Page colour behind the number, so the line breaks around it. */
+  background: var(--paper);
+  transition:
+    background-color 0.3s ease-out,
+    color 0.3s ease-out;
+}
+.work-card h2 {
+  grid-area: title;
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+.work-card-meta {
+  grid-area: meta;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+html.dark .work-card-meta {
+  opacity: 0.7;
+}
+.work-card-thumb,
+.work-card-big {
+  display: block;
+  overflow: hidden;
+  background: rgb(228, 225, 220);
+}
+html.dark .work-card-thumb,
+html.dark .work-card-big {
+  background: rgb(48, 47, 52);
+}
+.work-card-thumb {
+  grid-area: img;
+  aspect-ratio: 1 / 1;
+}
+.work-card-big {
+  aspect-ratio: 4 / 5;
+}
+.work-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.work-card:hover .work-card-thumb .work-card-img {
+  transform: scale(1.03);
+}
+/* A row that has just folded shut: its small photo fades back in. */
+.work-card.is-settling .work-card-thumb {
+  animation: settle-in 0.45s ease-out;
+}
+@keyframes settle-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ── The details: hidden until a row opens. Phones show them in place,
+   wide screens in the pane (further down). ── */
+.work-card-detail,
+.work-card-caption,
+.work-card-cap,
+.work-walker-d2 {
+  display: none;
+}
+.work-card-facts {
+  display: grid;
+  /* Place names run longest and years shortest, so the columns are
+     weighted that way, keeping an even gap between the values. */
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.65fr);
+  gap: 1rem 1.25rem;
+  padding-block: 0.9rem;
+  border-block: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+}
+html.dark .work-card-facts {
+  border-color: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.work-card-facts dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.work-card-facts dd {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+}
+.work-card-detail-desc {
+  margin-top: 0.85rem;
+  max-width: 34rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  opacity: 0.8;
+}
+.work-card-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+}
+.work-card-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-bottom: 3px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid currentColor;
+}
+.work-card-arrow {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.work-card-more:hover .work-card-arrow {
+  transform: translateX(6px);
+}
+/* The figure: standing, mid-step, and squatting to doodle. */
+.work-card-walker .walker-squat {
+  display: none;
+}
+.walker-draw {
+  transform-box: view-box;
+  transform-origin: 12px 12.4px;
+  animation: walker-draw 1.2s ease-in-out infinite;
+}
+.walker-doodle {
+  stroke-dasharray: 1 1;
+  animation: walker-doodle 2.4s linear infinite;
+}
+@keyframes walker-draw {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(5deg) translateY(-0.3px);
+  }
+  50% {
+    transform: rotate(0deg) translateY(0.3px);
+  }
+  75% {
+    transform: rotate(-5deg) translateY(-0.3px);
+  }
+}
+@keyframes walker-doodle {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  75% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  95%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .walker-draw,
+  .walker-doodle {
+    animation: none;
+  }
+}
+@keyframes work-open {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Phones and tablets: a tap opens the row in place, on the title
+   line. The open number becomes a solid "you are here" marker, and
+   "View project" stands on a rule that branches off the route. The
+   little figure is the way back: it rides the route with the reader,
+   steps as the page scrolls, and closes the row when tapped. ── */
+@media (max-width: 799px) {
+  .work-card:active:not(.is-open) {
+    background-color: color-mix(in srgb, var(--ink) 4%, transparent);
+  }
+  html.dark .work-card:active:not(.is-open) {
+    background-color: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+  .work-card.is-open .work-card-num {
+    padding: 0.3rem 0.35rem;
+    border-radius: 2px;
+    color: var(--paper);
+    background: var(--ink);
+  }
+  .work-card.is-open .work-card-thumb {
+    display: none;
+  }
+  .work-card-detail {
+    position: relative;
+  }
+  .work-card.is-open .work-card-detail {
+    display: block;
+    grid-area: detail;
+    margin-top: 1.25rem;
+    animation: work-open 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  /* The large photo frame follows the cover: 4:5 portrait, 3:2
+     landscape. */
+  .work-card[data-orient="landscape"] .work-card-big {
+    aspect-ratio: 3 / 2;
+  }
+  .work-card[data-orient="portrait"] .work-card-big {
+    aspect-ratio: 4 / 5;
+  }
+  .work-card.is-open .work-card-detail-text {
+    margin-top: 1.6rem;
+  }
+  /* "View project" on the rule that leaves the route at the foot. */
+  .work-card-actions {
+    position: relative;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+  .work-card-actions::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--rx) - var(--dx) - 0.5px);
+    right: 0;
+    bottom: 0;
+    border-top: 1px solid currentColor;
+  }
+  .work-card-actions > .work-card-more {
+    margin-top: 0;
+    padding-bottom: 0.6rem;
+    border-bottom: 0;
+  }
+  /* The figure is sticky, so it rides the lit line just above the
+     visible bottom of the screen until the junction at the foot
+     scrolls into view, and never climbs above the top of the details.
+     Its negative margins take no room and centre it on the details'
+     bottom edge. --cap-gap (set by script from the visual viewport)
+     keeps it clear of Safari's toolbar on iPhone. */
+  .work-card-cap {
+    position: sticky;
+    bottom: var(--cap-gap, 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -1.375rem 0 -1.375rem calc(var(--rx) - var(--dx) - 1.375rem);
+    padding: 0;
+    color: inherit;
+    background: var(--paper);
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease-out,
+      color 0.2s ease-out;
+  }
+  .work-card-cap:active {
+    color: var(--paper);
+    background: var(--ink);
+  }
+  /* On "View project" it walks along the line to it. */
+  .work-card-cap.is-leaving {
+    transition: transform 0.6s linear;
+  }
+  /* A row folding away because one further down was opened: its
+     figure steps back at once, so only one figure is on the route. */
+  .work-card.is-handoff .work-card-cap {
+    visibility: hidden;
+  }
+  .work-card-walker {
+    width: 2rem;
+    height: 2rem;
+    transition: transform 0.2s ease-out;
+  }
+  .work-card-walker .walker-step,
+  .work-card-cap.is-step .walker-stand {
+    display: none;
+  }
+  .work-card-cap.is-step .walker-step {
+    display: inline;
+  }
+  .work-card-cap.is-left .work-card-walker {
+    transform: scaleX(-1);
+  }
+  /* Eyes in the page colour, swapped when the figure is pressed. */
+  .walker-eye {
+    fill: var(--paper);
+  }
+  .work-card-cap:active .walker-eye {
+    fill: var(--ink);
+  }
+}
+
+/* ── Wide screens: split view. The route list keeps the left half; the
+   right half is a pane that always shows one project (the first, until
+   another is pointed at or clicked). As on Herzog & de Meuron's index,
+   the row itself is the way in: pointing at it underlines the title,
+   and clicking anywhere on it opens the project. A single figure walks
+   the route to the row shown in the pane. ── */
+@media (min-width: 800px) {
+  .work-card {
+    --rx: 2rem;
+    --dx: 6rem;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    grid-template-areas:
+      "num title"
+      ". meta";
+    grid-template-rows: auto auto;
+    column-gap: 2rem;
+    padding-block: 1.6rem;
+  }
+  .work-list {
+    position: relative;
+    width: 46%;
+    padding-top: 1.5rem;
+  }
+  /* Before anything is chosen (.is-idle) the figure waits at the start
+     of the route, a little above 01, where the line begins. */
+  .work-card:first-child::before {
+    top: -0.75rem;
+  }
+  /* The rows never grow here (the details are in the pane), so the
+     route always ends at the last number, open or not. */
+  .work-card:last-of-type::before {
+    bottom: auto;
+    height: 2.7rem;
+  }
+  .work-card-thumb,
+  .work-card-actions,
+  .work-card-facts,
+  .work-card-detail-desc {
+    display: none;
+  }
+  .work-card h2 {
+    font-size: 2rem;
+    transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  .work-card.is-open h2 {
+    transform: translateX(0.75rem);
+  }
+  .work-card:not(.is-open) h2 {
+    opacity: 0.55;
+    transition:
+      opacity 0.25s ease-out,
+      transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  .work-card:not(.is-open):hover h2 {
+    opacity: 1;
+  }
+  .work-card h2 a {
+    text-decoration: underline 1px transparent;
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color 0.25s ease-out;
+  }
+  .work-card:hover h2 a,
+  .work-card:has(.work-card-big:hover) h2 a {
+    text-decoration-color: currentColor;
+  }
+  /* With nothing chosen yet, no row looks chosen: every title is lit,
+     none is pushed in. The pane still shows the first project. */
+  .work-list.is-idle .work-card h2 {
+    opacity: 1;
+    transform: none;
+  }
+  /* Touch: no hover, so the row shown in the pane keeps its title
+     underlined, a sign that tapping it again goes in. */
+  @media (hover: none) {
+    .work-list:not(.is-idle) .work-card.is-open h2 a {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  /* The pane: always fits the screen, so it never scrolls. The photo
+     takes whatever height the caption leaves. Every project's pane is
+     laid in the same place; only the open one shows. Changing project
+     cross-fades the two, the old one going a little quicker than the
+     new one arrives, so the photo eases from one room to the next
+     instead of jumping. */
+  .work-card-detail {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 6.5rem;
+    right: 4rem;
+    bottom: 4.5rem;
+    width: calc(54% - 6rem);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.45s ease-in,
+      visibility 0s linear 0.45s;
+  }
+  .work-card.is-open .work-card-detail {
+    z-index: 1;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  /* Below 1200px the footer stacks its two lines; keep the pane clear
+     of it. */
+  @media (max-width: 1199px) {
+    .work-card-detail {
+      bottom: 6rem;
+    }
+  }
+  .work-card-big {
+    flex: 1 1 auto;
+    min-height: 8rem;
+    width: 100%;
+    aspect-ratio: auto;
+  }
+  .work-card-big img {
+    transition: transform 1.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  .work-card.is-open:hover .work-card-big img {
+    transform: scale(1.02);
+  }
+  /* Under the photo, one line: the row's number, then place, type and
+     year. */
+  .work-card-caption {
+    display: flex;
+    flex: none;
+    gap: 1.5rem;
+    margin: 1rem 0 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .work-card-detail-text {
+    flex: none;
+  }
+
+  /* The number keeps its place until the figure arrives, then the
+     figure stands in for it; it comes back at once when the figure
+     leaves. While idle, 01 shows. */
+  .work-card.is-open .work-card-num {
+    visibility: hidden;
+    transition: visibility 0s linear 0.55s;
+  }
+  .work-list.is-idle .work-card.is-open .work-card-num {
+    visibility: visible;
+    transition: none;
+  }
+  .work-walker-d2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: inherit;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: var(--paper);
+    pointer-events: none;
+    transform: translate(var(--wx, 0px), var(--wy, 0px));
+    transition: transform 0.6s cubic-bezier(0.45, 0, 0.25, 1);
+  }
+  .work-walker-d2 .work-card-walker {
+    width: 2rem;
+    height: 2rem;
+  }
+  .work-walker-d2 .walker-step,
+  .work-walker-d2.is-step .walker-stand {
+    display: none;
+  }
+  .work-walker-d2.is-step .walker-step {
+    display: inline;
+  }
+  .work-walker-d2.is-left .work-card-walker {
+    transform: scaleX(-1);
+  }
+  .work-walker-d2 .walker-eye {
+    fill: var(--paper);
+  }
+  /* Idle: the figure squats at the start of the route, idly drawing
+     circles on the ground. Bored: it does the same where it stands
+     when a shown row is left unopened a while. */
+  .work-list.is-idle .work-walker-d2 .walker-stand,
+  .work-list.is-idle .work-walker-d2 .walker-step,
+  .work-walker-d2.is-bored .walker-stand,
+  .work-walker-d2.is-bored .walker-step {
+    display: none;
+  }
+  /* The squat is always laid out and only hidden, so its drawing keeps
+     running: Safari does not start an SVG animation that comes back
+     from display: none, and the figure squatted with a still circle. */
+  .work-walker-d2 .work-card-walker .walker-squat {
+    display: inline;
+    visibility: hidden;
+  }
+  .work-list.is-idle .work-walker-d2 .walker-squat,
+  .work-walker-d2.is-bored .walker-squat {
+    visibility: visible;
+  }
+}
+/* Arriving on the page, the open row and the figure are set in place at
+   once; only later changes animate. */
+.work-list[data-still] .work-walker-d2,
+.work-list[data-still] .work-card h2,
+.work-list[data-still] .work-card-num {
+  transition: none !important;
+}

@@ -12,7 +12,7 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 ### Page & Layout Components
 
-- **[BlogPost.astro](BlogPost.astro)**: Row on the `/works/` and `/research/` index pages and tag pages, hung on one route line. Phones open a row in place (large photo, facts, description, "View project") with a walking figure that closes it; from 800px the list keeps the left half and a fixed pane on the right shows the pointed-at project, with one figure walking the route between rows. These are the layouts settled with the client (H9 / D3, P1, C0); they are plain styles, not toggled by attributes.
+- **[WorkCard.astro](WorkCard.astro)**: Row on the `/works/` and `/research/` index pages and tag pages, hung on one route line. Phones open a row in place (large photo, facts, description, "View project") with a walking figure that closes it; from 800px the list keeps the left half and a fixed pane on the right shows the pointed-at project, with one figure walking the route between rows. These are the layouts settled with the client (H9 / D3, P1, C0); they are plain styles, not toggled by attributes. Styles live in [WorkList.css](../styles/WorkList.css) and the behaviour in [workList.ts](../scripts/workList.ts). (Formerly `BlogPost.astro`, a name left from the template.)
 
 - **[HeroImage.astro](HeroImage.astro)**: Vanilla parallax hero image on content pages. Uses one `<img>` with a width-based `srcset` (640-3200w) and a `sizes` that covers the cropped parallax box, so portrait covers stay sharp on wide screens; the `<img>` carries real alt text (no separate sr-only element). An `IntersectionObserver` ensures the parallax scroll handler only runs while visible, and `will-change: transform` keeps it on the compositor. Supports per-image `positionX`/`positionY` focal point overrides and absolute tag links with collection awareness. The `-20%`/`120%` oversized inner div gives headroom for the parallax offset. All hooks re-wire on `astro:page-load`.
 
@@ -39,7 +39,7 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 ### Utility Components
 
-- **[sortByDate.ts](sortByDate.ts)**: Used in [Pages](../pages/) to chronologically order posts rendered by [BlogPost.astro](BlogPost.astro).
+- **[sortByDate.ts](sortByDate.ts)**: Used in [Pages](../pages/) to chronologically order posts rendered by [WorkCard.astro](WorkCard.astro).
 
 - **[ScrollToTop.astro](ScrollToTop.astro)**: Vanilla "back to top" button. Uses `requestAnimationFrame` throttling on the scroll listener for performance, and smooth scrolling via `window.scrollTo`. Transparent background with inherited-colour chevron. All hooks re-wire on `astro:page-load`.
 

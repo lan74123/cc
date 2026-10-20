@@ -4,7 +4,7 @@ Node CLI helpers for content maintenance and the build pipeline.
 
 ## `create-content.js` — `bun run create`
 
-Creates a new `works` or `research` entry at `src/content/<type>/YYYY-MM-DD-<slug>.mdx` with valid frontmatter.
+Creates a new `works` or `research` entry folder, `src/content/<type>/<slug>/index.md`, with valid frontmatter. Put the photos in the same folder afterwards (`01.jpg`, `02.jpg`, …); the page shows them all in file-name order. Copying `src/content/works/_template/` by hand does the same job (see [CONTENT.md](../CONTENT.md)).
 
 Interactive:
 
@@ -12,22 +12,21 @@ Interactive:
 bun run create
 ```
 
-The wizard asks for the collection, title, optional slug (defaults to the slugified title), tags, author (defaults to `CC Space`), description and an optional cover image, then previews the frontmatter before writing the file.
+The wizard asks for the collection, title, optional slug (defaults to the slugified title; it becomes the folder name and URL), tags, author (defaults to `CC Space`), description and the cover photo (defaults to `./01.jpg`), and for works the category, location, year and client, then previews the frontmatter before writing the file. It refuses to overwrite an existing folder.
 
 Non-interactive:
 
 ```sh
 bun run create -- --non-interactive --type works \
   --title "Sample Residence" \
-  --tags "home" \
+  --category Home \
+  --location Taipei --year 2026 --client "Private Client" \
   --description "Full-floor apartment renovation." \
-  --image-src "../../assets/works/sample-residence/1.jpg" \
+  --image-src ./01.jpg \
   --image-alt "Living room"
 ```
 
-Add `--dry-run` to preview without creating the file.
-
-The wizard does not prompt for the works-only fields `location`, `year`, `client` and `category`; add them to the frontmatter by hand (see `src/content.config.ts`). For a local image, use a path relative to the content file (for example `../../assets/works/<slug>/1.jpg`) so it is optimized at build time.
+Tags default to the category in lower case. Add `--dry-run` to preview without creating the file.
 
 ## `update-post.js` — `bun run update-post`
 
@@ -35,14 +34,14 @@ Updates frontmatter of an existing entry in place. `--file` is relative to `src/
 
 ```sh
 # Bump updatedDate to now
-bun run update-post --file works/2026-09-14-daliao.mdx --touch
+bun run update-post --file works/daliao/index.md --touch
 
 # Change tags, preview first
-bun run update-post --file works/2026-09-14-daliao.mdx --tags "home,renovation" --dry-run
+bun run update-post --file works/daliao/index.md --tags "home,renovation" --dry-run
 
 # Change the cover image
-bun run update-post --file works/2026-09-14-daliao.mdx \
-  --image-src "../../assets/works/daliao/3.jpg" \
+bun run update-post --file works/daliao/index.md \
+  --image-src ./3.jpg \
   --image-alt "Daliao 3"
 ```
 

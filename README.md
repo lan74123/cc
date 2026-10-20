@@ -43,18 +43,19 @@ bun run dev        # http://localhost:4321
 
 ## Adding a project
 
-1. Put the photos in `src/assets/works/<slug>/` (`1.jpg`, `2.jpg`, …). Files under `src/assets/` are resized and converted to AVIF at build time; files under `public/` are served as-is, so do not put photos there.
-   Then run `bun run fix-images`: phone photos are stored sideways with an EXIF orientation tag that the build ignores, and this rotates them upright.
-2. Create `src/content/works/YYYY-MM-DD-<slug>.mdx` — copy `2026-10-05-sample-cafe.mdx` as a starting point. Frontmatter fields are defined in `src/content.config.ts` (`category` is `Home` or `Commerce`; empty `location` / `year` / `client` are hidden).
-3. Files starting with `_` are treated as drafts and not published.
-4. Commit and push to `main`.
+The full guide, in Chinese for the studio, is [CONTENT.md](CONTENT.md). In short:
+
+1. Copy `src/content/works/_template/` to `src/content/works/<slug>/`; the folder name is the URL (`/works/<slug>/`). Folders starting with `_` are drafts and not published.
+2. Put the photos in that folder (`01.jpg`, `02.jpg`, …). The page shows every photo in the folder below the text, in file-name order; a `gallery` list in the frontmatter overrides the order and descriptions. Photos are resized and converted to AVIF at build time, and the prebuild step turns phone photos upright (EXIF orientation), so they can go in as they are.
+3. Fill in `index.md`. Frontmatter fields are defined in `src/content.config.ts` (`category` is `Home` or `Commerce`; empty `location` / `year` / `client` are hidden). `bun run create` makes the folder and file from prompts.
+4. Commit and push to `main` (this deploys production; `bun run deploy:preview` publishes the test site first).
 
 ## Branding
 
 - Site title, description and social links: `src/consts.ts`
 - Header logo: `src/assets/logo/ccspace_b.svg` (light theme) and `ccspace_w.svg` (dark theme)
 - Favicon: `public/favicon.svg` ("CC" monogram, follows the system colour scheme); `public/apple-touch-icon.png` and `public/icon-512.png`
-- Social share image: `src/assets/cover.jpg` (1920×1080). Do not make it a byte-identical copy of a gallery photo: the build dedupes identical files and then drops the original that the gallery lightbox links to.
+- Social share image: `src/assets/cover.jpg` (1920×1080).
 
 ## Deployment
 

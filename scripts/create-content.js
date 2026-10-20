@@ -3,8 +3,10 @@
 /**
  * Revista Content Creator CLI
  *
- * Creates new MDX content files with proper frontmatter matching the
- * schema defined in content.config.ts.
+ * Creates a new entry folder, src/content/<type>/<slug>/index.md, with
+ * frontmatter matching the schema defined in content.config.ts. Photos
+ * go in the same folder (01.jpg, 02.jpg, ...); the page shows them all
+ * in file-name order.
  *
  * Supports both interactive (inquirer prompts) and non-interactive
  * (all values via CLI flags) modes.
@@ -31,11 +33,14 @@ const COLLECTION_TYPES = ["works", "research"];
 const BASE_REQUIRED = ["title", "tags", "author", "description", "pubDate"];
 const BASE_OPTIONAL = ["updatedDate", "image"];
 const IMAGE_PROPS = [
-  { name: "src", isOptional: false },
+  { name: "src", isOptional: false, default: "./01.jpg" },
   { name: "alt", isOptional: false },
   { name: "positionx", isOptional: true },
   { name: "positiony", isOptional: true },
 ];
+// Works-only details shown on the project page (all optional).
+const CATEGORIES = ["Home", "Commerce"];
+const DETAIL_FIELDS = ["location", "year", "client"];
 
 // --------------- Helpers ---------------
 
@@ -56,32 +61,36 @@ function slugify(title) {
  */
 function buildFrontmatter({
   title,
-  slug,
   pubDate,
   tags,
   author,
   description,
   image,
+  category,
+  details = {},
 }) {
   const lines = [];
 
   lines.push(`title: "${title}"`);
-  lines.push(`slug: "${slug}"`);
   lines.push(`pubDate: "${pubDate}"`);
+  if (category) lines.push(`category: ${category}`);
 
   // tags — double-quoted, inline array: ["tag1", "tag2"]
   const tagsStr = tags.map((t) => `"${t}"`).join(", ");
   lines.push(`tags: [${tagsStr}]`);
 
-  lines.push(`author: "${author}"`);
+  for (const field of DETAIL_FIELDS) {
+    if (details[field]) lines.push(`${field}: "${details[field]}"`);
+  }
 
-  // image (optional) — flow style on one line
+  if (author && author !== "CC Space") lines.push(`author: "${author}"`);
+
+  // image (optional) — one property per line under `image:`
   if (image) {
-    const props = Object.entries(image)
-      .filter(([, v]) => v) // skip empty optional props
-      .map(([k, v]) => `${k}: "${v}"`)
-      .join(", ");
-    lines.push(`image: { ${props} }`);
+    lines.push("image:");
+    for (const [k, v] of Object.entries(image)) {
+      if (v) lines.push(`  ${k}: "${v}"`); // skip empty optional props
+    }
   }
 
   lines.push(`description: "${description}"`);
@@ -100,9 +109,15 @@ function writeContentFile({
   frontmatter,
   dryRun,
 }) {
-  const filenameDate = pubDate.split("T")[0]; // YYYY-MM-DD
-  const filename = `${filenameDate}-${slug}.mdx`;
-  const filePath = path.join(contentDir, collectionType, filename);
+  // One folder per entry; the folder name is the URL slug.
+  const filename = path.join(collectionType, slug, "index.md");
+  const filePath = path.join(contentDir, filename);
+  if (!dryRun && fs.existsSync(path.dirname(filePath))) {
+    console.error(
+      chalk.red(`Error: ${path.dirname(filePath)} already exists.`),
+    );
+    process.exit(1);
+  }
 
   // Preview
   console.log(chalk.yellow("\nContent Preview:"));
@@ -122,9 +137,12 @@ function writeContentFile({
 
 function showNextSteps(filename) {
   console.log(chalk.blue("\nNext steps:"));
-  console.log(`  1. ${chalk.cyan(`Edit ${filename}`)} to add your content`);
-  console.log(`  2. Run ${chalk.cyan("bun run dev")} to preview your changes`);
-  console.log(`  3. Run ${chalk.cyan("bun run build")} when ready to publish`);
+  console.log(
+    `  1. Put the photos in ${chalk.cyan(path.dirname(filename))} as 01.jpg, 02.jpg, ...`,
+  );
+  console.log(`  2. ${chalk.cyan(`Edit ${filename}`)} to add your content`);
+  console.log(`  3. Run ${chalk.cyan("bun run dev")} to preview your changes`);
+  console.log(`  4. Run ${chalk.cyan("bun run build")} when ready to publish`);
 }
 
 // --------------- CLI setup ---------------
@@ -139,10 +157,7 @@ program
     ),
   )
   .version("1.0.0")
-  .option(
-    "-t, --type <type>",
-    `content type (${COLLECTION_TYPES.join(", ")})`,
-  )
+  .option("-t, --type <type>", `content type (${COLLECTION_TYPES.join(", ")})`)
   .option("-d, --dry-run", "preview frontmatter without creating the file")
   .option(
     "--non-interactive",
@@ -153,7 +168,11 @@ program
   .option("--tags <tags>", "comma-separated tags")
   .option("--author <author>", "author name")
   .option("--description <description>", "content description")
-  .option("--image-src <src>", "image source URL")
+  .option("--category <category>", `works category (${CATEGORIES.join(", ")})`)
+  .option("--location <location>", "works location, e.g. Kaohsiung")
+  .option("--year <year>", "works year, e.g. 2026")
+  .option("--client <client>", "works client, e.g. Private Client")
+  .option("--image-src <src>", "cover photo, e.g. ./01.jpg")
   .option("--image-alt <alt>", "image alt text")
   .option("--image-positionx <pos>", "image X position (e.g. 50%)")
   .option("--image-positiony <pos>", "image Y position (e.g. 40%)")
@@ -198,7 +217,9 @@ function handleNonInteractive() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean)
-    : [collectionType];
+    : options.category
+      ? [options.category.toLowerCase()]
+      : [];
   const author = options.author || "CC Space";
 
   let image;
@@ -208,14 +229,26 @@ function handleNonInteractive() {
     if (options.imagePositiony) image.positiony = options.imagePositiony;
   }
 
+  if (options.category && !CATEGORIES.includes(options.category)) {
+    console.error(
+      chalk.red(`Error: --category must be one of ${CATEGORIES.join(", ")}.`),
+    );
+    process.exit(1);
+  }
+
   const frontmatter = buildFrontmatter({
     title: options.title,
-    slug,
     pubDate,
     tags,
     author,
     description: options.description,
     image,
+    category: options.category,
+    details: {
+      location: options.location,
+      year: options.year,
+      client: options.client,
+    },
   });
 
   const result = writeContentFile({
@@ -286,8 +319,8 @@ async function handleInteractive() {
     {
       type: "input",
       name: "tags",
-      message: `${chalk.cyan("Tags")} ${chalk.gray("(comma-separated)")}:`,
-      default: collectionType,
+      message: `${chalk.cyan("Tags")} ${chalk.gray("(comma-separated, e.g. home)")}:`,
+      default: collectionType === "works" ? "home" : "",
       filter: (v) =>
         v
           .split(",")
@@ -309,23 +342,44 @@ async function handleInteractive() {
     {
       type: "confirm",
       name: "includeImage",
-      message: "Include image?",
-      default: false,
+      message: "Include a cover photo?",
+      default: true,
     },
   ];
 
-  // Image sub-questions
+  // Image sub-questions. Plain names (imageSrc, not image.src): inquirer
+  // reads a dotted name as a nested answer.
+  const imageKey = (name) => `image${name[0].toUpperCase()}${name.slice(1)}`;
   for (const prop of IMAGE_PROPS) {
     questions.push({
       type: "input",
-      name: `image.${prop.name}`,
-      message: `${chalk.cyan(`Image ${prop.name}:`)}${prop.isOptional ? chalk.gray(" (optional)") : ""}`,
+      name: imageKey(prop.name),
+      message: `${chalk.cyan(`Cover ${prop.name}:`)}${prop.isOptional ? chalk.gray(" (optional)") : ""}`,
+      default: prop.default,
       when: (answers) => answers.includeImage,
       validate: (v) => {
-        if (!prop.isOptional && !v) return `Image ${prop.name} is required`;
+        if (!prop.isOptional && !v) return `Cover ${prop.name} is required`;
         return true;
       },
     });
+  }
+
+  // Works only: the facts shown under the project title.
+  if (collectionType === "works") {
+    questions.push({
+      type: "list",
+      name: "category",
+      message: `${chalk.cyan("Category:")}`,
+      choices: CATEGORIES,
+    });
+    for (const field of DETAIL_FIELDS) {
+      questions.push({
+        type: "input",
+        name: field,
+        message: `${chalk.cyan(`${field[0].toUpperCase()}${field.slice(1)}:`)}${chalk.gray(" (optional)")}`,
+        default: field === "year" ? String(new Date().getFullYear()) : "",
+      });
+    }
   }
 
   const answers = await inquirer.prompt(questions);
@@ -337,21 +391,21 @@ async function handleInteractive() {
   let image;
   if (answers.includeImage) {
     image = {};
-    for (const [key, value] of Object.entries(answers)) {
-      if (key.startsWith("image.") && value) {
-        image[key.split(".")[1]] = value;
-      }
+    for (const prop of IMAGE_PROPS) {
+      const value = answers[imageKey(prop.name)];
+      if (value) image[prop.name] = value;
     }
   }
 
   const frontmatter = buildFrontmatter({
     title: answers.title,
-    slug,
     pubDate,
     tags: answers.tags,
     author: answers.author,
     description: answers.description,
     image,
+    category: answers.category,
+    details: Object.fromEntries(DETAIL_FIELDS.map((f) => [f, answers[f]])),
   });
 
   const result = writeContentFile({

@@ -15,6 +15,8 @@ The `src/content/` directory contains two collections, both routed through the c
 - **works/**: Interior design project pages (location/year/client/category)
 - **research/**: Case-study and research articles
 
+Each entry is a folder, `<collection>/<slug>/index.md`, holding its photos beside it; the folder name is the URL slug. The page shows every photo in the folder below the text, in file-name order. `works/_template/` is the commented starting point, and [CONTENT.md](../../CONTENT.md) is the studio's guide (in Chinese).
+
 ## Schema Definition
 
 Each collection is defined in [content.config.ts](/src/content.config.ts) with a strict schema using Zod for validation. This ensures that all content follows a consistent structure and has the required metadata.
@@ -39,7 +41,7 @@ const baseFields = {
 };
 
 const research = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/research" }),
+  loader: entryLoader("research"), // glob "[^_]*/index.{md,mdx}"
   schema: ({ image }) =>
     z.object({
       ...baseFields,
@@ -57,26 +59,27 @@ const research = defineCollection({
 
 ## Content Frontmatter
 
-Each content file (using .mdx format) includes frontmatter that must match the defined schema. Here's an example:
+Each `index.md` starts with frontmatter that must match the defined schema. Here's `works/daliao/index.md`:
 
 ```yaml
 ---
 title: "Daliao"
-slug: "daliao"
 pubDate: "2026-09-14T05:34:29.053Z"
-tags: ["home"]
-author: "CC Space"
-image: { src: ../../assets/works/daliao/1.jpg, alt: "Daliao 1" }
-description: "Large extension and internal reconfiguration of the main house."
+tags: [home]
+category: Home
 location: "Kaohsiung"
 year: "2026"
 client: "Private Client"
-category: Home
+image:
+  src: ./1.jpg
+  alt: "Daliao 1"
+description: "Large extension and internal reconfiguration of the main house."
 ---
-<!-- Content goes here -->
+
+Body text in plain Markdown.
 ```
 
-Empty `location`, `year` and `client` values are hidden on the detail page, and empty tags are ignored.
+`author` defaults to `CC Space`. Empty `location`, `year` and `client` values are hidden on the detail page, and empty tags are ignored. An optional `gallery` list (`- src: ./03.jpg` / `alt: ...`) sets the photo order and descriptions; without it every photo in the folder is shown, described as "<title> <n>".
 
 ## Astro 7.1.5 Enhancements
 

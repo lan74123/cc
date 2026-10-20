@@ -160,7 +160,7 @@ Collections are defined in `src/content.config.ts`. Shared fields live in a plai
 
 ```typescript
 const works = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.mdx", base: "./src/content/works" }),
+  loader: entryLoader("works"), // glob "[^_]*/index.{md,mdx}" in src/content/works
   schema: ({ image }) =>
     z.object({
       ...baseFields, // title, tags, author, description, location, year, client, category, pubDate, ...
@@ -180,21 +180,21 @@ const works = defineCollection({
 });
 ```
 
-`research` uses the same shape with `base: "./src/content/research"`.
+`research` uses the same shape (`entryLoader("research")`). Both also take an optional `gallery` list of `{ src: image(), alt? }`.
 
 ### Glob Pattern Selection
 
-`glob({ pattern: "**/[^_]*.mdx", base: "./src/content/works" })`:
+`entryLoader()` wraps `glob({ pattern: "[^_]*/index.{md,mdx}", base: "./src/content/<collection>" })`:
 
-1. `**/` - Recursively searches all subdirectories
-2. `[^_]*` - Ignores files that start with underscore (drafts)
-3. `.mdx` - Only selects MDX files
+1. `[^_]*/` - One folder per entry; folders starting with an underscore are drafts (`_template` is the starting point)
+2. `index.{md,mdx}` - The entry's text; Markdown is preferred, MDX still loads
+3. `generateId` - The folder name is the id and URL slug unless the frontmatter sets `slug`
 
 ## Image Optimization Strategy
 
 1. **Astro image service**: The [`@erfianugrah/astro-image-hq`](https://www.npmjs.com/package/@erfianugrah/astro-image-hq) custom Astro image service (profile `photo`) handles production builds, with a `noop` service fallback in dev. Configured in `astro.config.mjs`; handles AVIF conversion, responsive sizing, and proper metadata.
 
-2. **Local images only**: project photos live in `src/assets/works/<slug>/` and are imported from MDX so they go through the image service. Files in `public/` bypass optimization, so photos should not be placed there.
+2. **Local images only**: project photos live in the entry's folder, `src/content/<collection>/<slug>/`, and go through the image service: the cover via the schema's `image()`, the gallery via `import.meta.glob` in `galleryFor()` (`src/scripts/collections.ts`). The prebuild step turns phone photos upright. Files in `public/` bypass optimization, so photos should not be placed there.
 
 3. **Loading optimizations**:
    - `loading="lazy"` for below-the-fold images

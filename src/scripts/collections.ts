@@ -5,6 +5,7 @@ import MarkdownIt from "markdown-it";
 import type { ImageMetadata } from "astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 import type { Props as WorkCardProps } from "../components/WorkCard.astro";
+import type { MasonryImage } from "../components/Masonry.astro";
 
 const parser = new MarkdownIt();
 
@@ -39,6 +40,41 @@ export function getEntries<C extends CollectionName>(name: C) {
   return getCollection(name, (entry) =>
     SHOW_PLACEHOLDERS ? true : !entry.data.placeholder,
   );
+}
+
+// Every photo under src/content, keyed by its path ("/src/content/works/
+// daliao/1.jpg"). Imported as image metadata, so they go through the
+// image service like any other local image.
+const PHOTOS = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/content/**/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG,WEBP,AVIF}",
+  { eager: true },
+);
+
+/**
+ * The photos shown below an entry's text. The entry's `gallery` list if
+ * it has one; otherwise every photo in the entry's folder, in file-name
+ * order (2.jpg before 10.jpg), described as "<title> <n>".
+ */
+export function galleryFor(entry: Entry): MasonryImage[] {
+  const { title, gallery } = entry.data;
+  if (gallery?.length) {
+    return gallery.map((photo, i) => ({
+      src: photo.src,
+      alt: photo.alt || `${title} ${i + 1}`,
+    }));
+  }
+  if (!entry.filePath) return [];
+  const folder = "/" + entry.filePath.replace(/\\/g, "/").replace(/[^/]+$/, "");
+  return Object.keys(PHOTOS)
+    .filter(
+      (path) =>
+        path.startsWith(folder) && !path.slice(folder.length).includes("/"),
+    )
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    .map((path, i) => ({
+      src: PHOTOS[path].default,
+      alt: `${title} ${i + 1}`,
+    }));
 }
 
 /**

@@ -52,6 +52,7 @@ bun x prettier --check .       # formatting check
 bun x prettier --write .       # format entire repo
 bun run create                 # interactive content creation wizard
 bun run update-post            # update content frontmatter
+bun run clean                  # drop Astro's content cache after renaming entries (stale-import build errors)
 node scripts/parser.js         # verify CLI/content schema drift
 ```
 
@@ -82,8 +83,8 @@ bun x html-validate dist/path/to/page.html              # validate one generated
 
 ## Image Handling
 
-- All site images are local: project photos in `src/assets/works/<slug>/`, imported from MDX so the image service optimizes them. Do not put photos in `public/` — those are served unoptimized.
-- The image service ignores EXIF Orientation, so phone photos render sideways. Run `bun run fix-images` (`scripts/fix-orientation.js`) after adding photos to bake the rotation into the file.
+- All site images are local: project photos sit in the entry's own folder, `src/content/<collection>/<slug>/`, and go through the image service (cover via the schema's `image()`, gallery via `import.meta.glob` in `galleryFor()`). Site-wide images (logo, share cover) are in `src/assets/`. Do not put photos in `public/` — those are served unoptimized.
+- The image service ignores EXIF Orientation, so phone photos would render sideways. `scripts/fix-orientation.js` bakes the rotation into the file; it runs in `prebuild` (and as `bun run fix-images`), so photos can be added as they come off a phone.
 - Remote `http` image URLs are still accepted by the schema, but no remote image domains are configured.
 - Write `sizes` for the width a photo is actually drawn at. A photo that covers a frame (`object-fit: cover`) taller than the photo's own shape is cropped at the sides and needs the frame's height times its aspect ratio (see the hero in `MarkdownPostLayout.astro`, the pane in `WorkCard.astro`, the thumbnails in `NextPost.astro`). Srcsets include 640w and 960w steps for 2x/3x phones.
 - The lightbox opens a 2560px AVIF copy (`LIGHTBOX_MAX` in `Masonry.astro`), never the original file.
@@ -173,11 +174,12 @@ bun x html-validate dist/path/to/page.html              # validate one generated
 - Utility modules use camelCase (`sortByDate.ts`, `collections.ts`).
 - Constants use UPPER_SNAKE_CASE (`SITE_TITLE`).
 - Functions and locals use camelCase; types and interfaces use PascalCase.
-- Content files use `YYYY-MM-DD-slug.mdx`.
-- Draft content files begin with `_` and are excluded by the glob loaders.
+- Each content entry is a folder, `src/content/<collection>/<slug>/index.md` (`.mdx` also loads), beside its photos. The folder name is the id and URL slug; a `slug` field overrides it.
+- Draft folders begin with `_` and are excluded by the glob loaders; `src/content/works/_template/` is the commented starting point for new projects.
 
 ## Content Collection Rules
 
+- The studio edits content by hand: keep [CONTENT.md](CONTENT.md) (Chinese) in step with the schema and folder layout, and keep `index.md` plain Markdown (no imports or components) so it stays editable without code. The gallery is rendered by `MarkdownPostLayout.astro` from `galleryFor()`: every photo in the folder in file-name order, or the frontmatter `gallery` list.
 - Collections are defined in `src/content.config.ts` using Zod schemas and Astro glob loaders.
 - Shared frontmatter lives in the `baseFields` object, spread into each collection's inline schema.
 - Keep collection names consistent across schemas, routes, pages, and CLI scripts.

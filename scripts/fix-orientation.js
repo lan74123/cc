@@ -6,8 +6,11 @@
  * Phone cameras store photos sideways and rely on the EXIF Orientation tag
  * to display them upright. The build's image service does not apply that
  * tag, so such photos render rotated on the site. This script rewrites every
- * JPEG under src/assets/ that carries a non-default Orientation so the pixels
- * are upright and the tag is gone.
+ * JPEG under src/content/ (project photos) and src/assets/ that carries a
+ * non-default Orientation so the pixels are upright and the tag is gone.
+ *
+ * Runs before every build (the prebuild step), so photos straight off a
+ * phone can be added as they are.
  *
  * Usage: bun run fix-images
  */
@@ -16,7 +19,9 @@ import { readdirSync, renameSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import sharp from "sharp";
 
-const ROOT = resolve(import.meta.dirname, "..", "src", "assets");
+const ROOTS = ["content", "assets"].map((dir) =>
+  resolve(import.meta.dirname, "..", "src", dir),
+);
 
 function findJpegs(dir) {
   const results = [];
@@ -33,7 +38,7 @@ function findJpegs(dir) {
 
 let fixed = 0;
 
-for (const file of findJpegs(ROOT)) {
+for (const file of ROOTS.flatMap(findJpegs)) {
   const { orientation } = await sharp(file).metadata();
   if (!orientation || orientation === 1) continue;
 

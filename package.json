@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "prebuild": "node scripts/sync-readme-versions.js",
+    "prebuild": "node scripts/sync-readme-versions.js && node scripts/fix-orientation.js",
     "build": "astro build",
     "preview": "astro preview",
     "deploy": "wrangler deploy",
@@ -16,6 +16,7 @@
     "update-post": "node scripts/update-post.js",
     "update": "node scripts/update-post.js",
     "fix-images": "node scripts/fix-orientation.js",
+    "clean": "rm -rf .astro node_modules/.astro/data-store.json",
     "lint:html": "html-validate \"dist/**/*.html\"",
     "lint:links": "node scripts/check-links.js",
     "lint:site": "bun run build && bun run lint:html && bun run lint:links"

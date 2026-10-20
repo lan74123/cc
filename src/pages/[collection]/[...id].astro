@@ -3,6 +3,7 @@ import { render } from "astro:content";
 import MarkdownPostLayout from "../../layouts/MarkdownPostLayout.astro";
 import {
   buildDetailPaths,
+  galleryFor,
   getEntries,
   type Entry,
 } from "../../scripts/collections";
@@ -36,6 +37,7 @@ const { Content } = await render(entry);
   frontmatter={entry.data}
   currentId={entry.id}
   collection={getRouteCollection(Astro.params.collection!).name}
+  gallery={galleryFor(entry)}
 >
   <Content />
 </MarkdownPostLayout>

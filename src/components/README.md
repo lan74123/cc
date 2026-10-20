@@ -29,7 +29,7 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 ### Content Presentation Components
 
-- **[Masonry.astro](Masonry.astro)**: Project photo gallery. Shows each photo whole in a centred exhibition column, landscapes wider than portraits, via [MasonryLayout.css](../styles/MasonryLayout.css). Integrates with [lightbox.ts](../scripts/lightbox.ts) (via `lightbox-link` class on gallery links) for fullscreen viewing with multi-level zoom and drag/pan.
+- **[Masonry.astro](Masonry.astro)**: Project photo gallery, rendered by `MarkdownPostLayout.astro` below the entry text from `galleryFor()` (every photo in the entry folder, or its `gallery` list). Shows each photo whole in a centred exhibition column, landscapes wider than portraits, via [MasonryLayout.css](../styles/MasonryLayout.css). Integrates with [lightbox.ts](../scripts/lightbox.ts) (via `lightbox-link` class on gallery links) for fullscreen viewing with multi-level zoom and drag/pan.
 
 - **[GetRandomImage.astro](GetRandomImage.astro)**: Used in [TagLayout.astro](../layouts/TagLayout.astro) to randomize featured images from content collections. Includes a `<noscript>` fallback for non-JS users.
 

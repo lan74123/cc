@@ -123,13 +123,7 @@ const indexLabel = isWorks ? "All works" : "All research";
   .more-section {
     --lx: 1.125rem;
     --lpad: 3rem;
-    --line: rgba(34, 33, 37, 0.3);
-    --paper: rgb(242, 242, 242);
     margin-top: 8rem;
-  }
-  html.dark .more-section {
-    --line: rgba(245, 245, 245, 0.3);
-    --paper: rgb(34, 33, 37);
   }
   @media (min-width: 800px) {
     .more-section {
@@ -284,12 +278,8 @@ const indexLabel = isWorks ? "All works" : "All research";
   .route-stop.is-here .route-num {
     padding: 0.3rem 0.35rem;
     border-radius: 2px;
-    color: rgb(242, 242, 242);
-    background: rgb(34, 33, 37);
-  }
-  html.dark .route-stop.is-here .route-num {
-    color: rgb(34, 33, 37);
-    background: rgb(245, 245, 245);
+    color: var(--paper);
+    background: var(--ink);
   }
   .route-title {
     grid-area: title;

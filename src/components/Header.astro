@@ -107,11 +107,8 @@ const isCurrent = (href: string): boolean => pathname.startsWith(href);
     margin-inline: -2rem;
     padding: 16px 2rem 12px;
     margin-top: -2rem;
-    background: rgb(242, 242, 242);
+    background: var(--paper);
     transition: transform 0.35s ease-out;
-  }
-  :global(html.dark) .site-header {
-    background: rgb(34, 33, 37);
   }
   @media (min-width: 1200px) {
     .site-header {

@@ -43,15 +43,30 @@
   }
 }
 
+/* Site colours. --paper is the page, --ink the type and marks on it, and
+   --line the hairline route; the dark theme swaps their values, so
+   components use them without a dark-mode override of their own. The
+   browser bar colour (theme-color) repeats --paper in BaseLayout.astro
+   and theme.ts. */
+:root {
+  --paper: rgb(242, 242, 242);
+  --ink: rgb(34, 33, 37);
+  --line: color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+html.dark {
+  --paper: rgb(34, 33, 37);
+  --ink: rgb(245, 245, 245);
+}
+
 html {
-  background-color: #f2f2f2;
+  background-color: var(--paper);
   font-family: sans-serif;
   height: 100%;
   color-scheme: light;
 }
 
 html.dark {
-  background-color: rgb(34, 33, 37);
   color: #fff;
   color-scheme: dark;
 }

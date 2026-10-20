@@ -119,7 +119,7 @@ const formattedUpdatedDate = updatedDate
   : null;
 ---
 
-<html class="bg-[rgb(242,242,242)] dark:bg-[rgb(34,33,37)]" lang={SITE_LANG}>
+<html class="bg-(--paper)" lang={SITE_LANG}>
   <head>
     <meta charset="utf-8" />
     <!-- Browser bar colour on phones; follows the theme (theme.ts). -->
@@ -233,7 +233,7 @@ const formattedUpdatedDate = updatedDate
     <ClientRouter />
   </head>
   <body
-    class="flex flex-col md:pt-8 md:pr-16 md:pb-8 md:pl-16 p-8 max-w-full min-h-svh overflow-x-hidden dark:bg-[rgb(34,33,37)] dark:text-[rgb(245,245,245)]"
+    class="flex flex-col md:pt-8 md:pr-16 md:pb-8 md:pl-16 p-8 max-w-full min-h-svh overflow-x-hidden dark:bg-(--paper) dark:text-(--ink)"
   >
     {!hideHeaderFooter && <Header is404Page={is404Page} />}
     <!-- min-w-0: override flexbox min-width:auto default so <main> can

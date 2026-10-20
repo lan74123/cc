@@ -56,12 +56,12 @@ const isCurrent = (href: string): boolean => {
   }
 
   html.dark .nav-links {
-    background: rgba(34, 33, 37, 0.78);
+    background: color-mix(in srgb, var(--paper) 78%, transparent);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
 
   html:not(.dark) .nav-links {
-    background: rgba(242, 242, 242, 0.82);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
   }
 
   .nav-links a {

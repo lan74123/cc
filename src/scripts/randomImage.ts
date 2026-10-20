@@ -1,8 +1,8 @@
 /**
  * Shared logic for picking a random image from a data-attribute-driven
- * <img> element. Used by both Homepage and tag random images.
+ * <img> element. Used by the tag index random images.
  *
- * Each element stores a JSON array of {src, srcset, alt, url?} in
+ * Each element stores a JSON array of {src, srcset, alt} in
  * data-images. Client JS shuffles and picks one to display.
  */
 import { shuffle } from "./utils.ts";
@@ -11,13 +11,9 @@ interface ImageData {
   src: string;
   srcset: string;
   alt: string;
-  url?: string;
 }
 
-export function initRandomImages(
-  selector: string,
-  options: { updateAnchor?: boolean } = {},
-): void {
+export function initRandomImages(selector: string): void {
   const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
 
   if (elements.length === 0) return;
@@ -36,14 +32,6 @@ export function initRandomImages(
         imgElement.srcset = selected.srcset;
         imgElement.alt = selected.alt;
         imgElement.classList.remove("hidden");
-      }
-
-      if (options.updateAnchor && selected.url) {
-        const anchorElement = element.querySelector<HTMLAnchorElement>("a");
-        if (anchorElement) {
-          anchorElement.href = selected.url;
-          anchorElement.setAttribute("aria-label", `View ${selected.alt}`);
-        }
       }
     } catch (error) {
       console.error("Error processing random image data:", error);

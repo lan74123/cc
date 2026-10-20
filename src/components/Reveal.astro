@@ -8,15 +8,13 @@
 <style is:global>
   @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
     .image-container,
-    .work-card,
-    .more-item {
+    .work-card {
       transition:
         opacity 0.9s ease-out,
         transform 0.9s cubic-bezier(0.215, 0.61, 0.355, 1);
     }
     .image-container:not(.is-visible),
-    .work-card:not(.is-visible),
-    .more-item:not(.is-visible) {
+    .work-card:not(.is-visible) {
       opacity: 0;
       transform: translateY(28px);
     }
@@ -42,7 +40,7 @@
   document.addEventListener("astro:page-load", () => {
     cleanupReveal();
     const targets = document.querySelectorAll<HTMLElement>(
-      ".image-container, .work-card, .more-item",
+      ".image-container, .work-card",
     );
     if (targets.length === 0 || !("IntersectionObserver" in window)) {
       targets.forEach((el) => el.classList.add("is-visible"));

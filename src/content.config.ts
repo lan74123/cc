@@ -24,7 +24,6 @@ const baseFields = {
   pubDate: z.coerce.date(),
   updatedDate: z.coerce.date().optional(),
   slug: z.string().optional(),
-  readingTimeMs: z.number().optional(),
   // Stand-in project for the design review: shown by `astro dev` and the
   // preview site (PUBLIC_PREVIEW=1), left out of production builds.
   placeholder: z.boolean().optional(),

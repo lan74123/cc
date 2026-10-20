@@ -4,10 +4,7 @@ import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
 
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
 import icon from "astro-icon";
-import { remarkReadingTime } from "./src/scripts/remark-reading-time.mjs";
 import undiciRetry from "./src/scripts/undici-retry.ts";
 import tailwindcss from "@tailwindcss/vite";
 import hqService from "@erfianugrah/astro-image-hq";
@@ -67,8 +64,7 @@ export default defineConfig({
     // MDX inherits automatically. Keep gfm: false because we apply remark-gfm
     // explicitly below (Astro's built-in adds it with default options first).
     processor: unified({
-      remarkPlugins: [remarkGfm, remarkMath, remarkReadingTime],
-      rehypePlugins: [rehypeKatex],
+      remarkPlugins: [remarkGfm],
       gfm: false,
     }),
   },
@@ -114,10 +110,6 @@ export default defineConfig({
       rendering: true,
       assetProcessing: true,
     },
-  },
-
-  security: {
-    checkOrigin: false,
   },
 
   vite: {

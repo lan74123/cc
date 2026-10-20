@@ -21,7 +21,7 @@ Each collection is defined in [content.config.ts](/src/content.config.ts) with a
 
 ### Example Schema
 
-`works` and `research` share a `baseFields` object (title, tags, author, description, pubDate/updatedDate, slug, readingTimeMs, plus the optional `location`/`year`/`client`/`category` fields used by works detail pages). Each collection still declares its own `schema: ({ image }) => z.object({ ...baseFields, image: ... })` inline, rather than a shared factory function, so that `image`'s real type flows in from `defineCollection`'s context instead of widening to `any`:
+`works` and `research` share a `baseFields` object (title, tags, author, description, pubDate/updatedDate, slug, plus the optional `location`/`year`/`client`/`category` fields used by works detail pages). Each collection still declares its own `schema: ({ image }) => z.object({ ...baseFields, image: ... })` inline, rather than a shared factory function, so that `image`'s real type flows in from `defineCollection`'s context instead of widening to `any`:
 
 ```typescript
 const baseFields = {
@@ -36,7 +36,6 @@ const baseFields = {
   pubDate: z.coerce.date(),
   updatedDate: z.coerce.date().optional(),
   slug: z.string().optional(),
-  readingTimeMs: z.number().optional(),
 };
 
 const research = defineCollection({

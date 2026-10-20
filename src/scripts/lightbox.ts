@@ -51,6 +51,8 @@ let pinchBaseZoom = 1;
 // Track listeners for proper cleanup
 let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 let linkController: AbortController | null = null;
+// Document-level drag listeners added with the overlay; aborted with it.
+let overlayController: AbortController | null = null;
 
 // rAF throttle for drag/pan — prevents layout thrash on high-Hz displays
 let dragRafId = 0;
@@ -278,6 +280,8 @@ function close(): void {
 
 function bindOverlayEvents(el: HTMLDivElement): void {
   const img = el.querySelector<HTMLImageElement>(".lightbox-img")!;
+  overlayController = new AbortController();
+  const { signal } = overlayController;
 
   el.querySelector(".lightbox-close")!.addEventListener("click", close);
   el.querySelector(".lightbox-prev")!.addEventListener("click", () =>
@@ -337,40 +341,48 @@ function bindOverlayEvents(el: HTMLDivElement): void {
   });
 
   // Bind mousemove/mouseup to document so drag continues if cursor leaves image
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
+  document.addEventListener(
+    "mousemove",
+    (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
 
-    // Delta in screen pixels → convert to image-local coords (divide by scale)
-    const dx = (e.clientX - dragStartX) / zoomLevel;
-    const dy = (e.clientY - dragStartY) / zoomLevel;
-    panX = dragPanStartX + dx;
-    panY = dragPanStartY + dy;
+      // Delta in screen pixels → convert to image-local coords (divide by scale)
+      const dx = (e.clientX - dragStartX) / zoomLevel;
+      const dy = (e.clientY - dragStartY) / zoomLevel;
+      panX = dragPanStartX + dx;
+      panY = dragPanStartY + dy;
 
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-      hasDragged = true;
-    }
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        hasDragged = true;
+      }
 
-    // Throttle to one transform update per frame — avoids jank on large images
-    if (!dragRafId) {
-      dragRafId = requestAnimationFrame(() => {
-        dragRafId = 0;
-        applyTransform(img);
-      });
-    }
-  });
+      // Throttle to one transform update per frame — avoids jank on large images
+      if (!dragRafId) {
+        dragRafId = requestAnimationFrame(() => {
+          dragRafId = 0;
+          applyTransform(img);
+        });
+      }
+    },
+    { signal },
+  );
 
-  document.addEventListener("mouseup", (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    isDragging = false;
-    if (isZoomed()) img.style.cursor = "grab";
+  document.addEventListener(
+    "mouseup",
+    (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      isDragging = false;
+      if (isZoomed()) img.style.cursor = "grab";
 
-    setTimeout(() => {
-      hasDragged = false;
-      img.classList.remove("dragging");
-    }, 100);
-  });
+      setTimeout(() => {
+        hasDragged = false;
+        img.classList.remove("dragging");
+      }, 100);
+    },
+    { signal },
+  );
 
   // ── Touch: swipe (1x) / pan (zoomed) / pinch ──
   el.addEventListener(
@@ -512,6 +524,10 @@ function destroy(): void {
   if (linkController) {
     linkController.abort();
     linkController = null;
+  }
+  if (overlayController) {
+    overlayController.abort();
+    overlayController = null;
   }
   if (keydownHandler) {
     document.removeEventListener("keydown", keydownHandler);

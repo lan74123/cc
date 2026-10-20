@@ -14,8 +14,6 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 
 - **[BlogPost.astro](BlogPost.astro)**: Row on the `/works/` and `/research/` index pages and tag pages, hung on one route line. Phones open a row in place (large photo, facts, description, "View project") with a walking figure that closes it; from 800px the list keeps the left half and a fixed pane on the right shows the pointed-at project, with one figure walking the route between rows. These are the layouts settled with the client (H9 / D3, P1, C0); they are plain styles, not toggled by attributes.
 
-- **[Homepage.astro](Homepage.astro)**: Random-image landing component backed by [homePage.ts](../scripts/homePage.ts). Currently unused — `/` redirects to `/works/`.
-
 - **[HeroImage.astro](HeroImage.astro)**: Vanilla parallax hero image on content pages. Uses one `<img>` with a width-based `srcset` (640-3200w) and a `sizes` that covers the cropped parallax box, so portrait covers stay sharp on wide screens; the `<img>` carries real alt text (no separate sr-only element). An `IntersectionObserver` ensures the parallax scroll handler only runs while visible, and `will-change: transform` keeps it on the compositor. Supports per-image `positionX`/`positionY` focal point overrides and absolute tag links with collection awareness. The `-20%`/`120%` oversized inner div gives headroom for the parallax offset. All hooks re-wire on `astro:page-load`.
 
 - **[NextPost.astro](NextPost.astro)**: "Discover more" at the bottom of posts: every entry of the collection in index order on a route line, the current one marked with a solid number, under a corner line carrying the "All works" link (layout R / L2-1). Rendered on the server; no client script.
@@ -38,7 +36,6 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
 ### Typography Components
 
 - **[Prose.astro](Prose.astro)**: Tailwind CSS typographic layout used throughout the site for consistent text formatting.
-- **[ProseHeadings.astro](ProseHeadings.astro)**: Specialized component for formatting headings.
 
 ### Utility Components
 
@@ -72,7 +69,7 @@ Several components carry inline type declarations to satisfy `astro check` witho
 
 Several components share logic extracted into `src/scripts/`:
 
-- **[randomImage.ts](../scripts/randomImage.ts)**: Fisher-Yates shuffle and random image picker logic. Used by `homePage.ts` and `getRandomImage.ts` (renamed from `getrandomimage.ts`).
+- **[randomImage.ts](../scripts/randomImage.ts)**: Fisher-Yates shuffle and random image picker logic. Used by `getRandomImage.ts` (renamed from `getrandomimage.ts`).
 - **[consts.ts](../consts.ts)**: Site-wide constants (title, description, author, copyright owner, social links) imported by Header, Footer, BaseLayout, and collections.ts.
 
 ## Removed Components
@@ -84,6 +81,9 @@ The following were removed during the code quality refactoring:
 - `Social.astro` / `HomepageMasonry.astro` - dead code, no references
 - `fslightbox.js` - vendored lightbox, replaced by custom `lightbox.ts`
 - GLightbox CSS/JS - replaced by custom lightbox (73 KB -> ~2.4 KB gzipped)
-- `FormattedDate.astro` - date formatting now handled inline via `formatDate()` from `utils.ts`
+- `FormattedDate.astro` and the `formatDate()` helper - no page shows dates
+- `Homepage.astro` / `homePage.ts` - random-image landing page; `/` redirects to `/works/`
+- `ProseHeadings.astro` - unused heading wrapper
+- KaTeX (`remark-math`, `rehype-katex`) and the reading-time remark plugin - no content uses math or shows reading time
 - CV components (`cv/`, `ProseCv.astro`) and their `duration.ts` / `since94.ts` helpers - template leftovers with no CV page
 - `framer-motion` - removed as dependency; Hamburger.astro and ThemeToggle.astro now use pure CSS transitions

@@ -45,7 +45,7 @@ bun run preview                # preview built site from dist/
 bun run deploy:preview         # PUBLIC_PREVIEW=1 build, deploy to the cc-space-preview test site
 bun run prebuild               # sync README/doc version badges
 bun run lint:html              # validate generated HTML in dist/
-bun run lint:links             # check internal links from dist/works/index.html
+bun run lint:links             # check every internal link and asset in dist/ (scripts/check-links.js)
 bun run lint:site              # full quality gate: build + html + links
 bun x astro check              # project-wide Astro/type/content validation
 bun x prettier --check .       # formatting check
@@ -66,7 +66,6 @@ bunx playwright test -g "test name pattern"             # run tests matching a p
 bun x astro check                                       # quickest project-wide type/content check
 bun x prettier --check src/path/to/file.astro           # single-file formatting check
 bun x html-validate dist/path/to/page.html              # validate one generated page
-bun x hyperlink dist/path/to/page.html --skip-external
 ```
 
 - Content-only or markup edits: start with the narrowest command.

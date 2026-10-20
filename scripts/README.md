@@ -88,3 +88,7 @@ Writes every emitted `.html` / `.xml` path in `dist/` to a file, so two captures
 ## `fix-orientation.js` — `bun run fix-images`
 
 Rewrites every JPEG under `src/assets/` that has a non-default EXIF Orientation so the pixels are upright and the tag is removed. Phone photos need this: the build's image service ignores the tag, so they would otherwise render rotated. Safe to run repeatedly.
+
+## `check-links.js` — `bun run lint:links`
+
+Checks the built site in `dist/`: every `href`, `src`, `srcset` and `poster` in the HTML pages, and every `url()` in CSS (files and inline `<style>`), must resolve to a built file or a `_redirects` source, and a `#fragment` must name an `id` on its page. External URLs are skipped. Exits 1 with the list of broken links. No dependencies; it replaced the `hyperlink` package.

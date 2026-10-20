@@ -141,6 +141,8 @@ bun x hyperlink dist/path/to/page.html --skip-external
   - **Hamburger.astro**: Mobile menu toggle with 3-bar-to-X animation, Escape key handler, and click-outside-to-close.
   - **ScrollToTop.astro**: rAF-throttled visibility toggle; smooth `window.scrollTo`; semi-opaque pill kept clear of the mobile browser toolbar and the footer.
   - **HeroImage.astro**: Parallax hero with translate3d scroll, IntersectionObserver gate, rAF+lerp loop, fade-in on load, and `prefers-reduced-motion` respect.
+- Larger islands keep their markup in the component and move styles and script out, loaded with an import and `<script src>`: **WorkCard.astro** (the index rows) uses `src/styles/WorkList.css` and `src/scripts/workList.ts`; **Masonry.astro** uses `MasonryLayout.css` and `lightbox.ts`.
+- On wide screens a WorkCard's pane is laid out only once the row is `.is-warm` (pointed at or shown), so the index fetches one large photo up front; keep that if the pane markup changes.
 - The `scripts/` directory holds shared logic (theme, lightbox) as plain TypeScript modules -- no React, no JSX.
 
 ## Astro Component Patterns
@@ -148,7 +150,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - Server-rendered `.astro` components are the default choice.
 - Use frontmatter for imports, derived values, and async work.
 - Keep layouts responsible for document metadata, shared structure, and page-level scripts.
-- Reuse existing helpers like `buildDetailPaths()`, `buildTagPaths()`, and `generateRss()` instead of duplicating route logic.
+- Reuse existing helpers like `buildDetailPaths()`, `buildTagPaths()`, `workCardProps()`, and `generateRss()` instead of duplicating route logic. Type entries with `Entry` from `collections.ts` rather than `any`.
 - Prefer extending existing content/layout abstractions over creating parallel page-specific implementations.
 
 ## Styling and Tailwind
@@ -159,6 +161,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - Custom breakpoints are defined in the `@theme` block: `sm=800`, `md=1200`, `lg=1900`, `xl=2500`.
 - Font families center on `Inconsolata` and `Overpass Mono` (defined as `--font-overpass-mono` and `--font-inconsolata` in `@theme`).
 - Prefer utility classes first; add custom CSS only for masonry, lightbox, or layout edge cases.
+- Theme colours are CSS variables in `global.css`: `--paper` (page), `--ink` (type and marks) and `--line` (the hairline route), swapped by `html.dark`. Use them (`var(--ink)`, `bg-(--paper)`, `color-mix(in srgb, var(--ink) 20%, transparent)` for tints) instead of raw `rgb()` values and per-component dark overrides. The `theme-color` meta in `BaseLayout.astro` and `theme.ts` repeats `--paper` as hex.
 - The typography plugin is loaded via `@plugin "@tailwindcss/typography"` in `global.css`. ESM imports work natively with Tailwind v4.2.2 -- the old `require()` workaround is no longer needed.
 
 ## Naming Conventions

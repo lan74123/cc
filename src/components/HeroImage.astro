@@ -6,7 +6,8 @@
 // All hooks re-wire on astro:page-load so they survive view transitions.
 // The fade-in starts from the <img>'s inline onload, as soon as the photo
 // arrives: waiting for the page's scripts held the photo (the page's
-// largest paint) back by seconds on a slow phone.
+// largest paint) back by seconds on a slow phone. The fade is 400ms (was
+// 700ms): Chrome counts the photo as painted only once it has faded in.
 import Prose from "./Prose.astro";
 
 export interface Props {
@@ -41,7 +42,7 @@ const {
         alt={alt}
         fetchpriority="high"
         decoding="sync"
-        class="absolute left-0 right-0 top-[-20%] h-[120%] w-full object-cover transition-opacity duration-700 opacity-0"
+        class="absolute left-0 right-0 top-[-20%] h-[120%] w-full object-cover transition-opacity duration-400 opacity-0"
         style={`object-position: ${positionX} ${positionY}`}
         onload="this.classList.add('opacity-100')"
       />

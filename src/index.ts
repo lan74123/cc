@@ -19,8 +19,8 @@ interface ExportedHandler<E = unknown> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // TODO: once the custom domain is live, add a www -> apex (or apex ->
-    // www) 301 redirect here.
+    // www -> apex and HTTP -> HTTPS are Cloudflare dashboard rules, not
+    // code here: static asset requests never reach this Worker.
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;

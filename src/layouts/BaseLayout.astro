@@ -155,9 +155,10 @@ const formattedUpdatedDate = updatedDate
     }
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Fonts -->
-    <Font cssVariable="--font-inconsolata" preload />
-    <Font cssVariable="--font-overpass-mono" preload />
+    <!-- Fonts: the regular weights are on every page, so they are
+         preloaded; bold loads when a page uses it. -->
+    <Font cssVariable="--font-inconsolata" preload={[{ weight: 400 }]} />
+    <Font cssVariable="--font-overpass-mono" preload={[{ weight: 400 }]} />
 
     <!-- Basic SEO -->
     <title>{documentTitle}</title>

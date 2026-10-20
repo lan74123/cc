@@ -69,6 +69,11 @@ export default defineConfig({
     }),
   },
 
+  // Every link's HTML is fetched once it scrolls into view, so pages open
+  // fast. experimental.clientPrerender is left off on purpose: in Chrome
+  // it rendered each visible project in the background, hero photo and
+  // all, costing phone data for projects never opened. Safari only ever
+  // fetched the HTML.
   prefetch: {
     prefetchAll: true,
     defaultStrategy: "viewport",
@@ -81,7 +86,8 @@ export default defineConfig({
       cssVariable: "--font-inconsolata",
       display: "swap",
       fallbacks: ["monospace"],
-      weights: [200, 400, 700, 900],
+      // Only the weights the site sets: 400 for text, 700 for bold.
+      weights: [400, 700],
       optimizedFallbacks: true,
     },
     {
@@ -90,16 +96,10 @@ export default defineConfig({
       cssVariable: "--font-overpass-mono",
       display: "swap",
       fallbacks: ["monospace"],
-      weights: [300, 400, 700],
+      weights: [400, 700],
       optimizedFallbacks: true,
     },
   ],
-
-  experimental: {
-    clientPrerender: true,
-    // responsiveImages: true,
-    // directRenderScript: true
-  },
 
   build: {
     concurrency: 4,

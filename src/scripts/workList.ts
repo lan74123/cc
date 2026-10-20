@@ -411,6 +411,25 @@ document.addEventListener("astro:page-load", () => {
     window.clearTimeout(hoverTimer);
     hoverCard = null;
   };
+  // Keyboard: tabbing to a row's title shows it in the pane, as pointing
+  // at it does. Only keyboard focus (:focus-visible) counts; a mouse
+  // click also focuses the link, and onClick handles that.
+  const onFocus = (event: FocusEvent) => {
+    if (!split() || going) return;
+    const target = event.target as Element;
+    if (!target.matches(":focus-visible")) return;
+    const card = target.closest(".work-card");
+    if (!card) return;
+    if (
+      card.classList.contains("is-open") &&
+      !list.classList.contains("is-idle")
+    )
+      return;
+    window.clearTimeout(hoverTimer);
+    closeAll();
+    setOpen(card, true);
+    list.classList.remove("is-idle");
+  };
 
   // D3: one figure for the whole list, moved along the route to
   // the open row; it steps while moving and faces up or down.
@@ -490,6 +509,7 @@ document.addEventListener("astro:page-load", () => {
   wide.addEventListener("change", showFirst);
   list.addEventListener("pointerover", onHover);
   list.addEventListener("pointerleave", onLeave);
+  list.addEventListener("focusin", onFocus);
   list.addEventListener("pointermove", onAim, { passive: true });
   window.addEventListener("scroll", onWalk, { passive: true });
   window.visualViewport?.addEventListener("resize", onPlace);
@@ -502,6 +522,7 @@ document.addEventListener("astro:page-load", () => {
   cleanupList = () => {
     list.removeEventListener("pointerover", onHover);
     list.removeEventListener("pointerleave", onLeave);
+    list.removeEventListener("focusin", onFocus);
     list.removeEventListener("pointermove", onAim);
     window.clearTimeout(hoverTimer);
     watchOpen.disconnect();

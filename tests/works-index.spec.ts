@@ -127,6 +127,22 @@ test.describe("Index on a wide screen", () => {
     await expect.poll(() => loaded(1)).toBe(true);
   });
 
+  test("tabbing to a row shows it in the pane", async ({ page }) => {
+    await page.goto("/works/");
+    const rows = page.locator(".work-card");
+    test.skip((await rows.count()) < 2, "needs two rows (preview build)");
+    await rows.nth(0).locator("h2 a").focus();
+    // Tab past the first row's own pane link to the second row's title.
+    const second = rows.nth(1).locator("h2 a");
+    for (let i = 0; i < 5; i++) {
+      if (await second.evaluate((a) => a === document.activeElement)) break;
+      await page.keyboard.press("Tab");
+    }
+    await expect(second).toBeFocused();
+    await expect(rows.nth(1)).toHaveClass(/is-open/);
+    await expect(rows.nth(0)).not.toHaveClass(/is-open/);
+  });
+
   test("clicking a row opens its project", async ({ page }) => {
     await page.goto("/works/");
     const row = page.locator(".work-card").first();

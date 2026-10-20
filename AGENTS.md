@@ -86,6 +86,8 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - All site images are local: project photos in `src/assets/works/<slug>/`, imported from MDX so the image service optimizes them. Do not put photos in `public/` — those are served unoptimized.
 - The image service ignores EXIF Orientation, so phone photos render sideways. Run `bun run fix-images` (`scripts/fix-orientation.js`) after adding photos to bake the rotation into the file.
 - Remote `http` image URLs are still accepted by the schema, but no remote image domains are configured.
+- Write `sizes` for the width a photo is actually drawn at. A photo that covers a frame (`object-fit: cover`) taller than the photo's own shape is cropped at the sides and needs the frame's height times its aspect ratio (see the hero in `MarkdownPostLayout.astro`, the pane in `WorkCard.astro`, the thumbnails in `NextPost.astro`). Srcsets include 640w and 960w steps for 2x/3x phones.
+- The lightbox opens a 2560px AVIF copy (`LIGHTBOX_MAX` in `Masonry.astro`), never the original file.
 - Astro caches processed images in `node_modules/.astro/assets/`; a warm cache avoids re-downloading.
 - `src/scripts/undici-retry.ts` configures a global `RetryAgent` for build-time HTTP fetches with exponential backoff (5 retries, 1s-60s), 120s body timeout, and 6 max connections.
 - The Astro image cache only matters for the `bun run build` step (local or Cloudflare Workers Builds).
@@ -160,6 +162,8 @@ bun x hyperlink dist/path/to/page.html --skip-external
 - Dark mode uses `@custom-variant dark (&:where(.dark, .dark *))`.
 - Custom breakpoints are defined in the `@theme` block: `sm=800`, `md=1200`, `lg=1900`, `xl=2500`.
 - Font families center on `Inconsolata` and `Overpass Mono` (defined as `--font-overpass-mono` and `--font-inconsolata` in `@theme`).
+- Only weights 400 and 700 of each font are built (`fonts` in `astro.config.mjs`), and only 400 is preloaded (`<Font preload={[{ weight: 400 }]}>` in `BaseLayout.astro`). A new `font-weight` in the CSS needs its weight added there, or the browser falls back to the nearest built one.
+- Links prefetch their HTML when they scroll into view (`prefetch` in `astro.config.mjs`). `experimental.clientPrerender` stays off: it rendered every visible project in the background in Chrome, photos included.
 - Prefer utility classes first; add custom CSS only for masonry, lightbox, or layout edge cases.
 - Theme colours are CSS variables in `global.css`: `--paper` (page), `--ink` (type and marks) and `--line` (the hairline route), swapped by `html.dark`. Use them (`var(--ink)`, `bg-(--paper)`, `color-mix(in srgb, var(--ink) 20%, transparent)` for tints) instead of raw `rgb()` values and per-component dark overrides. The `theme-color` meta in `BaseLayout.astro` and `theme.ts` repeats `--paper` as hex.
 - The typography plugin is loaded via `@plugin "@tailwindcss/typography"` in `global.css`. ESM imports work natively with Tailwind v4.2.2 -- the old `require()` workaround is no longer needed.
@@ -204,6 +208,7 @@ bun x hyperlink dist/path/to/page.html --skip-external
 ## Deployment Notes
 
 - Deployment target is Cloudflare Workers (static assets). Deploys are atomic and asset URLs are content-hashed, so no cache purge step exists.
+- `public/_headers` serves `/_astro/*` (content-hashed) as `immutable` for a year; HTML keeps the default revalidation so a deploy shows at once. It also sets nosniff, a referrer policy, `X-Frame-Options: SAMEORIGIN` and a permissions policy on every response. Never give an unhashed path a long cache.
 - The Worker is named `cc-space` (`wrangler.jsonc`) and deploys via Cloudflare Workers Builds connected to GitHub: build command `bun run build`, deploy command `npx wrangler deploy` (`bun run deploy` locally).
 - Design-review test site: `bun run deploy:preview` builds with `PUBLIC_PREVIEW=1` (shows the `PreviewSwitcher` layout panel and adds `noindex`) and deploys it with `wrangler deploy --name cc-space-preview` to https://cc-space-preview.lan74123.workers.dev, a separate Worker from `cc-space`. Deployed by hand; not wired to Workers Builds.
 - Settled layout choices (H9 / D3, "Discover more" R without the figure, L2-1, C0, P1) are built into the styles of `WorkCard.astro` and `NextPost.astro`, so production and preview render the same layout. `PreviewSwitcher.astro` (dev and preview builds only) now offers just the still-open Gap option (`html[data-gap]`); production uses its default, S0. It also has font rows (英文 / 中文 / 範圍) for the client to try their own font files on the real pages: the files are loaded with the FontFace API, kept in that browser's IndexedDB (`pv-fonts`), and override the `.font-overpass-mono` / `.font-inconsolata` utilities; nothing is uploaded.

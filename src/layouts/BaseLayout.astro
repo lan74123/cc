@@ -16,6 +16,7 @@ import {
   SITE_LANG,
   SITE_LOCALE,
 } from "../consts";
+import { ROUTE_COLLECTIONS } from "../config/collections";
 import coverImage from "../assets/cover.jpg";
 const baseUrl = new URL(Astro.request.url).origin;
 // Design-review builds (PUBLIC_PREVIEW=1) show the layout switcher and
@@ -86,18 +87,24 @@ const websiteSchema = {
 const documentTitle =
   title && title !== SITE_TITLE ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 
-// Build breadcrumb from URL path segments
+// Build breadcrumb from URL path segments. Names: the page's own title
+// last, a collection's title ("Works") for its segment, otherwise the
+// segment capitalised. URLs end in "/" like the site's canonical ones.
 const pathSegments = Astro.url.pathname.split("/").filter((s) => s.length > 0);
+const segmentName = (segment: string, i: number): string => {
+  if (i === pathSegments.length - 1 && title) return title;
+  const collection = ROUTE_COLLECTIONS.find((c) => c.name === segment);
+  if (i === 0 && collection) return collection.title;
+  const words = segment.replace(/[-_]/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
 const breadcrumbItems = [
-  { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
+  { "@type": "ListItem", position: 1, name: "Home", item: `${baseUrl}/` },
   ...pathSegments.map((segment, i) => ({
     "@type": "ListItem",
     position: i + 2,
-    name:
-      i === pathSegments.length - 1 && title
-        ? title
-        : segment.replace(/[-_]/g, " "),
-    item: `${baseUrl}/${pathSegments.slice(0, i + 1).join("/")}`,
+    name: segmentName(segment, i),
+    item: `${baseUrl}/${pathSegments.slice(0, i + 1).join("/")}/`,
   })),
 ];
 const breadcrumbSchema = {

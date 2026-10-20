@@ -219,7 +219,9 @@ async function main() {
     if (options.tags) {
       const tagArray = options.tags
         .split(",")
-        .map((t) => `"${t.trim()}"`)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((t) => `"${t}"`)
         .join(", ");
       setField(fmLines, "tags", `[${tagArray}]`);
       changesMade = true;

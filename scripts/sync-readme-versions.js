@@ -22,11 +22,14 @@ function clean(raw) {
   return raw?.replace(/^[\^~>=<]+/, "") ?? "unknown";
 }
 
+/** A package's declared version, whether it is a dev dependency or not. */
+const dep = (name) => pkg.dependencies?.[name] ?? pkg.devDependencies?.[name];
+
 const v = {
-  astro: clean(pkg.dependencies["astro"]),
-  tailwind: clean(pkg.dependencies["tailwindcss"]),
-  ts: clean(pkg.dependencies["typescript"]),
-  mdx: clean(pkg.dependencies["@astrojs/mdx"]),
+  astro: clean(dep("astro")),
+  tailwind: clean(dep("tailwindcss")),
+  ts: clean(dep("typescript")),
+  mdx: clean(dep("@astrojs/mdx")),
 };
 
 // --------------- Replacement pairs [pattern, replacement string] ---------------

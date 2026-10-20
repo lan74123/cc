@@ -194,7 +194,10 @@ function handleNonInteractive() {
   const slug = options.slug || slugify(options.title);
   const pubDate = options.pubDate || new Date().toISOString();
   const tags = options.tags
-    ? options.tags.split(",").map((t) => t.trim())
+    ? options.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
     : [collectionType];
   const author = options.author || "CC Space";
 
@@ -285,7 +288,11 @@ async function handleInteractive() {
       name: "tags",
       message: `${chalk.cyan("Tags")} ${chalk.gray("(comma-separated)")}:`,
       default: collectionType,
-      filter: (v) => v.split(",").map((t) => t.trim()),
+      filter: (v) =>
+        v
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
     },
     {
       type: "input",

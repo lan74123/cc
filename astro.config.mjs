@@ -4,7 +4,6 @@ import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
 
 import remarkGfm from "remark-gfm";
-import icon from "astro-icon";
 import undiciRetry from "./src/scripts/undici-retry.ts";
 import tailwindcss from "@tailwindcss/vite";
 import hqService from "@erfianugrah/astro-image-hq";
@@ -41,7 +40,6 @@ export default defineConfig({
   },
 
   integrations: [
-    icon(),
     sitemap(),
     mdx(), // inherits syntaxHighlight, shikiConfig, remarkPlugins, rehypePlugins from markdown config
     undiciRetry(),

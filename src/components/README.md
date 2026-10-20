@@ -25,7 +25,7 @@ Components are the reusable building blocks of the site. All are Astro `.astro` 
   - **[ThemeToggle.astro](ThemeToggle.astro)**: Self-contained light/dark mode switcher with inline SVG sun/moon. CSS drives dark-state visuals; `theme-toggle` custom event is dispatched on click; [theme.ts](../scripts/theme.ts) handles the actual class toggle and localStorage persistence. All hooks re-wire on `astro:page-load`.
   - **[Navigation.astro](Navigation.astro)**: Site navigation menu with `aria-label` attributes
 
-- **[Footer.astro](Footer.astro)**: Site footer with social media icons from [astro-icon](../../package.json)
+- **[Footer.astro](Footer.astro)**: Site footer: copyright line and the Instagram link (an inline SVG; astro-icon was removed as the only icon did not need it)
 
 ### Content Presentation Components
 

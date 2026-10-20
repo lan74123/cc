@@ -1,9 +1,10 @@
 import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
+import { getCollection, type CollectionEntry } from "astro:content";
 import sanitizeHtml from "sanitize-html";
 import MarkdownIt from "markdown-it";
 import type { ImageMetadata } from "astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import type { Props as WorkCardProps } from "../components/WorkCard.astro";
 
 const parser = new MarkdownIt();
 
@@ -21,6 +22,9 @@ function stripMdx(body: string): string {
 /** Valid content collection names for use with getCollection(). */
 export type CollectionName = "works" | "research";
 
+/** An entry of any route collection, as getEntries() returns it. */
+export type Entry = CollectionEntry<CollectionName>;
+
 /** Placeholder entries show in dev and on the preview site only. */
 const SHOW_PLACEHOLDERS =
   import.meta.env.DEV || import.meta.env.PUBLIC_PREVIEW === "1";
@@ -35,6 +39,31 @@ export function getEntries<C extends CollectionName>(name: C) {
   return getCollection(name, (entry) =>
     SHOW_PLACEHOLDERS ? true : !entry.data.placeholder,
   );
+}
+
+/**
+ * Props for one WorkCard row on an index or tag page; `index` is the
+ * row's 1-based position in the list.
+ */
+export function workCardProps(
+  post: Entry,
+  collectionSlug: string,
+  index: number,
+): WorkCardProps {
+  const { data } = post;
+  return {
+    index,
+    url: `/${collectionSlug}/${post.id}/`,
+    image: data.image?.src || "",
+    alt: data.image?.alt || "",
+    title: data.title,
+    description: data.description,
+    category: data.category,
+    year: data.year,
+    location: data.location,
+    positionx: data.image?.positionx || "",
+    positiony: data.image?.positiony || "",
+  };
 }
 
 /** Shared shape of a content collection entry used across all collections. */

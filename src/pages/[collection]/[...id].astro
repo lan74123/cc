@@ -1,7 +1,11 @@
 ---
 import { render } from "astro:content";
 import MarkdownPostLayout from "../../layouts/MarkdownPostLayout.astro";
-import { buildDetailPaths, getEntries } from "../../scripts/collections";
+import {
+  buildDetailPaths,
+  getEntries,
+  type Entry,
+} from "../../scripts/collections";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
@@ -10,7 +14,7 @@ import {
 export async function getStaticPaths() {
   const paths: {
     params: { collection: string; id: string };
-    props: { entry: any };
+    props: { entry: Entry };
   }[] = [];
   for (const config of ROUTE_COLLECTIONS) {
     const entries = await getEntries(config.name);
@@ -25,7 +29,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry as any);
+const { Content } = await render(entry);
 ---
 
 <MarkdownPostLayout

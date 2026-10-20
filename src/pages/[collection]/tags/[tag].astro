@@ -2,7 +2,12 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import WorkCard from "../../../components/WorkCard.astro";
 import { sortByDate } from "../../../components/sortByDate";
-import { buildTagPaths, getEntries } from "../../../scripts/collections";
+import {
+  buildTagPaths,
+  getEntries,
+  workCardProps,
+  type Entry,
+} from "../../../scripts/collections";
 import {
   ROUTE_COLLECTIONS,
   getRouteCollection,
@@ -11,7 +16,7 @@ import {
 export async function getStaticPaths() {
   const paths: {
     params: { collection: string; tag: string };
-    props: { posts: any; collectionSlug: string };
+    props: { posts: Entry[]; collectionSlug: string };
   }[] = [];
   for (const config of ROUTE_COLLECTIONS) {
     const entries = await getEntries(config.name);
@@ -37,19 +42,7 @@ const sorted = [...posts].sort(sortByDate);
   <div class="work-list">
     {
       sorted.map((post, i) => (
-        <WorkCard
-          index={i + 1}
-          url={`/${collectionSlug}/${post.id}/`}
-          image={post.data?.image?.src || ""}
-          alt={post.data?.image?.alt || ""}
-          title={post.data?.title || ""}
-          description={post.data?.description || ""}
-          category={post.data?.category}
-          year={post.data?.year}
-          location={post.data?.location}
-          positionx={post.data?.image?.positionx || ""}
-          positiony={post.data?.image?.positiony || ""}
-        />
+        <WorkCard {...workCardProps(post, collectionSlug, i + 1)} />
       ))
     }
   </div>

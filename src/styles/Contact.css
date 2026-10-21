@@ -201,10 +201,14 @@
   font-size: 0.75rem;
   opacity: 0.6;
 }
-/* Turnstile draws a 65px-tall box; hold the space so the button does
-   not jump when it appears. */
-.cf-turnstile {
-  min-height: 65px;
+/* Turnstile stays out of the layout until it asks for a click
+   (.is-shown, contactForm.ts); it still runs while out of sight. */
+.cf-turnstile:not(.is-shown) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 .cf-error {
   font-size: 0.9rem;

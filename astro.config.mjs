@@ -12,6 +12,20 @@ import hqService from "@erfianugrah/astro-image-hq";
 const isDev =
   process.env.NODE_ENV !== "production" && !process.argv.includes("build");
 
+// Markdown tables mark column alignment with the obsolete `align`
+// attribute; write it as `text-align` instead, which lint:html allows.
+function rehypeTableAlign() {
+  const walk = (node) => {
+    const align = node.properties?.align;
+    if (align) {
+      node.properties.style = `text-align: ${align}`;
+      delete node.properties.align;
+    }
+    node.children?.forEach(walk);
+  };
+  return walk;
+}
+
 // https://astro.build/config
 export default defineConfig({
   // Canonical/sitemap/RSS origin. Workers Builds sets SITE_URL; local
@@ -63,6 +77,7 @@ export default defineConfig({
     // explicitly below (Astro's built-in adds it with default options first).
     processor: unified({
       remarkPlugins: [remarkGfm],
+      rehypePlugins: [rehypeTableAlign],
       gfm: false,
       // U+FE0E asks for the text arrow: iOS draws a bare ↩ as an emoji.
       remarkRehype: { footnoteBackContent: "↩︎" },

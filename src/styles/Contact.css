@@ -1,0 +1,335 @@
+/* Contact page (contact.astro): intro, channels and the enquiry form.
+   The default layout is F1, one column. F2 (side by side) and F3
+   (numbered rows) are offered on the preview site for the client to
+   compare (html[data-contact], PreviewSwitcher.astro). */
+
+.contact {
+  max-width: 44rem;
+  margin-top: 2rem;
+  padding-bottom: 4rem;
+}
+.contact h1 {
+  margin: 0 0 1.25rem;
+}
+.contact-lead {
+  line-height: 1.8;
+}
+.contact-en {
+  display: block;
+  margin-top: 0.25rem;
+  opacity: 0.65;
+}
+.contact-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.contact-channels div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.contact-channels dt {
+  flex: none;
+  width: 5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.contact-channels a {
+  /* A 44px-tall target without moving the line. */
+  display: inline-block;
+  padding-block: 0.75rem;
+  margin-block: -0.75rem;
+  text-decoration: underline 1px;
+  text-underline-offset: 4px;
+}
+.contact-channels a:hover {
+  opacity: 0.7;
+}
+
+/* ── Form ─────────────────────────────────────────────── */
+.cf {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+}
+.cf-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.cf-short {
+  max-width: 22rem;
+}
+.cf-label {
+  /* A floated legend is laid out like any other element, so fieldsets
+     and plain fields line up in every layout below. */
+  float: left;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+.cf-label + * {
+  clear: left;
+}
+.cf-en {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.cf-req {
+  opacity: 0.55;
+}
+.cf input[type="text"],
+.cf textarea {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  /* 16px or more, or iOS zooms in on focus. */
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-out;
+}
+.cf textarea {
+  resize: vertical;
+  line-height: 1.7;
+}
+.cf input[type="text"]:focus,
+.cf textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.cf ::placeholder {
+  color: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.cf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cf-chip {
+  position: relative;
+  cursor: pointer;
+}
+/* The radio stays in place for the keyboard and screen readers; the
+   pill drawn by its span is what shows. */
+.cf-chip input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.cf-chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out,
+    border-color 0.2s ease-out;
+}
+.cf-chip:hover span {
+  border-color: var(--ink);
+}
+.cf-chip input:checked + span {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.cf-chip input:focus-visible + span {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.cf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+.cf-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0 1.75rem;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s ease-out;
+}
+.cf-submit span {
+  transition: transform 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.cf-submit:hover span {
+  transform: translateX(4px);
+}
+.cf-submit:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+.cf-note {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+.cf-error {
+  font-size: 0.9rem;
+}
+
+.cf-done {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  line-height: 1.8;
+}
+.cf-done:focus {
+  outline: none;
+}
+.cf-done-title {
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+}
+.cf-demo {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+/* The display rules above would otherwise show hidden parts. */
+.contact [hidden] {
+  display: none;
+}
+
+/* ── F2: side by side ─────────────────────────────────────
+   Intro and channels hold the left column while the form, in boxed
+   fields, takes the right; short fields pair up. */
+@media (min-width: 800px) {
+  html[data-contact="f2"] .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    column-gap: clamp(3rem, 7vw, 7rem);
+    max-width: none;
+  }
+  html[data-contact="f2"] .contact-intro {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+  }
+  html[data-contact="f2"] .cf,
+  html[data-contact="f2"] .cf-done {
+    grid-column: 2;
+    margin-top: 0.5rem;
+    padding-top: 0;
+    border-top: 0;
+  }
+  html[data-contact="f2"] .cf {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
+  }
+  html[data-contact="f2"] .cf > * {
+    grid-column: 1 / -1;
+  }
+  html[data-contact="f2"] .cf > .cf-half {
+    grid-column: auto;
+  }
+}
+html[data-contact="f2"] .cf input[type="text"],
+html[data-contact="f2"] .cf textarea {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border-radius: 2px;
+}
+html[data-contact="f2"] .cf-chip span {
+  border-radius: 2px;
+}
+
+/* ── F3: numbered rows ────────────────────────────────────
+   Each question is a numbered row between hairlines, like the works
+   index: number, label, then the answer. */
+html[data-contact="f3"] .contact {
+  max-width: 60rem;
+}
+html[data-contact="f3"] .cf {
+  gap: 0;
+  counter-reset: cf;
+}
+html[data-contact="f3"] .cf-field {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  padding-block: 1.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  counter-increment: cf;
+}
+html[data-contact="f3"] .cf-field::before {
+  content: counter(cf, decimal-leading-zero);
+  grid-row: 1 / span 2;
+  padding-top: 0.15rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+html[data-contact="f3"] .cf-short {
+  max-width: none;
+}
+html[data-contact="f3"] .cf-actions {
+  padding-top: 2rem;
+  padding-left: 2.5rem;
+}
+@media (min-width: 800px) {
+  html[data-contact="f3"] .cf-field {
+    grid-template-columns: 4rem 14rem minmax(0, 1fr);
+    align-items: start;
+  }
+  html[data-contact="f3"] .cf-field::before {
+    grid-row: auto;
+    padding-top: 0.9rem;
+  }
+  /* Chinese and its * on the first line, English under them. */
+  html[data-contact="f3"] .cf-label {
+    gap: 0.2rem 0.4rem;
+    margin: 0;
+    padding-top: 0.75rem;
+  }
+  html[data-contact="f3"] .cf-label + * {
+    clear: none;
+  }
+  html[data-contact="f3"] .cf-en {
+    flex-basis: 100%;
+    order: 1;
+  }
+  html[data-contact="f3"] .cf-chips {
+    padding-top: 0.25rem;
+  }
+  html[data-contact="f3"] .cf-actions {
+    padding-left: 18rem;
+  }
+}

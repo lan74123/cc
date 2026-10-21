@@ -5,11 +5,15 @@
 // Settled with the client and now built into the styles (WorkCard.astro,
 // NextPost.astro):
 // H9 route (D3 on desktop), "Discover more" as R without the figure,
-// lead L2-1, cue C0, view P1. Only Gap is still open, until the real
-// write-ups come in.
+// lead L2-1, cue C0, view P1. Gap is still open, until the real
+// write-ups come in, and so is the contact form layout.
 // The font rows let the client try their own font files on the real
 // pages before a font change is made; the files stay in their browser.
-const groups = [{ key: "gap", label: "Gap", options: ["s0", "s1"] }];
+// Form: contact page layout (Contact.css), F1 one column by default.
+const groups = [
+  { key: "gap", label: "Gap", options: ["s0", "s1"] },
+  { key: "contact", label: "Form", options: ["f1", "f2", "f3"] },
+];
 // Options per key, so a choice remembered from an earlier round that is
 // no longer offered falls back to the default.
 const allowed: Record<string, string[]> = {};
@@ -21,7 +25,7 @@ for (const g of groups) {
 <script is:inline define:vars={{ allowed }}>
   (() => {
     // Settled choices are built into the styles; only open ones are set here.
-    const defaults = { gap: "s0" };
+    const defaults = { gap: "s0", contact: "f1" };
     const apply = () => {
       const root = document.documentElement;
       for (const [k, d] of Object.entries(defaults)) {

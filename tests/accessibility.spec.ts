@@ -51,8 +51,11 @@ test.describe("Accessibility", () => {
         bs
           .filter(
             (b) =>
-              b.getAttribute("type") !== "button" ||
-              !(b.getAttribute("aria-label") || b.textContent?.trim()),
+              // Explicit types only; submit just for a form's own button.
+              !(
+                b.getAttribute("type") === "button" ||
+                (b.getAttribute("type") === "submit" && b.form)
+              ) || !(b.getAttribute("aria-label") || b.textContent?.trim()),
           )
           .map((b) => b.outerHTML.slice(0, 80)),
       );

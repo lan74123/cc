@@ -1,7 +1,24 @@
 {
   "extends": ["html-validate:recommended"],
   "rules": {
-    "no-inline-style": ["error", { "allowedProperties": ["object-position"] }],
+    "no-inline-style": [
+      "error",
+      {
+        "allowedProperties": [
+          "object-position",
+          "text-align",
+          "--shiki-light",
+          "--shiki-dark",
+          "--shiki-light-bg",
+          "--shiki-dark-bg",
+          "--shiki-light-font-style",
+          "--shiki-dark-font-style",
+          "overflow-x",
+          "white-space",
+          "word-wrap"
+        ]
+      }
+    ],
     "void-style": "off"
   }
 }

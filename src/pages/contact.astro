@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Prose from "../components/Prose.astro";
+import "../styles/Contact.css";
 
 const title = "Contact";
 const description = "Get in touch about a project.";
@@ -15,35 +16,188 @@ const channels = [
   // Non-breaking hyphens keep the number on one line.
   { label: "Phone", value: "0929‑073‑788", href: "tel:+886929073788" },
 ];
+
+// Choice questions, shown as chips. Ranges are first guesses for the
+// studio to confirm.
+const choices = [
+  {
+    name: "type",
+    zh: "空間類型",
+    en: "Space",
+    required: true,
+    options: ["住宅 Home", "商業空間 Commercial"],
+  },
+  {
+    name: "size",
+    zh: "坪數",
+    en: "Size",
+    options: ["20 坪以下", "20–35 坪", "35–50 坪", "50 坪以上"],
+  },
+  {
+    name: "condition",
+    zh: "屋況",
+    en: "Property",
+    options: [
+      "預售屋 Pre-sale",
+      "新成屋 New build",
+      "中古屋 Resale",
+      "老屋翻新 Older home",
+    ],
+  },
+  {
+    name: "budget",
+    zh: "預算（含設計與工程）",
+    en: "Budget, design & build",
+    options: [
+      "100 萬以下",
+      "100–200 萬",
+      "200–400 萬",
+      "400 萬以上",
+      "還不確定 Not sure",
+    ],
+  },
+];
 ---
 
 <BaseLayout title={title} description={description} is404Page={false}>
   <div class="flex-1">
     <Prose>
-      <h1 class="font-heading mt-8">{title}</h1>
-      <p>
-        Interested in working together? Reach out through any of the channels
-        below.
-      </p>
-      <dl class="font-body not-prose flex flex-col gap-3 mt-8">
-        {
-          channels.map((c) => (
-            <div class="flex gap-2 items-baseline">
-              <dt class="font-heading uppercase text-sm text-gray-600 dark:text-gray-400 shrink-0 w-20">
-                {c.label}
-              </dt>
-              <dd>
-                <a
-                  href={c.href}
-                  class="inline-block py-3 -my-3 underline underline-offset-4 decoration-1 hover:opacity-70"
-                >
-                  {c.value}
-                </a>
-              </dd>
-            </div>
-          ))
-        }
-      </dl>
+      <div class="contact not-prose">
+        <header class="contact-intro">
+          <h1 class="font-heading">{title}</h1>
+          <p class="contact-lead font-body">
+            想聊聊您的空間嗎？留下幾項基本資料，我們會在 3 個工作天內與您聯絡。
+            <span class="contact-en"
+              >Tell us a little about your space and we'll be in touch within 3
+              business days.</span
+            >
+          </p>
+          <dl class="contact-channels font-body">
+            {
+              channels.map((c) => (
+                <div>
+                  <dt class="font-heading">{c.label}</dt>
+                  <dd>
+                    <a href={c.href}>{c.value}</a>
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </header>
+
+        <!-- data-demo: no sending endpoint yet; see contactForm.ts. -->
+        <form
+          class="cf font-body"
+          method="post"
+          action="/api/contact"
+          data-demo
+        >
+          <div class="cf-field cf-half">
+            <label for="cf-name" class="cf-label font-heading">
+              <span>稱呼</span><span class="cf-en">Name</span>
+              <span class="cf-req" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="cf-name"
+              name="name"
+              type="text"
+              autocomplete="name"
+              required
+            />
+          </div>
+          <div class="cf-field cf-half">
+            <label for="cf-contact" class="cf-label font-heading">
+              <span>聯絡方式</span><span class="cf-en">Phone or email</span>
+              <span class="cf-req" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="cf-contact"
+              name="contact"
+              type="text"
+              placeholder="電話、Email 或 LINE ID"
+              required
+            />
+          </div>
+          <div class="cf-field cf-short">
+            <label for="cf-city" class="cf-label font-heading">
+              <span>地點</span><span class="cf-en">Location</span>
+            </label>
+            <input
+              id="cf-city"
+              name="city"
+              type="text"
+              placeholder="例如 台北市大安區"
+            />
+          </div>
+          {
+            choices.map((q) => (
+              <fieldset class="cf-field">
+                <legend class="cf-label font-heading">
+                  <span>{q.zh}</span>
+                  <span class="cf-en">{q.en}</span>
+                  {q.required && (
+                    <span class="cf-req" aria-hidden="true">
+                      *
+                    </span>
+                  )}
+                </legend>
+                <div class="cf-chips">
+                  {q.options.map((o, i) => (
+                    <label class="cf-chip">
+                      <input
+                        type="radio"
+                        name={q.name}
+                        value={o}
+                        required={q.required && i === 0}
+                      />
+                      <span>{o}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ))
+          }
+          <div class="cf-field">
+            <label for="cf-message" class="cf-label font-heading">
+              <span>想跟我們說的話</span><span class="cf-en">Message</span>
+            </label>
+            <textarea
+              id="cf-message"
+              name="message"
+              rows="5"
+              placeholder="預計時程、家庭成員、喜歡的參考作品⋯⋯ Timing, who lives there, projects you like."
+            ></textarea>
+          </div>
+          <div class="cf-actions">
+            <button type="submit" class="cf-submit font-heading">
+              送出 Send <span aria-hidden="true">→</span>
+            </button>
+            <p class="cf-note">
+              <span class="cf-req" aria-hidden="true">*</span> 為必填 Required
+            </p>
+          </div>
+          <p class="cf-error" role="alert" hidden>
+            送出失敗，請稍後再試，或直接寄信到 hello@ccspace.tw。 Something went
+            wrong; please try again or email us.
+          </p>
+        </form>
+
+        <div class="cf-done" tabindex="-1" hidden>
+          <p class="cf-done-title font-heading">謝謝您 Thank you</p>
+          <p class="font-body">
+            我們已收到您的資料，會在 3 個工作天內與您聯絡。
+            <span class="contact-en"
+              >We have your note and will be in touch within 3 business days.</span
+            >
+          </p>
+          <p class="cf-demo font-body" hidden>
+            測試站：表單還沒接上寄信，這次沒有寄出。
+          </p>
+        </div>
+      </div>
     </Prose>
   </div>
 </BaseLayout>
+
+<script src="../scripts/contactForm.ts"></script>

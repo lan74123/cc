@@ -83,7 +83,7 @@ bun run dev
 
 ### 5. 發布
 
-- **先發到測試站**給大家看：`bun run deploy:preview`，網址 https://cc-space-preview.lan74123.workers.dev
+- **先發到測試站**給大家看：`bun run deploy:preview`，網址 https://cc-space-preview.hello-ccatelier.workers.dev
 - **上正式站**：把修改合併到 GitHub 的 `main` 分支並 push。`main` 一更新，Cloudflare 就會自動建置並上線（約 1–3 分鐘）
 
 > 也可以用精靈建立資料夾：`bun run create`，照著問題回答即可，之後一樣把照片放進它建立的資料夾。

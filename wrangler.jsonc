@@ -1,6 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cc-space",
+  // The studio's Cloudflare account, which holds ccspace.tw. Local
+  // deploys authenticate with CLOUDFLARE_API_TOKEN from .env (bun loads
+  // it), a token for this account.
+  "account_id": "dd040f961a4e0d09b2e30e2d0570dbe0",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {

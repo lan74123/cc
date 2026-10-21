@@ -162,10 +162,11 @@ const formattedUpdatedDate = updatedDate
     }
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Fonts: the regular weights are on every page, so they are
-         preloaded; bold loads when a page uses it. -->
-    <Font cssVariable="--font-inconsolata" preload={[{ weight: 400 }]} />
-    <Font cssVariable="--font-overpass-mono" preload={[{ weight: 400 }]} />
+    <!-- Fonts: Montserrat Regular is on every page, so it is preloaded.
+         Noto Sans TC comes in ~100 slices by character; the browser
+         fetches only the slices a page's Chinese uses. -->
+    <Font cssVariable="--font-montserrat" preload={[{ weight: 400 }]} />
+    <Font cssVariable="--font-noto-sans-tc" />
 
     <!-- Basic SEO -->
     <title>{documentTitle}</title>

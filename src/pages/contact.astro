@@ -20,16 +20,16 @@ const channels = [
 <BaseLayout title={title} description={description} is404Page={false}>
   <div class="flex-1">
     <Prose>
-      <h1 class="font-overpass-mono mt-8">{title}</h1>
+      <h1 class="font-heading mt-8">{title}</h1>
       <p>
         Interested in working together? Reach out through any of the channels
         below.
       </p>
-      <dl class="font-inconsolata not-prose flex flex-col gap-3 mt-8">
+      <dl class="font-body not-prose flex flex-col gap-3 mt-8">
         {
           channels.map((c) => (
             <div class="flex gap-2 items-baseline">
-              <dt class="font-overpass-mono uppercase text-sm text-gray-600 dark:text-gray-400 shrink-0 w-20">
+              <dt class="font-heading uppercase text-sm text-gray-600 dark:text-gray-400 shrink-0 w-20">
                 {c.label}
               </dt>
               <dd>

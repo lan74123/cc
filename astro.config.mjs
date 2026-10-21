@@ -77,25 +77,29 @@ export default defineConfig({
     defaultStrategy: "viewport",
   },
 
+  // Served from the site itself (downloaded from Google Fonts at build
+  // time), not from Google. Montserrat draws Latin text; Noto Sans TC
+  // (思源黑體) draws the Chinese it lacks. Text sits at weight 300, so
+  // Chinese picks up the Light face while Montserrat, having nothing
+  // lighter than 400, stays Regular. Bold (600/700) is 700 in both.
   fonts: [
     {
-      provider: fontProviders.fontsource(),
-      name: "Inconsolata",
-      cssVariable: "--font-inconsolata",
+      provider: fontProviders.google(),
+      name: "Montserrat",
+      cssVariable: "--font-montserrat",
       display: "swap",
-      fallbacks: ["monospace"],
-      // Only the weights the site sets: 400 for text, 700 for bold.
+      // No generic fallback here: it would catch the Chinese before
+      // Noto Sans TC got the chance.
+      fallbacks: [],
       weights: [400, 700],
-      optimizedFallbacks: true,
     },
     {
-      provider: fontProviders.fontsource(),
-      name: "Overpass Mono",
-      cssVariable: "--font-overpass-mono",
+      provider: fontProviders.google(),
+      name: "Noto Sans TC",
+      cssVariable: "--font-noto-sans-tc",
       display: "swap",
-      fallbacks: ["monospace"],
-      weights: [400, 700],
-      optimizedFallbacks: true,
+      fallbacks: ["sans-serif"],
+      weights: [300, 700],
     },
   ],
 

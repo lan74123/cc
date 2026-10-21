@@ -10,8 +10,8 @@
   --breakpoint-md: 1200px;
   --breakpoint-lg: 1900px;
   --breakpoint-xl: 2500px;
-  --font-overpass-mono: var(--font-overpass-mono), "Overpass Mono", monospace;
-  --font-inconsolata: var(--font-inconsolata), "Inconsolata", monospace;
+  --font-heading: var(--font-montserrat), var(--font-noto-sans-tc);
+  --font-body: var(--font-montserrat), var(--font-noto-sans-tc);
 }
 
 /* Typography plugin: suppress smart-quotes on blockquotes.
@@ -61,7 +61,9 @@ html.dark {
 
 html {
   background-color: var(--paper);
-  font-family: sans-serif;
+  font-family: var(--font-body);
+  /* Light Chinese, Regular Latin: see fonts in astro.config.mjs. */
+  font-weight: 300;
   height: 100%;
   color-scheme: light;
 }

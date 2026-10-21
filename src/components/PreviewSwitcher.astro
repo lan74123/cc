@@ -51,7 +51,7 @@ for (const g of groups) {
   })();
 </script>
 
-<div id="preview-switcher" class="font-overpass-mono">
+<div id="preview-switcher" class="font-heading">
   <button type="button" class="pv-min" aria-label="Fold the preview panel">
     <span class="pv-min-open">–</span><span class="pv-min-closed">PV</span>
   </button>
@@ -325,11 +325,11 @@ for (const g of groups) {
     const rules: string[] = [];
     if (scope !== "body")
       rules.push(
-        `.font-overpass-mono { font-family: ${lead}var(--font-overpass-mono) !important; }`,
+        `.font-heading { font-family: ${lead}var(--font-heading) !important; }`,
       );
     if (scope !== "head")
       rules.push(
-        `.font-inconsolata { font-family: ${lead}var(--font-inconsolata) !important; }`,
+        `.font-body { font-family: ${lead}var(--font-body) !important; }`,
         `html { font-family: ${lead}sans-serif; }`,
       );
     sheet.replaceSync(rules.join("\n"));

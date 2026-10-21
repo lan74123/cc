@@ -27,8 +27,10 @@ test.describe("Styling canaries", () => {
         .locator(sel)
         .first()
         .evaluate((e) => getComputedStyle(e).fontFamily);
-    expect(await family(".font-overpass-mono")).toContain("Overpass Mono");
-    expect(await family(".font-inconsolata")).toContain("Inconsolata");
+    for (const sel of [".font-heading", ".font-body"]) {
+      expect(await family(sel)).toContain("Montserrat");
+      expect(await family(sel)).toContain("Noto Sans TC");
+    }
   });
 
   test(".dark sets the page background and colour scheme", async ({ page }) => {

@@ -75,10 +75,10 @@ const indexLabel = isWorks ? "All works" : "All research";
       aria-labelledby="more-heading"
     >
       <div class="more-head">
-        <h2 id="more-heading" class="font-overpass-mono">
+        <h2 id="more-heading" class="font-heading">
           {heading}
         </h2>
-        <a href={`/${collection}/`} class="more-index font-overpass-mono">
+        <a href={`/${collection}/`} class="more-index font-heading">
           {indexLabel} <span aria-hidden="true">→</span>
         </a>
       </div>
@@ -100,10 +100,10 @@ const indexLabel = isWorks ? "All works" : "All research";
                 class="route-row"
                 aria-current={stop.here ? "page" : undefined}
               >
-                <span class="route-num font-overpass-mono">{stop.num}</span>
-                <span class="route-title font-overpass-mono">{stop.title}</span>
+                <span class="route-num font-heading">{stop.num}</span>
+                <span class="route-title font-heading">{stop.title}</span>
                 {stop.meta && (
-                  <span class="route-meta font-overpass-mono">{stop.meta}</span>
+                  <span class="route-meta font-heading">{stop.meta}</span>
                 )}
                 {stop.image && (
                   <img

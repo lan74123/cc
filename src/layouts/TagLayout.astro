@@ -70,7 +70,7 @@ for (const post of allContent) {
   <div>
     {
       tags.length === 1 ? (
-        <div class="object-contain w-full h-full relative flex items-center justify-center font-overpass-mono">
+        <div class="object-contain w-full h-full relative flex items-center justify-center font-heading">
           <GetRandomImage
             images={JSON.stringify(imagesByTag[tags[0]])}
             tag={tags[0]}
@@ -79,7 +79,7 @@ for (const post of allContent) {
           <slot />
         </div>
       ) : (
-        <div class="sm:grid sm:grid-cols-4 gap-4 space-y-4 sm:space-y-0 justify-center items-center font-overpass-mono">
+        <div class="sm:grid sm:grid-cols-4 gap-4 space-y-4 sm:space-y-0 justify-center items-center font-heading">
           {tags.map((tag) => (
             <div class="col-span-1">
               <GetRandomImage

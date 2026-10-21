@@ -20,10 +20,10 @@ const fields = [
 
 {
   fields.length > 0 && (
-    <dl class="work-meta font-inconsolata not-prose">
+    <dl class="work-meta font-body not-prose">
       {fields.map((field) => (
         <div>
-          <dt class="font-overpass-mono">{field.label}</dt>
+          <dt class="font-heading">{field.label}</dt>
           <dd>{field.value}</dd>
         </div>
       ))}

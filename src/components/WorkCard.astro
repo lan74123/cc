@@ -89,11 +89,11 @@ const paneSizes = [
     }
   </a>
   <div class="work-card-body">
-    {number && <span class="work-card-num font-overpass-mono">{number}</span>}
-    <h2 class="font-overpass-mono">
+    {number && <span class="work-card-num font-heading">{number}</span>}
+    <h2 class="font-heading">
       <a href={url}>{title}</a>
     </h2>
-    {meta && <p class="work-card-meta font-overpass-mono">{meta}</p>}
+    {meta && <p class="work-card-meta font-heading">{meta}</p>}
   </div>
   <div class="work-card-detail">
     {
@@ -114,17 +114,17 @@ const paneSizes = [
         </a>
       )
     }
-    <p class="work-card-caption font-overpass-mono">
+    <p class="work-card-caption font-heading">
       {number && <span class="work-card-caption-num">{number}</span>}
       {[location, category, year].filter(Boolean).join(" · ")}
     </p>
     <div class="work-card-detail-text">
       {
         facts.length > 0 && (
-          <dl class="work-card-facts font-inconsolata">
+          <dl class="work-card-facts font-body">
             {facts.map((fact) => (
               <div>
-                <dt class="font-overpass-mono">{fact.label}</dt>
+                <dt class="font-heading">{fact.label}</dt>
                 <dd>{fact.value}</dd>
               </div>
             ))}
@@ -133,11 +133,11 @@ const paneSizes = [
       }
       {
         description && (
-          <p class="work-card-detail-desc font-inconsolata">{description}</p>
+          <p class="work-card-detail-desc font-body">{description}</p>
         )
       }
       <div class="work-card-actions">
-        <a href={url} class="work-card-more font-overpass-mono">
+        <a href={url} class="work-card-more font-heading">
           View project <span class="work-card-arrow" aria-hidden="true">→</span>
         </a>
       </div>

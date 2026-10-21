@@ -353,18 +353,33 @@ document.addEventListener("astro:page-load", () => {
 
   // H9: the figure steps while the page scrolls and faces the way it
   // is going; it stands still again shortly after scrolling stops.
-  let walkY = window.scrollY;
+  // It turns only for the reader's own scrolling: not for the scrolls
+  // made here to hold a row still (data-scroll-hold), not for iOS
+  // springing back past either end, and not for a pixel of jitter.
+  const TURN = 6;
+  const scrollPos = () =>
+    Math.min(
+      Math.max(window.scrollY, 0),
+      document.documentElement.scrollHeight - window.innerHeight,
+    );
+  let walkY = scrollPos();
   let walkLast = 0;
   let walkIdle = 0;
   const onWalk = () => {
     if (calm.matches) return;
+    const y = scrollPos();
     const cap = list.querySelector<HTMLElement>(
       ".work-card.is-open:not(.is-closing) .work-card-cap",
     );
-    if (!cap) return;
-    const y = window.scrollY;
-    if (y !== walkY) cap.classList.toggle("is-left", y < walkY);
-    walkY = y;
+    if (!cap || root.hasAttribute("data-scroll-hold")) {
+      walkY = y;
+      return;
+    }
+    if (y === walkY) return;
+    if (Math.abs(y - walkY) >= TURN) {
+      cap.classList.toggle("is-left", y < walkY);
+      walkY = y;
+    }
     const now = performance.now();
     if (now - walkLast > 140) {
       cap.classList.toggle("is-step");

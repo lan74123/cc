@@ -85,6 +85,43 @@ test.describe("Index on a phone", () => {
     await expect.poll(() => openRows(page)).toEqual(expected);
   });
 
+  test("the figure faces the reader's scrolling, not jitter or the script's", async ({
+    page,
+  }) => {
+    await page.goto("/works/");
+    const row = page.locator(".work-card").first();
+    await row.locator(".work-card-meta").click();
+    const cap = row.locator(".work-card-cap");
+    const scrollTo = async (y: number, hold = false) => {
+      await page.evaluate(
+        ([top, held]) => {
+          if (held)
+            document.documentElement.setAttribute("data-scroll-hold", "");
+          window.scrollTo({ top: Number(top), behavior: "instant" });
+        },
+        [y, hold],
+      );
+      // Let the scroll event run before the next step.
+      await page.evaluate(
+        () => new Promise((r) => requestAnimationFrame(() => r(null))),
+      );
+    };
+    await scrollTo(200);
+    await expect(cap).not.toHaveClass(/is-left/);
+    // A couple of pixels back is jitter: still facing down the page.
+    await scrollTo(198);
+    await expect(cap).not.toHaveClass(/is-left/);
+    // A scroll made to hold a row still does not turn it.
+    await scrollTo(100, true);
+    await expect(cap).not.toHaveClass(/is-left/);
+    await page.evaluate(() =>
+      document.documentElement.removeAttribute("data-scroll-hold"),
+    );
+    // The reader scrolling back up does.
+    await scrollTo(60);
+    await expect(cap).toHaveClass(/is-left/);
+  });
+
   test("View project walks the figure there, then opens the project", async ({
     page,
   }) => {

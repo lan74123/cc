@@ -72,7 +72,14 @@ async function verifyTurnstile(
     "https://challenges.cloudflare.com/turnstile/v0/siteverify",
     { method: "POST", body },
   );
-  const result = (await response.json()) as { success?: boolean };
+  const result = (await response.json()) as {
+    success?: boolean;
+    "error-codes"?: string[];
+    hostname?: string;
+  };
+  if (result.success !== true) {
+    console.warn("contact: turnstile rejected", result["error-codes"]);
+  }
   return result.success === true;
 }
 

@@ -240,6 +240,8 @@ document.addEventListener("astro:page-load", () => {
         const dy = t ? y - (c.top + c.height / 2) : 0;
         const run = Math.abs(dx) + Math.abs(dy);
         const time = Math.min(1100, Math.max(600, run * 1.6));
+        // Face the sign, whichever way the page last scrolled.
+        cap.classList.toggle("is-left", dx < 0);
         cap.classList.add("is-leaving");
         cap.animate(
           [
@@ -371,7 +373,12 @@ document.addEventListener("astro:page-load", () => {
     const cap = list.querySelector<HTMLElement>(
       ".work-card.is-open:not(.is-closing) .work-card-cap",
     );
-    if (!cap || root.hasAttribute("data-scroll-hold")) {
+    // On its way to "View project" it keeps facing the sign.
+    if (
+      !cap ||
+      cap.classList.contains("is-leaving") ||
+      root.hasAttribute("data-scroll-hold")
+    ) {
       walkY = y;
       return;
     }

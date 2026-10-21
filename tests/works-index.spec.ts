@@ -129,8 +129,24 @@ test.describe("Index on a phone", () => {
     const row = page.locator(".work-card").first();
     const href = await row.locator("h2 a").getAttribute("href");
     await row.locator(".work-card-meta").click();
-    await row.locator(".work-card-actions .work-card-more").click();
-    await expect(row.locator(".work-card-cap")).toHaveClass(/is-leaving/);
+    const cap = row.locator(".work-card-cap");
+    // Scrolling back up turns the figure up the page...
+    await expect(page.locator("html")).not.toHaveAttribute("data-scroll-hold");
+    for (const top of [300, 200]) {
+      await page.evaluate((y) => {
+        window.scrollTo({ top: y, behavior: "instant" });
+        return new Promise((r) => requestAnimationFrame(() => r(null)));
+      }, top);
+    }
+    await expect(cap).toHaveClass(/is-left/);
+    // Tapped where it is: a click() would scroll it into view first,
+    // and that scroll alone would turn the figure.
+    await row
+      .locator(".work-card-actions .work-card-more")
+      .dispatchEvent("click");
+    await expect(cap).toHaveClass(/is-leaving/);
+    // ...but it walks to the sign facing it.
+    await expect(cap).not.toHaveClass(/is-left/);
     await page.waitForURL(`**${href}`);
   });
 });

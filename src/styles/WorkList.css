@@ -150,9 +150,10 @@ html.dark .work-card-big {
 }
 .work-card-facts {
   display: grid;
-  /* Place names run longest and years shortest, so the columns are
-     weighted that way, keeping an even gap between the values. */
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.65fr);
+  /* Each column as wide as its value, spread edge to edge, so the gaps
+     between values stay even whatever the words and the font. */
+  grid-auto-flow: column;
+  justify-content: space-between;
   gap: 1rem 1.25rem;
   padding-block: 0.9rem;
   border-block: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);

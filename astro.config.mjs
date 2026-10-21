@@ -64,6 +64,8 @@ export default defineConfig({
     processor: unified({
       remarkPlugins: [remarkGfm],
       gfm: false,
+      // U+FE0E asks for the text arrow: iOS draws a bare ↩ as an emoji.
+      remarkRehype: { footnoteBackContent: "↩︎" },
     }),
   },
 

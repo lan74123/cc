@@ -12,7 +12,19 @@ test.describe("Static assets and build output", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(`${page.url()}: ${err.message}`));
     for (const url of ALL_PAGES) {
-      await page.goto(url, { waitUntil: "networkidle" });
+      // The contact page's Turnstile widget keeps a connection open, so
+      // the network never goes idle there; wait for its token instead.
+      if (url === "/contact/") {
+        await page.goto(url);
+        await page.waitForFunction(
+          () =>
+            document.querySelector<HTMLInputElement>(
+              '[name="cf-turnstile-response"]',
+            )?.value,
+        );
+      } else {
+        await page.goto(url, { waitUntil: "networkidle" });
+      }
     }
     expect(errors).toEqual([]);
   });

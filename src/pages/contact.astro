@@ -3,6 +3,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Prose from "../components/Prose.astro";
 import "../styles/Contact.css";
 
+// Turnstile widget "CC Space contact form" (public key; the secret is a
+// Worker secret). Allowed on ccspace.tw, www and the preview site.
+const TURNSTILE_SITEKEY = "0x4AAAAAAFe6s7kC1Ks07ds8";
+
 const title = "Contact";
 const description = "Get in touch about a project.";
 
@@ -86,13 +90,7 @@ const choices = [
           </dl>
         </header>
 
-        <!-- data-demo: no sending endpoint yet; see contactForm.ts. -->
-        <form
-          class="cf font-body"
-          method="post"
-          action="/api/contact"
-          data-demo
-        >
+        <form class="cf font-body" method="post" action="/api/contact">
           <div class="cf-field cf-half">
             <label for="cf-name" class="cf-label font-heading">
               <span>稱呼</span><span class="cf-en">Name</span>
@@ -169,6 +167,7 @@ const choices = [
               placeholder="預計時程、家庭成員、喜歡的參考作品⋯⋯ Timing, who lives there, projects you like."
             ></textarea>
           </div>
+          <div class="cf-turnstile" data-sitekey={TURNSTILE_SITEKEY}></div>
           <div class="cf-actions">
             <button type="submit" class="cf-submit font-heading">
               送出 Send <span aria-hidden="true">→</span>
@@ -190,9 +189,6 @@ const choices = [
             <span class="contact-en"
               >We have your note and will be in touch within 3 business days.</span
             >
-          </p>
-          <p class="cf-demo font-body" hidden>
-            測試站：表單還沒接上寄信，這次沒有寄出。
           </p>
         </div>
       </div>

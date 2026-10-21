@@ -201,6 +201,11 @@
   font-size: 0.75rem;
   opacity: 0.6;
 }
+/* Turnstile draws a 65px-tall box; hold the space so the button does
+   not jump when it appears. */
+.cf-turnstile {
+  min-height: 65px;
+}
 .cf-error {
   font-size: 0.9rem;
 }
@@ -217,11 +222,6 @@
 .cf-done-title {
   margin-bottom: 0.75rem;
   font-size: 1.5rem;
-}
-.cf-demo {
-  margin-top: 1.5rem;
-  font-size: 0.8rem;
-  opacity: 0.6;
 }
 /* The display rules above would otherwise show hidden parts. */
 .contact [hidden] {
@@ -300,6 +300,7 @@ html[data-contact="f3"] .cf-field::before {
 html[data-contact="f3"] .cf-short {
   max-width: none;
 }
+html[data-contact="f3"] .cf-turnstile,
 html[data-contact="f3"] .cf-actions {
   padding-top: 2rem;
   padding-left: 2.5rem;
@@ -329,6 +330,7 @@ html[data-contact="f3"] .cf-actions {
   html[data-contact="f3"] .cf-chips {
     padding-top: 0.25rem;
   }
+  html[data-contact="f3"] .cf-turnstile,
   html[data-contact="f3"] .cf-actions {
     padding-left: 18rem;
   }

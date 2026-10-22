@@ -299,6 +299,17 @@ html.dark .work-card-facts {
   .work-card[data-orient="portrait"] .work-card-big {
     aspect-ratio: 4 / 5;
   }
+  /* The large photo fades in once loaded (.is-loading, set by script)
+     rather than popping in while the row opens. */
+  .work-card-big .work-card-img {
+    transition:
+      opacity 0.4s ease-out,
+      transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  .work-card-big.is-loading .work-card-img {
+    opacity: 0;
+    transition: none;
+  }
   .work-card.is-open .work-card-detail-text {
     margin-top: 1.6rem;
   }

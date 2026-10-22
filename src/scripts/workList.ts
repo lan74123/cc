@@ -43,9 +43,21 @@ document.addEventListener("astro:page-load", () => {
         String(card.classList.contains("is-open")),
       );
   };
+  // Phones fetch a row's large photo only as it opens, so it would pop
+  // in partway through the opening; it fades in once loaded instead.
+  const fadeIn = (card: Element) => {
+    const frame = card.querySelector(".work-card-big");
+    const img = frame?.querySelector("img");
+    if (!frame || !img || img.complete) return;
+    frame.classList.add("is-loading");
+    const done = () => frame.classList.remove("is-loading");
+    img.addEventListener("load", done, { once: true });
+    img.addEventListener("error", done, { once: true });
+  };
   const setOpen = (card: Element, open: boolean) => {
     if (open) warm(card);
     card.classList.toggle("is-open", open);
+    if (open && !split()) fadeIn(card);
     syncExpanded(card);
   };
   const closeAll = () => {

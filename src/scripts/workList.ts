@@ -154,17 +154,19 @@ document.addEventListener("astro:page-load", () => {
     requestAnimationFrame(step);
   };
 
-  // Phones: a row opened low on the screen would open its photo below
+  // Phones: a row opened low on the screen would open its details below
   // the fold. Bring it up, smoothly and in step with the opening, until
   // its title sits just under the header (or the top of the screen).
-  // Rows whose photo already shows are left where they are.
+  // Rows whose details already show whole, down to "View project", are
+  // left where they are; taller details start at the title and the rest
+  // is scrolled to.
   const liftFor = (card: Element) => {
     if (split()) return 0;
-    const photo = card.querySelector(".work-card-big");
-    if (!photo) return 0;
+    const foot = card.querySelector(".work-card-actions");
+    if (!foot) return 0;
     const view = window.visualViewport;
     const bottom = view ? view.offsetTop + view.height : window.innerHeight;
-    if (photo.getBoundingClientRect().bottom <= bottom - 16) return 0;
+    if (foot.getBoundingClientRect().bottom <= bottom - 16) return 0;
     const header = document.querySelector("header");
     const under = header
       ? Math.max(0, header.getBoundingClientRect().bottom)

@@ -29,7 +29,10 @@ interface Env {
   EMAIL: SendEmail;
   // Secrets (wrangler secret put): the studio inbox, a verified Email
   // Routing destination, and the Turnstile widget's secret key.
+  // CONTACT_ALSO (optional) is a comma-separated list of further
+  // inboxes, each also a verified destination, sent their own copy.
   CONTACT_TO?: string;
+  CONTACT_ALSO?: string;
   TURNSTILE_SECRET?: string;
 }
 
@@ -114,19 +117,30 @@ async function handleContact(request: Request, env: Env): Promise<Response> {
   const text = FIELDS.map(([key, label]) => `${label}：${value(key) || "—"}`)
     .join("\n")
     .concat("\n\n—\n從 ccspace.tw 聯絡表單送出");
-  try {
-    await env.EMAIL.send({
-      to: env.CONTACT_TO,
-      from: FROM,
-      subject: `網站詢問：${value("name")}（${value("type")}）`,
-      text,
-      // Reply goes straight to the client when they left an email.
-      ...(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)
-        ? { replyTo: contact }
-        : {}),
-    });
-  } catch (error) {
-    console.error("contact: send failed", error);
+  const recipients = [env.CONTACT_TO, ...(env.CONTACT_ALSO ?? "").split(",")]
+    .map((to) => to.trim())
+    .filter(Boolean);
+  const sent = await Promise.allSettled(
+    recipients.map((to) =>
+      env.EMAIL.send({
+        to,
+        from: FROM,
+        subject: `網站詢問：${value("name")}（${value("type")}）`,
+        text,
+        // Reply goes straight to the client when they left an email.
+        ...(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)
+          ? { replyTo: contact }
+          : {}),
+      }),
+    ),
+  );
+  sent.forEach((result, i) => {
+    if (result.status === "rejected") {
+      console.error(`contact: send ${i} failed`, result.reason);
+    }
+  });
+  // The enquiry got through if the studio inbox has it.
+  if (sent[0]?.status !== "fulfilled") {
     return json(502, { error: "send-failed" });
   }
   return json(200, { ok: true });

@@ -96,9 +96,10 @@ export default defineConfig({
 
   // Served from the site itself (downloaded from Google Fonts at build
   // time), not from Google. Montserrat draws Latin text; Noto Sans TC
-  // (思源黑體) draws the Chinese it lacks. Text sits at weight 300, so
-  // Chinese picks up the Light face while Montserrat, having nothing
-  // lighter than 400, stays Regular. Bold (600/700) is 700 in both.
+  // (思源黑體) draws the Chinese it lacks. Text sits at weight 400 on the
+  // light theme and 300 on the dark one, where Chinese picks up the
+  // Light face while Montserrat, having nothing lighter than 400, stays
+  // Regular. Bold (600/700) is 700 in both.
   fonts: [
     {
       provider: fontProviders.google(),
@@ -116,7 +117,7 @@ export default defineConfig({
       cssVariable: "--font-noto-sans-tc",
       display: "swap",
       fallbacks: ["sans-serif"],
-      weights: [300, 700],
+      weights: [300, 400, 700],
     },
   ],
 

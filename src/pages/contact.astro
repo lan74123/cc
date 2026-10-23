@@ -17,8 +17,6 @@ const channels = [
     value: "hello@ccspace.tw",
     href: "mailto:hello@ccspace.tw",
   },
-  // Non-breaking hyphens keep the number on one line.
-  { label: "Phone", value: "0929‑073‑788", href: "tel:+886929073788" },
 ];
 
 // Choice questions, shown as chips. Ranges are first guesses for the
@@ -70,10 +68,10 @@ const choices = [
         <header class="contact-intro">
           <h1 class="font-heading">{title}</h1>
           <p class="contact-lead font-body">
-            想聊聊您的空間嗎？留下幾項基本資料，我們會在 3 個工作天內與您聯絡。
+            想聊聊您的空間嗎？留下幾項基本資料，我們會在工作時間內與您聯絡。
             <span class="contact-en"
-              >Tell us a little about your space and we'll be in touch within 3
-              business days.</span
+              >Tell us a little about your space and we'll be in touch during
+              business hours.</span
             >
           </p>
           <dl class="contact-channels font-body">
@@ -185,9 +183,9 @@ const choices = [
         <div class="cf-done" tabindex="-1" hidden>
           <p class="cf-done-title font-heading">謝謝您 Thank you</p>
           <p class="font-body">
-            我們已收到您的資料，會在 3 個工作天內與您聯絡。
+            我們已收到您的資料，會在工作時間內與您聯絡。
             <span class="contact-en"
-              >We have your note and will be in touch within 3 business days.</span
+              >We have your note and will be in touch during business hours.</span
             >
           </p>
         </div>

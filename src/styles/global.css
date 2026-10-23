@@ -62,13 +62,15 @@ html.dark {
 html {
   background-color: var(--paper);
   font-family: var(--font-body);
-  /* Light Chinese, Regular Latin: see fonts in astro.config.mjs. */
-  font-weight: 300;
+  /* Regular on light paper, where the Light Chinese read thin; Light
+     Chinese on dark. See fonts in astro.config.mjs. */
+  font-weight: 400;
   height: 100%;
   color-scheme: light;
 }
 
 html.dark {
+  font-weight: 300;
   color: #fff;
   color-scheme: dark;
 }

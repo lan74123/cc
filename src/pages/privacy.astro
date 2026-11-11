@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Prose from "../components/Prose.astro";
+
+// Privacy policy for speednotebot, CC Space's internal Telegram bot, linked
+// from its Google OAuth consent screen. Kept out of the menu, footer and
+// sitemap, and marked noindex.
+const title = "speednotebot 隱私權政策 / Privacy Policy";
+const description =
+  "Privacy policy for speednotebot, CC Space's internal note-taking bot.";
+const updated = "2026-11-11";
+const policyUrl =
+  "https://developers.google.com/terms/api-services-user-data-policy";
+const contact = "canso3957@gmail.com";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  is404Page={false}
+  noindex={true}
+>
+  <div class="flex-1">
+    <Prose>
+      <h1 class="font-overpass-mono mt-8">{title}</h1>
+      <p>最後更新日期：{updated}</p>
+
+      <h2>適用範圍</h2>
+      <p>
+        speednotebot 是 CC Space 的 Telegram
+        速記工具，僅供本公司內部人員使用，不對外提供服務。
+      </p>
+
+      <h2>我們收集的資料</h2>
+      <p>經授權的使用者透過 Telegram 傳送給 bot 的文字、照片和檔案。</p>
+
+      <h2>資料用途</h2>
+      <p>
+        上述資料會存入本公司的 Notion 工作區和 Google
+        Drive，供內部行政作業使用。
+      </p>
+
+      <h2>Google 使用者資料</h2>
+      <p>
+        本工具只使用 Google Drive 的 <code>drive.file</code>
+        權限，只能存取由本工具建立的檔案，不會讀取使用者 Google Drive 中的其他檔案。
+      </p>
+      <p lang="en">
+        speednotebot's use and transfer of information received from Google APIs
+        will adhere to the <a href={policyUrl}
+          >Google API Services User Data Policy</a
+        >, including the Limited Use requirements.
+      </p>
+
+      <h2>資料分享</h2>
+      <p>我們不會出售資料，也不會將資料分享給第三方，亦不用於廣告。</p>
+
+      <h2>資料保存與刪除</h2>
+      <p>
+        資料保存在本公司的 Notion 和 Google
+        Drive。您可以隨時來信要求刪除您的資料，也可以到 Google
+        帳戶的「第三方存取權」頁面撤銷本工具的授權。
+      </p>
+
+      <h2>聯絡我們</h2>
+      <p>
+        如對本政策有任何疑問，請來信：<a href={`mailto:${contact}`}>{contact}</a
+        >
+      </p>
+
+      <hr />
+
+      <div lang="en">
+        <h2>Privacy Policy (English)</h2>
+        <p>Last updated: {updated}</p>
+
+        <h3>Scope</h3>
+        <p>
+          speednotebot is a Telegram note-taking tool used by CC Space. It is
+          for the internal use of our staff only and is not offered as a public
+          service.
+        </p>
+
+        <h3>Information we collect</h3>
+        <p>
+          The text, photos and files that authorized users send to the bot
+          through Telegram.
+        </p>
+
+        <h3>How we use it</h3>
+        <p>
+          This information is saved to our company's Notion workspace and Google
+          Drive for internal administrative work.
+        </p>
+
+        <h3>Google user data</h3>
+        <p>
+          speednotebot uses only the Google Drive <code>drive.file</code> scope. It
+          can access only the files it creates and does not read any other files in
+          the user's Google Drive.
+        </p>
+        <p>
+          speednotebot's use and transfer of information received from Google
+          APIs will adhere to the <a href={policyUrl}
+            >Google API Services User Data Policy</a
+          >, including the Limited Use requirements.
+        </p>
+
+        <h3>Sharing</h3>
+        <p>
+          We do not sell your data, share it with third parties, or use it for
+          advertising.
+        </p>
+
+        <h3>Retention and deletion</h3>
+        <p>
+          Data is kept in our company's Notion and Google Drive. You may ask us
+          to delete your data at any time. You can also revoke speednotebot's
+          access under "Third-party apps &amp; services" in your Google Account.
+        </p>
+
+        <h3>Contact</h3>
+        <p>
+          Questions about this policy: <a href={`mailto:${contact}`}
+            >{contact}</a
+          >
+        </p>
+      </div>
+    </Prose>
+  </div>
+</BaseLayout>

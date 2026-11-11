@@ -45,7 +45,8 @@ export default defineConfig({
 
   integrations: [
     icon(),
-    sitemap(),
+    // /privacy/ is noindex (speednotebot's Google OAuth policy page).
+    sitemap({ filter: (page) => !page.endsWith("/privacy/") }),
     mdx(), // inherits syntaxHighlight, shikiConfig, remarkPlugins, rehypePlugins from markdown config
     undiciRetry(),
   ],

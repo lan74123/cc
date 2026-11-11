@@ -42,6 +42,7 @@ export interface Props {
   alt?: string;
   is404Page?: boolean;
   hideHeaderFooter?: boolean;
+  noindex?: boolean;
 }
 
 const {
@@ -55,6 +56,7 @@ const {
   alt,
   is404Page = false,
   hideHeaderFooter = false,
+  noindex = false,
 } = Astro.props;
 
 /** Safely serialize JSON for embedding in HTML <script> tags.
@@ -87,17 +89,16 @@ const documentTitle =
   title && title !== SITE_TITLE ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 
 // Build breadcrumb from URL path segments
-const pathSegments = Astro.url.pathname
-  .split("/")
-  .filter((s) => s.length > 0);
+const pathSegments = Astro.url.pathname.split("/").filter((s) => s.length > 0);
 const breadcrumbItems = [
   { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
   ...pathSegments.map((segment, i) => ({
     "@type": "ListItem",
     position: i + 2,
-    name: i === pathSegments.length - 1 && title
-      ? title
-      : segment.replace(/[-_]/g, " "),
+    name:
+      i === pathSegments.length - 1 && title
+        ? title
+        : segment.replace(/[-_]/g, " "),
     item: `${baseUrl}/${pathSegments.slice(0, i + 1).join("/")}`,
   })),
 ];
@@ -109,10 +110,14 @@ const breadcrumbSchema = {
 
 // Format dates for structured data — accept Date objects or ISO strings
 const formattedPubDate = pubDate
-  ? (pubDate instanceof Date ? pubDate.toISOString() : new Date(pubDate).toISOString())
+  ? pubDate instanceof Date
+    ? pubDate.toISOString()
+    : new Date(pubDate).toISOString()
   : null;
 const formattedUpdatedDate = updatedDate
-  ? (updatedDate instanceof Date ? updatedDate.toISOString() : new Date(updatedDate).toISOString())
+  ? updatedDate instanceof Date
+    ? updatedDate.toISOString()
+    : new Date(updatedDate).toISOString()
   : null;
 ---
 
@@ -126,8 +131,10 @@ const formattedUpdatedDate = updatedDate
     <link rel="canonical" href={new URL(Astro.url.pathname, baseUrl).href} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {
-      import.meta.env.PUBLIC_PREVIEW === "1" && (
+      import.meta.env.PUBLIC_PREVIEW === "1" ? (
         <meta name="robots" content="noindex, nofollow" />
+      ) : (
+        noindex && <meta name="robots" content="noindex" />
       )
     }
     <meta name="generator" content={Astro.generator} />
@@ -162,7 +169,10 @@ const formattedUpdatedDate = updatedDate
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title || SITE_TITLE} />
-    <meta name="twitter:description" content={description || SITE_DESCRIPTION} />
+    <meta
+      name="twitter:description"
+      content={description || SITE_DESCRIPTION}
+    />
     <meta
       name="twitter:image"
       content={image || `${baseUrl}${metaImage?.src}`}
@@ -192,10 +202,7 @@ const formattedUpdatedDate = updatedDate
       type="application/ld+json"
       set:html={safeJsonLd(organizationSchema)}
     />
-    <script
-      type="application/ld+json"
-      set:html={safeJsonLd(websiteSchema)}
-    />
+    <script type="application/ld+json" set:html={safeJsonLd(websiteSchema)} />
     <script
       type="application/ld+json"
       set:html={safeJsonLd(breadcrumbSchema)}

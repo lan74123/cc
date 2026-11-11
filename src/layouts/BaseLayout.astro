@@ -43,6 +43,7 @@ export interface Props {
   alt?: string;
   is404Page?: boolean;
   hideHeaderFooter?: boolean;
+  noindex?: boolean;
 }
 
 const {
@@ -56,6 +57,7 @@ const {
   alt,
   is404Page = false,
   hideHeaderFooter = false,
+  noindex = false,
 } = Astro.props;
 
 /** Safely serialize JSON for embedding in HTML <script> tags.
@@ -156,8 +158,10 @@ const formattedUpdatedDate = updatedDate
     <link rel="canonical" href={new URL(Astro.url.pathname, baseUrl).href} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {
-      import.meta.env.PUBLIC_PREVIEW === "1" && (
+      import.meta.env.PUBLIC_PREVIEW === "1" ? (
         <meta name="robots" content="noindex, nofollow" />
+      ) : (
+        noindex && <meta name="robots" content="noindex" />
       )
     }
     <meta name="generator" content={Astro.generator} />

@@ -47,7 +47,11 @@ const research = defineCollection({
       ...baseFields,
       image: z
         .object({
-          src: z.union([z.string().startsWith("http"), z.string().startsWith("/"), image()]),
+          src: z.union([
+            z.string().startsWith("http"),
+            z.string().startsWith("/"),
+            image(),
+          ]),
           alt: z.string(),
           positionx: z.string().optional(),
           positiony: z.string().optional(),
@@ -75,7 +79,6 @@ image:
   alt: "Daliao 1"
 description: "Large extension and internal reconfiguration of the main house."
 ---
-
 Body text in plain Markdown.
 ```
 

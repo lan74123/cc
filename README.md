@@ -1,6 +1,6 @@
 <p>
   <img alt="Astro" src="https://img.shields.io/badge/Astro-7.4.1-FF5D01.svg?logo=astro&logoColor=white" />
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4.3.3-38B2AC.svg?logo=tailwind-css&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4.3.5-38B2AC.svg?logo=tailwind-css&logoColor=white" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9.3-3178C6.svg?logo=typescript&logoColor=white" />
   <img alt="MDX" src="https://img.shields.io/badge/%40astrojs%2Fmdx-8.0.0-1B1F24.svg?logo=mdx&logoColor=white" />
   <img alt="Cloudflare" src="https://img.shields.io/badge/Cloudflare-Workers-F38020.svg?logo=cloudflare&logoColor=white" />
@@ -10,7 +10,7 @@
 
 Portfolio site for CC Space, an interior design studio — live at <https://ccspace.tw>.
 
-Built with Astro v7.4.1, MDX content collections, vanilla Astro components and Tailwind CSS v4.3.3, deployed as static assets on Cloudflare Workers. Originally based on the open-source [Revista](https://github.com/erfianugrah/revista-3) template (see `LICENSE`).
+Built with Astro v7.4.1, MDX content collections, vanilla Astro components and Tailwind CSS v4.3.5, deployed as static assets on Cloudflare Workers. Originally based on the open-source [Revista](https://github.com/erfianugrah/revista-3) template (see `LICENSE`).
 
 ## Quick start
 

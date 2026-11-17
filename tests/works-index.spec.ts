@@ -89,7 +89,10 @@ test.describe("Index on a phone", () => {
     page,
   }) => {
     await page.goto("/works/");
-    const row = page.locator(".work-card").first();
+    const rows = page.locator(".work-card");
+    // One project leaves too little page to scroll to 200px.
+    test.skip((await rows.count()) < 2, "needs two rows (preview build)");
+    const row = rows.first();
     await row.locator(".work-card-meta").click();
     const cap = row.locator(".work-card-cap");
     const scrollTo = async (y: number, hold = false) => {
@@ -126,7 +129,10 @@ test.describe("Index on a phone", () => {
     page,
   }) => {
     await page.goto("/works/");
-    const row = page.locator(".work-card").first();
+    const rows = page.locator(".work-card");
+    // One project leaves too little page to scroll to 300px.
+    test.skip((await rows.count()) < 2, "needs two rows (preview build)");
+    const row = rows.first();
     const href = await row.locator("h2 a").getAttribute("href");
     await row.locator(".work-card-meta").click();
     const cap = row.locator(".work-card-cap");

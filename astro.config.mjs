@@ -118,7 +118,7 @@ export default defineConfig({
       cssVariable: "--font-noto-sans-tc",
       display: "swap",
       fallbacks: ["sans-serif"],
-      weights: [300, 400, 700],
+      weights: ["300 700"],
     },
   ],
 

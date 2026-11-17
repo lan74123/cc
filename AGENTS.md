@@ -79,6 +79,7 @@ bun x html-validate dist/path/to/page.html              # validate one generated
 - `prebuild` runs `scripts/sync-readme-versions.js`.
 - `lint:html` and `lint:links` require built files in `dist/`.
 - `.htmlvalidate.json` extends the recommended preset: inline `style` is allowed only for `object-position` (per-photo focal points) `text-align` (Markdown table column alignment) and the colour variables and wrapping Shiki writes on code blocks, and `void-style` is off because MDX emits `<hr/>`.
+- Astro stays on 7.4.1 for now: 7.4.12 pulls in rolldown 1.2.19, whose wasm binding needs `@emnapi/runtime` 2.0 beta, and bun installs that beta at the top of `node_modules`, where `astro check` (built for 1.11) then crashes with `this.bridge.setLastError is not a function`. Retry the upgrade when either side moves on, and run `bun x astro check` after it.
 - Build concurrency is set to 4 in `astro.config.mjs` (a holdover from remote-CDN builds; harmless with local images).
 
 ## Image Handling
@@ -158,13 +159,13 @@ bun x html-validate dist/path/to/page.html              # validate one generated
 
 ## Styling and Tailwind
 
-- Tailwind CSS v4.3.3 is wired through `@tailwindcss/vite` in `astro.config.mjs`.
+- Tailwind CSS v4.3.5 is wired through `@tailwindcss/vite` in `astro.config.mjs`.
 - All config lives in `src/styles/global.css` as `@theme` blocks, `@plugin` directives, and `@custom-variant` declarations. No separate Tailwind config file exists.
 - Dark mode uses `@custom-variant dark (&:where(.dark, .dark *))`.
 - Custom breakpoints are defined in the `@theme` block: `sm=800`, `md=1200`, `lg=1900`, `xl=2500`.
 - Type is Montserrat for Latin with Noto Sans TC (思源黑體) for the Chinese it lacks, both from Google Fonts via the `fonts` config in `astro.config.mjs` and self-hosted at build time. Components use the role utilities `font-heading` and `font-body` (`--font-heading` / `--font-body` in `@theme`; both are currently the same stack, kept separate so headings can change on their own). Montserrat has no generic fallback, or the generic would catch the Chinese first.
 - Text sits at `font-weight: 400` on the light theme (Light Chinese read too thin on white) and `300` on dark (`html.dark`), where Chinese gets the Noto Light face while Montserrat, built only at 400 and 700, matches up to Regular. Bold (600/700) is 700 in both. A new `font-weight` needs its weight added to `fonts`, or the browser falls back to the nearest built one per family.
-- Noto Sans TC arrives as ~100 unicode-range slices of a variable font (300, 400 and 700 share each file); the browser fetches only the slices a page uses (roughly 100-300 KB per page). Only Montserrat 400 is preloaded in `BaseLayout.astro`.
+- Noto Sans TC arrives as ~100 unicode-range slices of a variable font; the browser fetches only the slices a page uses (roughly 100-300 KB per page). It is configured as one weight range (`weights: ["300 700"]`), not a list: Astro inlines its `@font-face` CSS in every page, and a list of three weights wrote each slice three times (311 KB of CSS per page instead of ~100 KB). Only Montserrat 400 is preloaded in `BaseLayout.astro`.
 - Links prefetch their HTML when they scroll into view (`prefetch` in `astro.config.mjs`). `experimental.clientPrerender` stays off: it rendered every visible project in the background in Chrome, photos included.
 - Prefer utility classes first; add custom CSS only for masonry, lightbox, or layout edge cases.
 - Theme colours are CSS variables in `global.css`: `--paper` (page), `--ink` (type and marks) and `--line` (the hairline route), swapped by `html.dark`. Use them (`var(--ink)`, `bg-(--paper)`, `color-mix(in srgb, var(--ink) 20%, transparent)` for tints) instead of raw `rgb()` values and per-component dark overrides. The `theme-color` meta in `BaseLayout.astro` and `theme.ts` repeats `--paper` as hex.

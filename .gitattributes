@@ -1,0 +1,3 @@
+# Text files in the repo use LF; Windows checkouts keep LF too, so
+# Prettier (endOfLine: lf) passes on every platform.
+* text=auto eol=lf

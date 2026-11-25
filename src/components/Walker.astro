@@ -4,11 +4,16 @@
 // decides which pose shows (the `walker-stand` / `walker-step` /
 // `walker-squat` groups) and colours the eyes (`walker-eye`); the doodling
 // animation is shared and lives in the style below.
+//
+// `furnish` adds the coming-soon page's extra poses: carrying (standing
+// and mid-step), bending to pick up or put down, sitting to doze, and
+// leaning forward to get up. The index rows leave it off.
 export interface Props {
   class?: string;
+  furnish?: boolean;
 }
 
-const { class: className } = Astro.props;
+const { class: className, furnish = false } = Astro.props;
 ---
 
 <svg class={className} viewBox="0 0 24 24" aria-hidden="true">
@@ -113,9 +118,141 @@ const { class: className } = Astro.props;
     <circle class="walker-eye" cx="11.2" cy="8.7" r="0.75"></circle>
     <circle class="walker-eye" cx="13" cy="8.5" r="0.75"></circle>
   </g>
+  {
+    furnish && (
+      <>
+        <g class="walker-carry" fill="currentColor">
+          <circle cx="11.6" cy="6.1" r="3.7" />
+          <rect x="9" y="10.3" width="5.6" height="6" rx="2.8" />
+          <rect x="12.4" y="10.6" width="6.6" height="1.9" rx="0.95" />
+          <rect
+            x="12"
+            y="12.3"
+            width="6.4"
+            height="1.9"
+            rx="0.95"
+            transform="rotate(6 12.5 13)"
+          />
+          <circle class="walker-eye" cx="12.6" cy="5.9" r="0.5" />
+          <circle class="walker-eye" cx="14.3" cy="5.9" r="0.5" />
+          <rect x="9.7" y="14.5" width="1.9" height="5.3" rx="0.95" />
+          <rect x="12" y="14.5" width="1.9" height="5.3" rx="0.95" />
+        </g>
+        <g class="walker-carry-step" fill="currentColor">
+          <circle cx="11.6" cy="6.1" r="3.7" />
+          <rect x="9" y="10.3" width="5.6" height="6" rx="2.8" />
+          <rect x="12.4" y="10.6" width="6.6" height="1.9" rx="0.95" />
+          <rect
+            x="12"
+            y="12.3"
+            width="6.4"
+            height="1.9"
+            rx="0.95"
+            transform="rotate(6 12.5 13)"
+          />
+          <circle class="walker-eye" cx="12.6" cy="5.9" r="0.5" />
+          <circle class="walker-eye" cx="14.3" cy="5.9" r="0.5" />
+          <rect
+            x="10"
+            y="14.3"
+            width="1.9"
+            height="5.5"
+            rx="0.95"
+            transform="rotate(24 10.95 14.7)"
+          />
+          <rect
+            x="12"
+            y="14.3"
+            width="1.9"
+            height="5.5"
+            rx="0.95"
+            transform="rotate(-24 12.95 14.7)"
+          />
+        </g>
+        <g class="walker-bend" fill="currentColor">
+          <rect x="9.6" y="14.6" width="1.9" height="5.2" rx="0.95" />
+          <rect x="11.9" y="14.6" width="1.9" height="5.2" rx="0.95" />
+          <rect
+            x="8.9"
+            y="9.4"
+            width="5.6"
+            height="6.4"
+            rx="2.8"
+            transform="rotate(38 11.7 15)"
+          />
+          <circle cx="16.6" cy="8.4" r="3.6" />
+          <rect
+            x="14.1"
+            y="11"
+            width="1.8"
+            height="5.4"
+            rx="0.9"
+            transform="rotate(8 15 11.4)"
+          />
+          <rect
+            x="15.4"
+            y="10.8"
+            width="1.8"
+            height="5.4"
+            rx="0.9"
+            transform="rotate(-6 16.3 11.2)"
+          />
+          <circle class="walker-eye" cx="17.6" cy="9.6" r="0.5" />
+          <circle class="walker-eye" cx="19" cy="9.1" r="0.5" />
+        </g>
+        <g class="walker-lean" fill="currentColor">
+          <rect x="10.6" y="12.9" width="6.4" height="2.2" rx="1.1" />
+          <rect x="15.2" y="13.4" width="2" height="6.4" rx="1" />
+          <rect
+            x="8.6"
+            y="8.4"
+            width="5.6"
+            height="6.2"
+            rx="2.8"
+            transform="rotate(35 11.4 14.6)"
+          />
+          <circle cx="16.9" cy="6.7" r="3.7" />
+          <rect
+            x="13.8"
+            y="10.2"
+            width="1.8"
+            height="4.2"
+            rx="0.9"
+            transform="rotate(-30 14.7 10.6)"
+          />
+          <circle class="walker-eye" cx="17.9" cy="6.9" r="0.5" />
+          <circle class="walker-eye" cx="19.3" cy="6.8" r="0.5" />
+        </g>
+        <g class="walker-sit" fill="currentColor">
+          <rect x="9" y="8.6" width="5.6" height="6.2" rx="2.8" />
+          <circle cx="12.7" cy="5.5" r="3.7" />
+          <rect x="10.6" y="12.9" width="6.4" height="2.2" rx="1.1" />
+          <rect x="15.2" y="13.4" width="2" height="6.4" rx="1" />
+          <rect
+            x="11.6"
+            y="10.4"
+            width="4.8"
+            height="1.8"
+            rx="0.9"
+            transform="rotate(25 12 11.3)"
+          />
+          <path
+            class="walker-eye-shut"
+            d="M13.2 6h1.3M14.9 5.8h1.3"
+            stroke-width="0.6"
+            stroke-linecap="round"
+          />
+        </g>
+      </>
+    )
+  }
 </svg>
 
 <style is:global>
+  /* Asleep (furnish poses): closed eyes in the page colour. */
+  .walker-eye-shut {
+    stroke: var(--paper);
+  }
   /* Squatting: the pencil hand wobbles and the doodle draws itself. */
   .walker-draw {
     transform-box: view-box;

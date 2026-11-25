@@ -248,7 +248,13 @@ const formattedUpdatedDate = updatedDate
   <body
     class="flex flex-col md:pt-8 md:pr-16 md:pb-8 md:pl-16 p-8 max-w-full min-h-svh overflow-x-hidden dark:bg-(--paper) dark:text-(--ink)"
   >
-    {!hideHeaderFooter && <Header is404Page={is404Page} />}
+    {
+      hideHeaderFooter ? (
+        <slot name="header" />
+      ) : (
+        <Header is404Page={is404Page} />
+      )
+    }
     <!-- min-w-0: override flexbox min-width:auto default so <main> can
          shrink below its content's intrinsic width (e.g. NextPost's 704 px
          card row). Without this, wide children propagate up and push the
@@ -259,7 +265,7 @@ const formattedUpdatedDate = updatedDate
     <ScrollToTop />
     <Reveal />
     {isPreview && <PreviewSwitcher />}
-    {!hideHeaderFooter && <Footer />}
+    {hideHeaderFooter ? <slot name="footer" /> : <Footer />}
   </body>
 </html>
 <style is:global>

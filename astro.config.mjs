@@ -7,10 +7,19 @@ import remarkGfm from "remark-gfm";
 import undiciRetry from "./src/scripts/undici-retry.ts";
 import tailwindcss from "@tailwindcss/vite";
 import hqService from "@erfianugrah/astro-image-hq";
+import comingSoon from "./src/coming-soon/integration.ts";
 // Use no-op passthrough image service in dev to skip Sharp processing.
 // Images are served as-is during development; full optimization runs in production builds.
 const isDev =
   process.env.NODE_ENV !== "production" && !process.argv.includes("build");
+
+// Coming-soon switch: PUBLIC_COMING_SOON=1 builds only the coming-soon
+// page, shown at every URL (src/coming-soon/). Set it as a Workers Builds
+// variable to close the production site. Design-review builds
+// (PUBLIC_PREVIEW=1, bun run deploy:preview) ignore it and show the
+// whole site.
+const isComingSoon =
+  process.env.PUBLIC_COMING_SOON === "1" && process.env.PUBLIC_PREVIEW !== "1";
 
 // Markdown tables mark column alignment with the obsolete `align`
 // attribute; write it as `text-align` instead, which lint:html allows.
@@ -38,7 +47,8 @@ export default defineConfig({
   // Production: `/` -> `/works/` is a real 301 from public/_redirects
   // (Cloudflare). Astro's redirect would emit a meta-refresh page that
   // flashes "Redirecting from / to /works", so it is only used in dev.
-  redirects: isDev ? { "/": "/works" } : {},
+  // In coming-soon mode `/` is the coming-soon page instead.
+  redirects: isDev && !isComingSoon ? { "/": "/works" } : {},
 
   image: {
     service: isDev
@@ -55,9 +65,16 @@ export default defineConfig({
 
   integrations: [
     // /privacy/ is noindex (speednotebot's Google OAuth policy page).
-    sitemap({ filter: (page) => !page.endsWith("/privacy/") }),
+    // In coming-soon mode it lists only `/`, the one page left standing.
+    sitemap({
+      filter: (page) =>
+        !page.endsWith("/privacy/") &&
+        (!isComingSoon || new URL(page).pathname === "/"),
+    }),
     mdx(), // inherits syntaxHighlight, shikiConfig, remarkPlugins, rehypePlugins from markdown config
     undiciRetry(),
+    // Last, so it prunes the build after the others have written theirs.
+    ...(isComingSoon ? [comingSoon()] : []),
   ],
 
   markdown: {

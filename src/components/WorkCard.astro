@@ -9,6 +9,7 @@
 // the behaviour (opening rows, the pane, the figure) in workList.ts.
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
+import Walker from "./Walker.astro";
 import "../styles/WorkList.css";
 
 export interface Props {
@@ -143,109 +144,7 @@ const paneSizes = [
       </div>
     </div>
     <button type="button" class="work-card-cap" aria-label="Close details">
-      <svg class="work-card-walker" viewBox="0 0 24 24" aria-hidden="true">
-        <g class="walker-stand" fill="currentColor">
-          <circle cx="12" cy="6.2" r="3.7"></circle>
-          <rect x="9.2" y="10.4" width="5.6" height="6" rx="2.8"></rect>
-          <rect x="9.9" y="14.6" width="1.9" height="5.2" rx="0.95"></rect>
-          <rect x="12.2" y="14.6" width="1.9" height="5.2" rx="0.95"></rect>
-          <rect
-            x="7.6"
-            y="11"
-            width="1.8"
-            height="4.2"
-            rx="0.9"
-            transform="rotate(12 8.5 11.4)"></rect>
-          <rect
-            x="14.6"
-            y="11"
-            width="1.8"
-            height="4.2"
-            rx="0.9"
-            transform="rotate(-12 15.5 11.4)"></rect>
-          <circle class="walker-eye" cx="12.9" cy="6" r="0.5"></circle>
-          <circle class="walker-eye" cx="14.6" cy="6" r="0.5"></circle>
-        </g>
-        <g class="walker-step" fill="currentColor">
-          <circle cx="12.3" cy="5.8" r="3.7"></circle>
-          <rect x="9.4" y="10" width="5.6" height="6" rx="2.8"></rect>
-          <rect
-            x="10.2"
-            y="14.4"
-            width="1.9"
-            height="5.4"
-            rx="0.95"
-            transform="rotate(26 11.15 14.8)"></rect>
-          <rect
-            x="12.3"
-            y="14.4"
-            width="1.9"
-            height="5.4"
-            rx="0.95"
-            transform="rotate(-26 13.25 14.8)"></rect>
-          <rect
-            x="7.8"
-            y="10.6"
-            width="1.8"
-            height="4.2"
-            rx="0.9"
-            transform="rotate(-30 8.7 11)"></rect>
-          <rect
-            x="14.8"
-            y="10.6"
-            width="1.8"
-            height="4.2"
-            rx="0.9"
-            transform="rotate(-38 15.7 11)"></rect>
-          <circle class="walker-eye" cx="13.2" cy="5.6" r="0.5"></circle>
-          <circle class="walker-eye" cx="14.9" cy="5.6" r="0.5"></circle>
-        </g>
-        <g class="walker-squat" fill="currentColor">
-          <circle cx="10.2" cy="8" r="3.7"></circle>
-          <rect
-            x="7.2"
-            y="11.2"
-            width="5.4"
-            height="6.6"
-            rx="2.7"
-            transform="rotate(14 9.9 14.5)"></rect>
-          <rect x="8.4" y="17.6" width="4.4" height="2.8" rx="1.4"></rect>
-          <rect
-            x="9.6"
-            y="15.2"
-            width="5.4"
-            height="2.2"
-            rx="1.1"
-            transform="rotate(-24 10.7 16.3)"></rect>
-          <rect x="13" y="14.4" width="2" height="6.2" rx="1"></rect>
-          <rect
-            x="10.6"
-            y="12.6"
-            width="1.8"
-            height="3.4"
-            rx="0.9"
-            transform="rotate(-60 11.5 13)"></rect>
-          <g class="walker-draw">
-            <rect
-              x="11.1"
-              y="12"
-              width="1.8"
-              height="10"
-              rx="0.9"
-              transform="rotate(-42.5 12 12.4)"></rect>
-          </g>
-          <path
-            class="walker-doodle"
-            d="M19.2 19.65a2.4 0.85 0 1 1 0 1.7a2.4 0.85 0 1 1 0 -1.7"
-            pathLength="1"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="0.7"
-            stroke-linecap="round"></path>
-          <circle class="walker-eye" cx="11.2" cy="8.7" r="0.75"></circle>
-          <circle class="walker-eye" cx="13" cy="8.5" r="0.75"></circle>
-        </g>
-      </svg>
+      <Walker class="work-card-walker" />
     </button>
   </div>
 </article>

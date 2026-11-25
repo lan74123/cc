@@ -201,54 +201,9 @@ html.dark .work-card-facts {
 .work-card-more:hover .work-card-arrow {
   transform: translateX(6px);
 }
-/* The figure: standing, mid-step, and squatting to doodle. */
+/* The figure (Walker.astro): standing, mid-step, and squatting to doodle. */
 .work-card-walker .walker-squat {
   display: none;
-}
-.walker-draw {
-  transform-box: view-box;
-  transform-origin: 12px 12.4px;
-  animation: walker-draw 1.2s ease-in-out infinite;
-}
-.walker-doodle {
-  stroke-dasharray: 1 1;
-  animation: walker-doodle 2.4s linear infinite;
-}
-@keyframes walker-draw {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(5deg) translateY(-0.3px);
-  }
-  50% {
-    transform: rotate(0deg) translateY(0.3px);
-  }
-  75% {
-    transform: rotate(-5deg) translateY(-0.3px);
-  }
-}
-@keyframes walker-doodle {
-  0% {
-    stroke-dashoffset: 1;
-    opacity: 1;
-  }
-  75% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  95%,
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .walker-draw,
-  .walker-doodle {
-    animation: none;
-  }
 }
 @keyframes work-open {
   from {

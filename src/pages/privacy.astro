@@ -1,10 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Prose from "../components/Prose.astro";
+import Footer from "../components/Footer.astro";
+import LogoHeader from "../coming-soon/LogoHeader.astro";
+import { IS_COMING_SOON } from "../coming-soon/mode";
 
 // Privacy policy for speednotebot, CC Space's internal Telegram bot, linked
 // from its Google OAuth consent screen. Kept out of the menu, footer and
-// sitemap, and marked noindex.
+// sitemap, and marked noindex. It stays up in coming-soon mode, with the
+// logo-only header, as the consent screen needs it.
 const title = "speednotebot 隱私權政策 / Privacy Policy";
 const description =
   "Privacy policy for speednotebot, CC Space's internal note-taking bot.";
@@ -19,7 +23,9 @@ const contact = "canso3957@gmail.com";
   description={description}
   is404Page={false}
   noindex={true}
+  hideHeaderFooter={IS_COMING_SOON}
 >
+  {IS_COMING_SOON && <LogoHeader slot="header" />}
   <div class="flex-1">
     <Prose>
       <h1 class="font-heading mt-8">{title}</h1>
@@ -128,4 +134,5 @@ const contact = "canso3957@gmail.com";
       </div>
     </Prose>
   </div>
+  {IS_COMING_SOON && <Footer slot="footer" />}
 </BaseLayout>

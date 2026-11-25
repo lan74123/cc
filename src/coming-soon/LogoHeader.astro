@@ -1,0 +1,24 @@
+---
+// Header for pages shown while the site is closed (coming-soon mode): the
+// logo alone, with no links, since the pages they would lead to are gone.
+import logoDark from "../assets/logo/ccspace_b.svg";
+import logoLight from "../assets/logo/ccspace_w.svg";
+import { SITE_TITLE } from "../consts";
+---
+
+<header class="flex items-center h-[30px] mb-[20px]">
+  <img
+    class="dark:hidden h-[30px] w-auto"
+    src={logoDark.src}
+    alt={SITE_TITLE}
+    width="123"
+    height="30"
+  />
+  <img
+    class="hidden dark:block h-[30px] w-auto"
+    src={logoLight.src}
+    alt={SITE_TITLE}
+    width="123"
+    height="30"
+  />
+</header>
